@@ -4,33 +4,22 @@ workflows:
     environment:
       node: 20
       xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.admar.app
     integrations:
       app_store_connect: "codemgck"
     scripts:
       - name: Install dependencies
-        script: |
-          npm install --legacy-peer-deps
+        script: npm install --legacy-peer-deps
 
       - name: Capacitor sync
-        script: |
-          npx cap sync ios
+        script: npx cap sync ios
 
       - name: Install CocoaPods
         script: |
           cd ios/App
           pod install --verbose
-          cd ../..
-
-      - name: Set up keychain
-        script: keychain initialize
-
-      - name: Add certificates to keychain
-        script: keychain add-certificates
-
-      - name: Configure code signing
-        script: |
-          cd ios/App
-          xcode-project use-profiles --project App.xcodeproj
           cd ../..
 
       - name: Build IPA
