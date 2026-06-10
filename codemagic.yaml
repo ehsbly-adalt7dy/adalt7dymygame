@@ -3,13 +3,17 @@ workflows:
     name: iOS Build
     environment:
       node: latest
+      xcode: latest
 
     scripts:
       - npm install
-
-      - chmod +x node_modules/.bin/* || true
-
       - npx cap sync ios
 
+      - cd ios/App
+      - pod install
+      - xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -archivePath build/App.xcarchive archive
+
+      - xcodebuild -exportArchive -archivePath build/App.xcarchive -exportOptionsPlist exportOptions.plist -exportPath build
+
     artifacts:
-      - ios/App/build/**/*.ipa
+      - ios/App/build/*.ipa
