@@ -3,23 +3,18 @@ workflows:
     name: iOS Build
 
     environment:
-      node: 22
+      node: 20
       xcode: latest
 
     scripts:
-      - npm install
+      - npm ci --unsafe-perm=true
+      - npm rebuild
 
-      - chmod -R 777 node_modules || true
-
-       -  node node_modules/@capacitor/cli/bin/capacitor.js sync ios
+      - node node_modules/@capacitor/cli/bin/capacitor.js sync ios
 
       - cd ios/App
       - pod install
       - cd ../..
-
-      - xcode-project build-ipa \
-          --workspace ios/App/App.xcworkspace \
-          --scheme App
 
     artifacts:
       - build/ios/ipa/*.ipa
