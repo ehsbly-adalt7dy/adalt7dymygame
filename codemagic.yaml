@@ -6,53 +6,60 @@ workflows:
       node: 20
       xcode: latest
 
-    # ===== هذا هو المفتاح: ربط حساب Apple Developer =====
+    # ربط حساب Apple Developer (عدّل الاسم حسب ما أضفته)
     integrations:
-      app_store_connect: "codemgck"
+      app_store_connect: "codemagic"  # غيّر إلى اسم المفتاح الذي أضفته
 
     scripts:
-      - npm install --legacy-peer-deps
-      - chmod -R +x node_modules || true
-
-      # إضافة منصة iOS
-      - node node_modules/@capacitor/cli/dist/bin/capacitor.js add ios || true
-      - node node_modules/@capacitor/cli/dist/bin/capacitor.js sync ios
-
-      # ===== هذا هو الجزء الجديد المسؤول عن التوقيع والبناء =====
+      # ===== الخطوة 1: تثبيت الاعتمادات (هذا هو الحل) =====
+      - name: Install dependencies
+        script: |
+          npm ci || npm install
+          npm list @capacitor/cli  # للتحقق من التثبيت
       
-      # 1. تهيئة سلسلة مفاتيح للتوقيع
+      # ===== الخطوة 2: تحضير Capacitor (استخدم npx بدلاً من المسار المباشر) =====
+      - name: Capacitor sync
+        script: |
+          npx cap add ios || true
+          npx cap sync ios
+      
+      # ===== الخطوة 3: التوقيع الرقمي والبناء =====
       - name: Set up keychain for code signing
         script: keychain initialize
 
-      # 2. جلب ملفات التوقيع تلقائياً من Apple (هذا يفعل "Automatic Code Signing")
       - name: Fetch signing files
         script: |
-          BUNDLE_ID=$(xcode-project detect-bundle-id)  # يكتشف معرف الحزمة تلقائياً
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
+          if [ -f "ios/App.xcodeproj/project.pbxproj" ]; then
+            BUNDLE_ID=$(xcode-project detect-bundle-id)
+            app-store-connect fetch-signing-files "$BUNDLE_ID" \
+              --type IOS_APP_STORE \
+              --create
+          else
+            echo "⚠️ مشروع iOS غير موجود، تأكد من نجاح npx cap sync"
+            exit 1
+          fi
 
-      # 3. إضافة الشهادات إلى سلسلة المفاتيح
       - name: Add certificates to keychain
         script: keychain add-certificates
 
-      # 4. تطبيق إعدادات التوقيع على مشروع Xcode
-      - name: Configure code signing in Xcode project
+      - name: Configure code signing
         script: xcode-project use-profiles
 
-      # 5. بناء ملف .ipa النهائي
       - name: Build IPA
         script: |
-          xcode-project build-ipa \
-            --project ios/App.xcodeproj \
-            --scheme App
+          if [ -f "ios/App.xcodeproj/project.pbxproj" ]; then
+            xcode-project build-ipa \
+              --project ios/App.xcodeproj \
+              --scheme App
+          else
+            echo "⚠️ مشروع iOS غير موجود"
+            exit 1
+          fi
 
     artifacts:
       - build/ios/ipa/*.ipa
 
-    # ===== هذا القسم مسؤول عن رفع اللعبة إلى App Store =====
     publishing:
       app_store_connect:
         auth: integration
-        submit_to_testflight: true   # يرفع إلى TestFlight أولاً للاختبار
-        # submit_to_app_store: false  # غيّر إلى true عندما تكون جاهزاً للإصدار الرسمي
+        submit_to_testflight: true
