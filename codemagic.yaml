@@ -22,6 +22,14 @@ workflows:
           pod install --verbose
           cd ../..
 
+      - name: Fix Bundle ID
+        script: |
+          cd ios/App
+          sed -i '' 's/adalt7dy\.mar\.com/com.admar.app/g' App.xcodeproj/project.pbxproj
+          echo "✅ Bundle ID after fix:"
+          grep "PRODUCT_BUNDLE_IDENTIFIER" App.xcodeproj/project.pbxproj
+          cd ../..
+
       - name: Set up code signing
         script: |
           TEAM_ID="Q39G2BK6VX"
@@ -29,7 +37,6 @@ workflows:
           BUNDLE_ID="com.admar.app"
 
           PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" 2>/dev/null | head -1)
-          echo "✅ Profile path: $PROFILE_PATH"
           cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
 
           printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n<key>method</key>\n<string>app-store</string>\n<key>teamID</key>\n<string>%s</string>\n<key>signingStyle</key>\n<string>manual</string>\n<key>provisioningProfiles</key>\n<dict>\n<key>%s</key>\n<string>%s</string>\n</dict>\n</dict>\n</plist>\n' "$TEAM_ID" "$BUNDLE_ID" "$PROFILE_UUID" > /Users/builder/export_options.plist
@@ -55,9 +62,6 @@ workflows:
             COMPILER_INDEX_STORE_ENABLE=NO \
             archive
           cd ../..
-
-          echo "📂 البحث عن xcarchive:"
-          find /Users/builder/clone -name "*.xcarchive" 2>/dev/null
 
           xcodebuild \
             -exportArchive \
