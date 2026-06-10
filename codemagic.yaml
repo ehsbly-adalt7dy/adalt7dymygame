@@ -7,7 +7,7 @@ workflows:
       xcode: latest
 
     integrations:
-      app_store_connect: "codemgk"
+      app_store_connect: "codmgk"
 
     scripts:
       # ===== الخطوة 1: تثبيت الاعتمادات =====
