@@ -8,7 +8,7 @@ workflows:
 
     # ربط حساب Apple Developer (عدّل الاسم حسب ما أضفته)
     integrations:
-      app_store_connect: "codemagic"  # غيّر إلى اسم المفتاح الذي أضفته
+      app_store_connect: "codemgck"  
 
     scripts:
       # ===== الخطوة 1: تثبيت الاعتمادات (هذا هو الحل) =====
