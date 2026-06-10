@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">قد التحدي ؟</string>
+    <string name="title_activity_main">قد التحدي ؟</string>
+    <string name="package_name">adalt7dy.mar.com</string>
+    <string name="custom_url_scheme">adalt7dy.mar.com</string>
+</resources>

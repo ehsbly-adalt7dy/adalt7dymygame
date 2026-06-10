@@ -1,0 +1,2366 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>مود الفرق</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-font-smoothing: antialiased; }
+
+    :root {
+      --red: #ff4757;
+      --red-light: #ff6b81;
+      --red-bg: rgba(255,71,87,0.12);
+      --blue: #1e90ff;
+      --blue-light: #54a0ff;
+      --blue-bg: rgba(30,144,255,0.12);
+      --pink: #ff8c94;
+      --purple: #aa96da;
+      --mint: #a8d8ea;
+      --bg1: #a8d8ea;
+      --bg2: #aa96da;
+      --card-bg: rgba(255,255,255,0.96);
+      --shadow: 0 4px 24px rgba(0,0,0,0.13);
+      --radius: 5vw;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
+      overflow: hidden;
+      height: 100vh; width: 100vw;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      display: flex; justify-content: center; align-items: center;
+      position: relative; touch-action: manipulation; overscroll-behavior: contain;
+    }
+
+    body::before {
+      content: '';
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.08) 50%, transparent 55%);
+      background-size: 20px 20px;
+      animation: rain 1s linear infinite; z-index: 0; opacity: 0.3;
+    }
+    @keyframes rain { 0%{background-position:0 0} 100%{background-position:20px 20px} }
+
+    .container {
+      width: 100vw; height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative; z-index: 1;
+    }
+
+    .screen {
+      width: 96vw;
+      max-height: 94vh;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 5vw;
+      box-shadow: var(--shadow);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3.5vw;
+      animation: slideIn 0.4s cubic-bezier(.22,.68,0,1.2);
+      border: 2px solid rgba(168,216,234,0.5);
+      scrollbar-width: thin;
+    }
+    .screen::-webkit-scrollbar { width: 3px; }
+    @keyframes slideIn { from{transform:translateY(18px) scale(0.98);opacity:0} to{transform:translateY(0) scale(1);opacity:1} }
+
+    .hidden { display: none !important; }
+
+    h1 { font-size: 9vw; color: var(--purple); font-weight: 900; text-align: center; line-height: 1.4; }
+    h2 { font-size: 7.5vw; color: var(--pink); font-weight: 900; text-align: center; line-height: 1.4; }
+    p  { font-size: 5vw; color: #444; line-height: 1.7; text-align: center; font-weight: 600; }
+
+    .btn {
+      width: 100%; padding: 4vw 5vw;
+      border-radius: 4vw; border: none; cursor: pointer;
+      font-family: 'Cairo', sans-serif; font-size: 6vw; font-weight: 800;
+      transition: all 0.22s cubic-bezier(.22,.68,0,1.2); box-shadow: var(--shadow);
+      letter-spacing: 0.02em;
+    }
+    .btn-primary { background: linear-gradient(45deg,var(--pink),var(--purple)); color:#fff; }
+    .btn-red     { background: linear-gradient(45deg,var(--red),var(--red-light)); color:#fff; }
+    .btn-blue    { background: linear-gradient(45deg,var(--blue),var(--blue-light)); color:#fff; }
+    .btn-ghost   { background: rgba(255,255,255,0.75); color:#666; border: 2px solid rgba(0,0,0,0.1); }
+    .btn:active  { transform: scale(0.96); }
+
+    /* ====== PROGRESS BAR ====== */
+    .progress-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 2vw;
+    }
+    .progress-team-row {
+      display: flex;
+      align-items: center;
+      gap: 2vw;
+      width: 100%;
+    }
+    .progress-label {
+      font-size: 3.8vw;
+      font-weight: 900;
+      min-width: 16vw;
+      text-align: right;
+    }
+    .progress-label.red { color: var(--red); }
+    .progress-label.blue { color: var(--blue); }
+    .progress-bar-track {
+      flex: 1;
+      height: 8vw;
+      background: rgba(0,0,0,0.07);
+      border-radius: 4vw;
+      overflow: visible;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 4vw;
+      transition: width 0.6s cubic-bezier(.22,.68,0,1.2);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 2vw;
+      min-width: 8vw;
+    }
+    .progress-bar-fill.red-fill {
+      background: linear-gradient(90deg, var(--red-light), var(--red));
+      box-shadow: 0 2px 10px rgba(255,71,87,0.4);
+    }
+    .progress-bar-fill.blue-fill {
+      background: linear-gradient(90deg, var(--blue-light), var(--blue));
+      box-shadow: 0 2px 10px rgba(30,144,255,0.4);
+    }
+    .progress-dots {
+      display: flex;
+      gap: 1.5vw;
+      align-items: center;
+      margin-right: 2vw;
+    }
+    .progress-dot {
+      width: 4.5vw; height: 4.5vw;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.25);
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+    .progress-dot.filled {
+      background: #fff;
+      box-shadow: 0 0 8px rgba(255,255,255,0.8);
+    }
+    .progress-dot.filled.pop {
+      animation: dotPop 0.5s cubic-bezier(.22,.68,0,1.5);
+    }
+    .progress-dot-group {
+      width: 7vw; height: 7vw;
+      border-radius: 50%;
+      background: #ff8c00;
+      border: 2px solid rgba(255,255,255,0.8);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.8vw; color: #fff; font-weight: 900;
+      flex-shrink: 0;
+      box-shadow: 0 0 10px rgba(255,140,0,0.6);
+      animation: dotPop 0.5s cubic-bezier(.22,.68,0,1.5);
+    }
+    @keyframes dotPop {
+      0%  { transform: scale(1); }
+      40% { transform: scale(1.7); box-shadow: 0 0 18px rgba(255,255,255,1); }
+      70% { transform: scale(0.85); }
+      100%{ transform: scale(1); }
+    }
+    .progress-score-num {
+      font-size: 4.5vw;
+      font-weight: 900;
+      min-width: 10vw;
+      text-align: center;
+    }
+    .progress-score-num.red { color: var(--red); }
+    .progress-score-num.blue { color: var(--blue); }
+
+    /* SCORES compact bar */
+    .scores-bar { display: flex; gap: 3vw; width: 100%; justify-content: center; }
+    .score-badge {
+      flex: 1; padding: 3vw 4vw; border-radius: 4vw;
+      display: flex; flex-direction: column; align-items: center; gap: 1vw;
+      font-weight: 800; position: relative; overflow: hidden;
+    }
+    .score-badge::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      pointer-events: none;
+    }
+    .score-badge.red  { background: var(--red-bg); border: 2px solid var(--red); color: var(--red); }
+    .score-badge.blue { background: var(--blue-bg); border: 2px solid var(--blue); color: var(--blue); }
+    .score-badge .team-name { font-size: 4vw; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .score-badge .team-pts  { font-size: 10vw; font-weight: 900; line-height:1; }
+
+    @keyframes scoreUp {
+      0%  { transform: scale(1); }
+      40% { transform: scale(1.4); }
+      70% { transform: scale(0.9); }
+      100%{ transform: scale(1); }
+    }
+    .score-badge.score-pop .team-pts { animation: scoreUp 0.5s ease; }
+
+    /* QUESTION BOXES */
+    .q-boxes { display: flex; gap: 3vw; flex-wrap: wrap; justify-content: center; width: 100%; }
+    .q-box {
+      width: 13vw; height: 13vw; border-radius: 3vw;
+      background: linear-gradient(135deg,var(--pink),var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 6vw; color: #fff; font-weight: 900;
+      cursor: pointer; transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .q-box.used { background: #e8e8e8; color: #bbb; cursor: default; box-shadow: none; transform: scale(0.9); }
+    .q-box:not(.used):active { transform: scale(0.9); }
+
+    /* CARDS */
+    .cards-row { display: flex; gap: 2.5vw; justify-content: center; width: 100%; }
+    .card-btn {
+      flex: 1; padding: 3.5vw 1vw 3vw; border-radius: 3.5vw; border: none; cursor: pointer;
+      font-family: 'Cairo', sans-serif; display: flex; flex-direction: column;
+      align-items: center; gap: 1.2vw;
+      transition: all 0.22s cubic-bezier(.22,.68,0,1.2);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.13);
+    }
+    .card-btn .card-icon { font-size: 8vw; line-height: 1; }
+    .card-btn .card-label { font-size: 3.2vw; font-weight: 900; text-align: center; line-height: 1.2; }
+    .card-btn.card-extra  { background: linear-gradient(160deg,#ffecd2,#fcb69f); color:#7a3f0c; }
+    .card-btn.card-freeze { background: linear-gradient(160deg,#a8e6cf,#56d4a9); color:#0c4a35; }
+    .card-btn.card-hint   { background: linear-gradient(160deg,#ffeaa7,#fdcb6e); color:#5a3e00; }
+    .card-btn.card-time   { background: linear-gradient(160deg,#74b9ff,#0984e3); color:#fff; }
+    .card-btn.card-double { background: linear-gradient(160deg,#fd79a8,#e84393); color:#fff; }
+    .card-btn.used-card { opacity: 0.38; filter: grayscale(0.5); cursor: default; transform: none !important; box-shadow: none; }
+    .card-btn:not(.used-card):active { transform: scale(0.93); }
+
+    /* TIMER */
+    .timer-big { font-size: 16vw; color: var(--purple); font-weight: 900; text-align: center; line-height:1; text-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .timer-small { font-size: 12vw; color: #fff; font-weight: 900; text-align: center; }
+    .timer-danger { color: var(--red) !important; animation: timerPulse 0.5s infinite alternate; }
+    @keyframes timerPulse { from{opacity:1;transform:scale(1)} to{opacity:0.7;transform:scale(1.05)} }
+
+    /* WORD REVEAL */
+    .word-reveal-box {
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff; border-radius: 4vw; padding: 7vw 6vw;
+      text-align: center; width: 100%; box-shadow: var(--shadow);
+    }
+    .word-reveal-icon { font-size: 16vw; }
+    .word-reveal-text { font-size: 10vw; font-weight: 900; margin-top: 2vw; }
+    .word-reveal-category {
+      font-size: 4.5vw; font-weight: 700; margin-top: 2vw;
+      background: rgba(255,255,255,0.25); border-radius: 3vw;
+      padding: 1.5vw 4vw; display: inline-block;
+      letter-spacing: 0.05em;
+    }
+
+    /* ROLE BOX */
+    .role-box { width: 100%; border-radius: 4vw; padding: 4vw 5vw; display: flex; flex-direction: column; gap: 2.5vw; }
+    .role-box.red-theme  { background: var(--red-bg); border: 2px solid var(--red); }
+    .role-box.blue-theme { background: var(--blue-bg); border: 2px solid var(--blue); }
+    .role-row { display: flex; align-items: center; gap: 3vw; padding: 2.5vw 3vw; border-radius: 3vw; background: rgba(255,255,255,0.6); }
+    .role-emoji { font-size: 7vw; flex-shrink: 0; }
+    .role-text  { flex: 1; }
+    .role-team  { font-size: 5.5vw; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .role-team.red-color  { color: var(--red); }
+    .role-team.blue-color { color: var(--blue); }
+    .role-desc  { font-size: 4vw; font-weight: 600; color: #555; margin-top: 0.5vw; }
+
+    /* GUESS GRID */
+    .guess-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3vw; width: 100%; }
+    .guess-opt {
+      padding: 3.5vw 2vw; border-radius: 3.5vw; background: #fff;
+      border: 2.5px solid var(--purple); font-size: 4.8vw; font-weight: 800; color: #333;
+      cursor: pointer; text-align: center; transition: all 0.2s ease;
+      min-height: 15vw; display: flex; align-items: center; justify-content: center; line-height: 1.3;
+    }
+    .guess-opt:active { transform: scale(0.96); }
+    .guess-opt.correct { background: #4CAF50; color:#fff; border-color:#2E7D32; animation: correctPop 0.4s ease; }
+    .guess-opt.wrong   { background: var(--red); color:#fff; border-color:#c0392b; animation: wrongShake 0.4s ease; }
+    @keyframes correctPop { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
+    @keyframes wrongShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+
+    /* RESULT */
+    .result-box { width: 100%; border-radius: 4vw; padding: 6vw; text-align: center; font-size: 7.5vw; font-weight: 900; line-height: 1.4; }
+    .result-box.win  { background: linear-gradient(135deg,#a8e6cf,#55efc4); color:#0c4a35; }
+    .result-box.lose { background: linear-gradient(135deg,#ffd3b6,#ff7675); color:#5a0000; }
+
+    /* LAST CHANCE BANNER */
+    .last-chance-banner {
+      width: 100%;
+      padding: 3.5vw 4vw;
+      border-radius: 3.5vw;
+      text-align: center;
+      font-size: 5vw;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+      color: #5a3e00;
+      border: 2px solid #e17055;
+      animation: lastChancePulse 1s infinite alternate;
+    }
+    @keyframes lastChancePulse {
+      from { box-shadow: 0 0 0 rgba(225,112,85,0.4); }
+      to   { box-shadow: 0 0 18px rgba(225,112,85,0.7); }
+    }
+
+    /* RULES */
+    .rules-header { display: flex; flex-direction: column; align-items: center; gap: 1.5vw; width: 100%; padding-bottom: 1vw; }
+    .rules-header h2 { font-size: 8vw; background: linear-gradient(135deg, var(--pink), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .rules-header p { font-size: 4.2vw; color: #888; font-weight: 600; }
+    .rules-cards { display: flex; flex-direction: column; gap: 2.5vw; width: 100%; }
+    .rule-card { display: flex; align-items: center; gap: 3.5vw; padding: 3.5vw 4vw; border-radius: 4vw; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border: 1.5px solid rgba(168,216,234,0.4); }
+    .rule-icon-wrap { width: 12vw; height: 12vw; border-radius: 3vw; display: flex; align-items: center; justify-content: center; font-size: 6.5vw; flex-shrink: 0; }
+    .rule-icon-wrap.ic-purple { background: rgba(170,150,218,0.18); }
+    .rule-icon-wrap.ic-pink   { background: rgba(255,140,148,0.18); }
+    .rule-icon-wrap.ic-mint   { background: rgba(168,216,234,0.25); }
+    .rule-icon-wrap.ic-gold   { background: rgba(253,203,110,0.25); }
+    .rule-icon-wrap.ic-green  { background: rgba(85,239,196,0.2); }
+    .rule-icon-wrap.ic-red    { background: rgba(255,71,87,0.12); }
+    .rule-text-wrap { flex: 1; }
+    .rule-title { font-size: 5vw; font-weight: 900; color: #222; line-height: 1.3; }
+    .rule-desc { font-size: 3.8vw; font-weight: 600; color: #777; line-height: 1.5; margin-top: 0.5vw; }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 20vw; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.85); color:#fff; padding: 3vw 6vw;
+      border-radius: 6vw; font-size: 5vw; font-weight:700; z-index:8888;
+      animation: toastIn 0.3s ease; white-space: nowrap;
+    }
+    @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+    /* HANDOFF */
+    .handoff-box { width:100%; border-radius:4vw; padding:8vw; text-align:center; }
+    .handoff-box.red  { background: var(--red-bg); border: 3px solid var(--red); }
+    .handoff-box.blue { background: var(--blue-bg); border: 3px solid var(--blue); }
+    .handoff-emoji { font-size: 18vw; }
+    .handoff-msg   { font-size: 6.5vw; font-weight: 900; margin-top:3vw; }
+    .handoff-box.red .handoff-msg { color: var(--red); }
+    .handoff-box.blue .handoff-msg { color: var(--blue); }
+
+    /* INPUT */
+    .team-input-wrap {
+      width:100%; padding:4vw 5vw; background:#fff; border-radius:4vw;
+      border: 2.5px solid #e8e8e8; display:flex; align-items:center; gap:3vw;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06); transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .team-input-wrap:focus-within { border-color: var(--purple); box-shadow: 0 2px 16px rgba(170,150,218,0.22); }
+    .team-input-wrap .team-dot { width:5vw; height:5vw; border-radius:50%; flex-shrink:0; }
+    .team-input-wrap input {
+      flex:1; border:none; outline:none; font-size:6vw;
+      font-family:'Cairo',sans-serif; font-weight:800; color:#333;
+      background:transparent; text-align:right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    /* HINT */
+    .hint-box { background: linear-gradient(135deg,#ffeaa7,#fdcb6e); border-radius:3vw; padding:4vw; text-align:center; font-size:5.5vw; font-weight:800; color:#5a3e00; width:100%; animation: slideIn 0.3s ease; }
+    .double-indicator { background: linear-gradient(135deg,#fd79a8,#e84393); color:#fff; padding:2vw 4vw; border-radius:3vw; font-size:5vw; font-weight:800; text-align:center; animation: pulse 1s infinite alternate; }
+    @keyframes pulse { from{opacity:1} to{opacity:0.7} }
+
+    /* CONFETTI */
+    @keyframes confettiFall { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(360deg);opacity:0} }
+
+    .divider { width:100%; height:1px; background:rgba(0,0,0,0.07); }
+
+    .now-playing-label { font-size:4.8vw; font-weight:900; padding:2.5vw 5vw; border-radius:3vw; }
+    .now-playing-label.red  { background:var(--red-bg); color:var(--red); border:1.5px solid var(--red); }
+    .now-playing-label.blue { background:var(--blue-bg); color:var(--blue); border:1.5px solid var(--blue); }
+
+    .btn-row { display:flex; gap:3vw; width:100%; }
+    .btn-row .btn { flex:1; font-size:5vw; padding:3.5vw; }
+
+    /* ===== PLAYER SETUP ===== */
+    .team-section {
+      width: 100%;
+      border-radius: 4vw;
+      padding: 4vw;
+      display: flex;
+      flex-direction: column;
+      gap: 3vw;
+    }
+    .team-section.red-section  { background: var(--red-bg); border: 2px solid var(--red); }
+    .team-section.blue-section { background: var(--blue-bg); border: 2px solid var(--blue); }
+    .team-section-title {
+      font-size: 5.5vw;
+      font-weight: 900;
+      text-align: center;
+    }
+    .team-section.red-section .team-section-title  { color: var(--red); }
+    .team-section.blue-section .team-section-title { color: var(--blue); }
+
+    /* CHEER EFFECTS */
+    .cheer-particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9997;
+      font-size: 6vw;
+      animation: cheerFly 2s ease-out forwards;
+    }
+    @keyframes cheerFly {
+      0%   { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-60vw) scale(0.3) rotate(20deg); opacity: 0; }
+    }
+
+    /* FLASH SCREEN TRANSITION */
+    .flash-overlay {
+      position: fixed; inset: 0;
+      background: white;
+      z-index: 9996;
+      pointer-events: none;
+      opacity: 0;
+      animation: flashEffect 0.4s ease;
+    }
+    @keyframes flashEffect { 0%{opacity:0.7} 100%{opacity:0} }
+
+    #rulesScreen { overflow-y: auto; }
+
+    /* ===== CELEBRATION OVERLAY — redesigned to match game card style ===== */
+     .celebration-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; flex-direction: column; gap: 3vw;
+      padding: 3vw;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    }
+    /* same animated pattern as body */
+    .celebration-overlay::before {
+      content: '';
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.08) 50%, transparent 55%);
+      background-size: 20px 20px;
+      animation: rain 1s linear infinite; z-index: 0; opacity: 0.3;
+      pointer-events: none;
+    }
+
+    /* main card — same white card style as other screens */
+    .celebration-card {
+      position: relative; z-index: 1;
+      width: 92vw;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 5vw;
+      box-shadow: var(--shadow);
+      border: 2px solid rgba(168,216,234,0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3vw;
+      animation: slideIn 0.4s cubic-bezier(.22,.68,0,1.2);
+    }
+
+    .celebration-trophy {
+      font-size: 18vw;
+      display: block;
+      animation: trophyBounce 0.7s cubic-bezier(.22,.68,0,1.4) infinite alternate;
+      filter: drop-shadow(0 0 12px rgba(255,215,0,0.5));
+    }
+    @keyframes trophyBounce { from{transform:scale(1) translateY(0)} to{transform:scale(1.1) translateY(-3px)} }
+
+    .celebration-title {
+      font-size: 8vw; font-weight: 900;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .celebration-winner-box {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(255,140,148,0.15), rgba(170,150,218,0.15));
+      border: 2px solid rgba(170,150,218,0.4);
+      border-radius: 4vw; padding: 3vw 4vw;
+      text-align: center;
+    }
+    
+    .celebration-winner { font-size: 8vw; color: var(--purple); font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+    .celebration-score-row {
+      display: flex; gap: 3vw; width: 100%;
+    }
+    .cel-score-badge {
+      flex: 1; padding: 3vw; border-radius: 3vw;
+      display: flex; flex-direction: column; align-items: center; gap: 1vw;
+    }
+    .cel-score-badge.winner-score {
+      background: linear-gradient(135deg,rgba(255,140,148,0.15),rgba(170,150,218,0.15));
+      border: 2px solid var(--purple);
+    }
+    .cel-score-badge.loser-score {
+      background: rgba(0,0,0,0.04);
+      border: 2px solid rgba(0,0,0,0.08);
+    }
+    .cel-score-name { font-size: 4vw; font-weight: 800; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .cel-score-num  { font-size: 10vw; font-weight: 900; line-height: 1; }
+    .cel-score-badge.winner-score .cel-score-num { color: var(--purple); }
+    .cel-score-badge.loser-score  .cel-score-num { color: #bbb; }
+
+    .tagline { font-size: 4.5vw; color: var(--pink); font-weight: 800; text-align: center; }
+    .loser-tag {
+      font-size: 4vw; color: var(--red); font-weight: 800;
+      background: var(--red-bg); border: 1.5px solid var(--red);
+      padding: 1.5vw 3vw; border-radius: 3vw; display: inline-block;
+    }
+
+    /* action buttons row inside card */
+    .cel-action-btns {
+      position: relative; z-index: 1;
+      width: 96vw;
+      display: flex;
+      flex-direction: column;
+      gap: 3vw;
+    }
+
+    .btn-judge {
+      width: 100%; padding: 4vw 5vw;
+      border-radius: 4vw; border: none;
+      font-family: 'Cairo', sans-serif; font-size: 6vw; font-weight: 900;
+      background: linear-gradient(45deg, var(--red), var(--red-light));
+      color: #fff; cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: all 0.2s;
+      animation: judgePulse 1.2s infinite;
+    }
+    @keyframes judgePulse {
+      0%,100% { box-shadow: 0 4px 20px rgba(255,71,87,0.4); }
+      50%      { box-shadow: 0 4px 30px rgba(255,71,87,0.7); }
+    }
+    .btn-judge:active { transform: scale(0.97); }
+
+    /* ===== ROULETTE OVERLAY — fixed sizing ===== */
+    .roulette-overlay {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9998; flex-direction: column; gap: 3vw;
+      padding: 3vw;
+      overflow-y: auto;
+    }
+    .roulette-overlay::before {
+      content: '';
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.08) 50%, transparent 55%);
+      background-size: 20px 20px;
+      animation: rain 1s linear infinite; z-index: 0; opacity: 0.3;
+      pointer-events: none;
+    }
+
+    /* roulette card — same white card as screens */
+    .roulette-card {
+      position: relative; z-index: 1;
+      width: 96vw;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 5vw;
+      box-shadow: var(--shadow);
+      border: 2px solid rgba(168,216,234,0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3vw;
+      animation: slideIn 0.4s cubic-bezier(.22,.68,0,1.2);
+    }
+
+    .roulette-title {
+      font-size: 7.5vw; font-weight: 900;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-align: center;
+    }
+    .roulette-loser-name {
+      font-size: 5.5vw; font-weight: 900;
+      background: var(--red-bg);
+      border: 2px solid var(--red);
+      color: var(--red);
+      padding: 2.5vw 5vw; border-radius: 3vw;
+      text-align: center;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .roulette-spin-area {
+      display: flex; flex-direction: column; align-items: center; gap: 3vw;
+      width: 100%;
+    }
+    .roulette-wheel-container {
+      width: 72vw;
+      max-width: 320px;
+      position: relative;
+      margin: 0 auto;
+    }
+    .roulette-pointer {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 8vw;
+      z-index: 10;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+      line-height: 1;
+    }
+    .roulette-center {
+      position: absolute; top:50%; left:50%;
+      transform: translate(-50%,-50%);
+      width: 13vw; height: 13vw; border-radius: 50%;
+      background: rgba(255,255,255,0.95);
+      border: 3px solid var(--purple);
+      z-index: 5;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 5.5vw; color: var(--purple); font-weight: 900;
+    }
+
+    /* Result state after spin */
+    .roulette-result-final {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 3vw;
+      width: 100%;
+      animation: slideIn 0.5s cubic-bezier(.22,.68,0,1.2);
+    }
+    .roulette-result-final.show { display: flex; }
+
+    .roulette-result-card-new {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(255,140,148,0.12), rgba(170,150,218,0.12));
+      border: 2px solid var(--purple);
+      border-radius: 4vw;
+      padding: 5vw 4vw;
+      text-align: center;
+    }
+    .roulette-big-num {
+      font-size: 25vw; font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      animation: numPop 0.6s cubic-bezier(.22,.68,0,1.5);
+    }
+    @keyframes numPop { 0%{transform:scale(0.3)} 60%{transform:scale(1.15)} 100%{transform:scale(1)} }
+    .roulette-verdict-text {
+      font-size: 5.5vw; font-weight: 900; color: #333;
+      margin-top: 2vw; line-height: 1.5;
+    }
+    .roulette-verdict-sub {
+      font-size: 4.2vw; font-weight: 700;
+      color: #888; margin-top: 1.5vw;
+    }
+
+    .spin-btn {
+      width: 100%;
+      padding: 4vw; border-radius: 4vw; border: none;
+      font-family: 'Cairo', sans-serif; font-size: 6vw; font-weight: 900;
+      background: linear-gradient(45deg, var(--pink), var(--purple));
+      color: #fff; cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: all 0.2s;
+    }
+    .spin-btn:active { transform: scale(0.97); }
+
+    .skip-roulette-btn {
+      font-size: 4.5vw; color: #888;
+      background: none; border: none; font-family: 'Cairo', sans-serif;
+      cursor: pointer; font-weight: 700;
+    }
+   
+    .card-btn.ad-recoverable {
+      opacity: 1 !important;
+      filter: none !important;
+      cursor: pointer !important;
+      position: relative;
+    }
+    .card-btn.ad-recoverable::after {
+      content: '▶';
+      position: absolute;
+      top: -3vw;
+      right: -2vw;
+      background: var(--purple);
+      border-radius: 50%;
+      width: 7vw;
+      height: 7vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5vw;
+      border: 2px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      animation: badgePulse 1s infinite alternate;
+    }
+    @keyframes badgePulse {
+      from { transform: scale(1); }
+      to   { transform: scale(1.2); }
+    }
+    
+    .player-turn-banner {
+      width: 100%;
+      padding: 3.5vw 4vw;
+      border-radius: 3.5vw;
+      text-align: center;
+      font-size: 5vw;
+      font-weight: 900;
+    }
+    .player-turn-banner.red-banner  { background: linear-gradient(135deg,var(--red-bg),rgba(255,107,129,0.15)); border: 2px solid var(--red); color: var(--red); }
+    .player-turn-banner.blue-banner { background: linear-gradient(135deg,var(--blue-bg),rgba(84,160,255,0.15)); border: 2px solid var(--blue); color: var(--blue); }
+
+    .category-badge-wrap {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-top: -1vw;
+    }
+    .category-badge {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 4vw;
+      font-weight: 800;
+      padding: 1.5vw 4vw;
+      border-radius: 10vw;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ======== SCREEN 1: TEAM & PLAYER NAMES ======== -->
+  <div class="screen" id="setupScreen">
+    <h1>🏆 مود الفرق</h1>
+    <p style="font-size:4.5vw;color:#888;">أدخل اسم كل فريق وأعضاؤه</p>
+    <div class="divider"></div>
+
+    <!-- داخل setupScreen -->
+    <div class="team-section red-section">
+      <div class="team-section-title">🔴 الفريق الأحمر</div>
+      <div class="team-input-wrap" style="border-color:rgba(255,71,87,0.4);">
+        <div class="team-dot" style="background:var(--red)"></div>
+        <input type="text" id="redName" placeholder="اسم الفريق الأحمر" maxlength="12">
+      </div>
+    </div>
+
+      <div class="team-section blue-section">
+    <div class="team-section-title">🔵 الفريق الأزرق</div>
+    <div class="team-input-wrap" style="border-color:rgba(30,144,255,0.4);">
+      <div class="team-dot" style="background:var(--blue)"></div>
+      <input type="text" id="blueName" placeholder="اسم الفريق الأزرق" maxlength="12">
+    </div>
+  </div>
+
+    <button class="btn btn-primary" onclick="goToRules()">يلا نبدأ ⬅</button>
+    <button class="btn btn-ghost" onclick="window.location.href='index.html'" style="font-size:5vw;">← رجوع للقائمة</button>
+  </div>
+
+  <!-- ======== SCREEN 2: RULES ======== -->
+  <div class="screen hidden" id="rulesScreen">
+    <div class="rules-header">
+      <h2>📋 قواعد اللعبة</h2>
+      <p>اقرأوا كويس قبل ما تبدأوا!</p>
+    </div>
+    <div class="rules-cards">
+      <div class="rule-card">
+        <div class="rule-icon-wrap ic-gold">🏆</div>
+        <div class="rule-text-wrap">
+          <div class="rule-title">الفوز بـ 7 نقاط</div>
+          <div class="rule-desc">أول فريق يوصل لـ 7 نقاط يفوز</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon-wrap ic-mint">🔄</div>
+        <div class="rule-text-wrap">
+          <div class="rule-title">في كل جولة</div>
+          <div class="rule-desc">فريق يشوف الكلمة، والثاني يسأل ويخمّن من بين 10 اختيارات — الفريق كله يشارك!</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon-wrap ic-mint">📢</div>
+        <div class="rule-text-wrap">
+          <div class="rule-title">قبل الاسئلة</div>
+          <div class="rule-desc">قبل الاسئلة في كل جولة الفريق اليشوف الكلمة بيقول للفريق التاني نوعها</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon-wrap ic-pink">❓</div>
+        <div class="rule-text-wrap">
+          <div class="rule-title">7 أسئلة بنعم / لا</div>
+          <div class="rule-desc">بعدها أو بـ"نخمن دلوقتي" تيجي شاشة التخمين</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon-wrap ic-green">🃏</div>
+        <div class="rule-text-wrap">
+          <div class="rule-title">5 كروت لكل فريق</div>
+          <div class="rule-desc">كارت واحد بس في كل جولة، استخدموه بحكمة!</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon-wrap ic-red">🎡</div>
+        <div class="rule-text-wrap">
+          <div class="rule-title">روليت العقوبات 😈</div>
+          <div class="rule-desc">الفريق الكسبان بيلف الروليت ويشوف عدد الأحكام!</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon-wrap ic-mint">⚖️</div>
+        <div class="rule-text-wrap">
+          <div class="rule-title">نظام الرد العادل</div>
+          <div class="rule-desc">لو الفريق البادئ وصل لـ7، الفريق الثاني له جولة رد — لو تعادلوا فجولة فاصلة لحد لما فريق يكسب</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon-wrap ic-mint">⏱️</div>
+        <div class="rule-text-wrap">
+          <div class="rule-title">2:30 دقيقة لكل جولة</div>
+          <div class="rule-desc">الأدوار بتتبدل بعد كل جولة</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">فهمنا، يلا نلعب! 🚀</button>
+  </div>
+
+  <!-- ======== SCREEN 3: HANDOFF ======== -->
+  <div class="screen hidden" id="handoffScreen">
+    <div id="handoffBox" class="handoff-box red">
+      <div class="handoff-emoji">📱</div>
+      <div class="handoff-msg" id="handoffMsg">أعطِ التليفون للفريق الأحمر</div>
+    </div>
+    <div id="lastChanceBanner" class="last-chance-banner hidden">
+      ⚡ جولة الرد — لازم تجيبوا <span id="lastChanceTarget">7</span> نقطة او أكتر!
+    </div>
+    <button class="btn btn-primary" id="handoffBtn" onclick="showWordReveal()">اعرف الكلمة 👁️</button>
+  </div>
+
+  <!-- ======== SCREEN 4: WORD REVEAL ======== -->
+  <div class="screen hidden" id="wordRevealScreen">
+    <h2 id="wordRevealTitle">الكلمة خاصتكم 🤫</h2>
+    <div class="word-reveal-box">
+      <div class="word-reveal-icon" id="revealIcon">🏛️</div>
+      <div class="word-reveal-text" id="revealWord">متحف</div>
+      <div class="word-reveal-category" id="revealCategory">📍 أماكن</div>
+    </div>
+    <p style="font-size:4.2vw;color:#999;font-weight:700;">متوريش الكلمة للفريق التاني 🙈</p>
+    <div class="role-box" id="roleBox">
+      <div class="role-row">
+        <div class="role-emoji">👀</div>
+        <div class="role-text">
+          <div class="role-team" id="seeTeamLabel">الفريق الأحمر 🔴</div>
+          <div class="role-desc">الفريق كله يشوف الكلمة وتقولوا نوعها ويجاوب الأسئلة بنعم / لا</div>
+        </div>
+      </div>
+      <div class="role-row">
+        <div class="role-emoji">❓</div>
+        <div class="role-text">
+          <div class="role-team" id="askTeamLabel">الفريق الأزرق 🔵</div>
+          <div class="role-desc">الفريق كله يسأل الأسئلة ويتشاور ويخمّن</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="showGameplay()">تمام، جهزنا ✅</button>
+  </div>
+
+  <!-- ======== SCREEN 5: GAMEPLAY ======== -->
+  <div class="screen hidden" id="gameplayScreen">
+
+    <!-- Progress Bars -->
+    <div class="progress-section" id="progressSection">
+      <div class="progress-team-row">
+        <span class="progress-score-num red" id="pgRedNum">0</span>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill red-fill" id="pgRedBar" style="width:0%">
+            <div class="progress-dots" id="pgRedDots"></div>
+          </div>
+        </div>
+        <span class="progress-label red" id="pgRedLabel">الأحمر</span>
+      </div>
+      <div class="progress-team-row">
+        <span class="progress-score-num blue" id="pgBlueNum">0</span>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill blue-fill" id="pgBlueBar" style="width:0%">
+            <div class="progress-dots" id="pgBlueDots"></div>
+          </div>
+        </div>
+        <span class="progress-label blue" id="pgBlueLabel">الأزرق</span>
+      </div>
+    </div>
+
+    <div class="now-playing-label" id="askingLabel">الفريق الأزرق 🔵 يسأل</div>
+
+    <div style="display:flex;align-items:center;gap:3vw;">
+      <div class="timer-big" id="gameTimer">02:30</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="startBtn" onclick="startTimer()">▶ شغل</button>
+      <button class="btn btn-ghost" id="stopBtn" onclick="stopTimer()" style="font-size:5vw;">⏸ وقف</button>
+    </div>
+
+    <div class="divider"></div>
+    <p style="font-size:4.5vw;color:#777;font-weight:700;">اضغط على مربع بعد كل سؤال 👇</p>
+    <div class="q-boxes" id="qBoxes"></div>
+
+    <div class="divider"></div>
+    <p style="font-size:4.2vw;color:#888;font-weight:700;" id="cardsLeft">🎴 كروت الفريق</p>
+    <div class="cards-row" id="cardsRow"></div>
+
+    <div id="hintDisplay" class="hint-box hidden"></div>
+    <div id="doubleIndicator" class="double-indicator hidden">✨ التخمين القادم بنقطتين!</div>
+
+    <div class="divider"></div>
+    <button class="btn btn-red" onclick="goGuessFromBtn()">نخمن دلوقتي 🎯</button>
+    <button class="btn btn-ghost" style="font-size:5vw;" onclick="restartRound()">🔄 إعادة الجولة</button>
+  </div>
+
+  <!-- ======== SCREEN 6: GUESS ======== -->
+  <div class="screen hidden" id="guessScreen">
+    <h2>🎯 خمّن الكلمة!</h2>
+    <div style="background:linear-gradient(135deg,var(--pink),var(--purple));border-radius:3vw;padding:3vw 5vw;width:100%;text-align:center;">
+      <div class="timer-small" id="guessTimerDisplay">00:20</div>
+    </div>
+    <div class="guess-grid" id="guessGrid"></div>
+  </div>
+
+  <!-- ======== SCREEN 7: ROUND RESULT ======== -->
+  <div class="screen hidden" id="resultScreen">
+    <h2>📊 نتيجة الجولة</h2>
+    <div id="resultBox" class="result-box win">✅ أحسنتم!</div>
+
+    <!-- Progress Bars in Result -->
+    <div class="progress-section" id="resultProgressSection">
+      <div class="progress-team-row">
+        <span class="progress-score-num red" id="resPgRedNum">0</span>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill red-fill" id="resPgRedBar" style="width:0%">
+            <div class="progress-dots" id="resPgRedDots"></div>
+          </div>
+        </div>
+        <span class="progress-label red" id="resPgRedLabel">الأحمر</span>
+      </div>
+      <div class="progress-team-row">
+        <span class="progress-score-num blue" id="resPgBlueNum">0</span>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill blue-fill" id="resPgBlueBar" style="width:0%">
+            <div class="progress-dots" id="resPgBlueDots"></div>
+          </div>
+        </div>
+        <span class="progress-label blue" id="resPgBlueLabel">الأزرق</span>
+      </div>
+    </div>
+
+    <div id="nextRoundStatus"></div>
+    <button class="btn btn-primary" id="nextRoundBtn" onclick="nextRound()">التالي ⬅</button>
+  </div>
+
+  <!-- ======== CELEBRATION OVERLAY ======== -->
+  <div class="celebration-overlay hidden" id="celebrationOverlay">
+    <div class="celebration-card">
+      <div class="celebration-title">مبروك الفوز!</div>
+      <div class="celebration-winner-box">
+        <div class="celebration-winner" id="celebWinner">الفريق الأحمر</div>
+      </div>
+      <div class="celebration-score-row">
+        <div class="cel-score-badge winner-score" id="celWinnerScore">
+          <div class="cel-score-name" id="celWinnerName">الأحمر</div>
+          <div class="cel-score-num" id="celWinnerNum">7</div>
+        </div>
+        <div class="cel-score-badge loser-score" id="celLoserScore">
+          <div class="cel-score-name" id="celLoserName">الأزرق</div>
+          <div class="cel-score-num" id="celLoserNum">4</div>
+        </div>
+      </div>
+      <div class="tagline">شعللوها واحكموا على الخسرانين 😈</div>
+      <div class="loser-tag" id="celebLoser">😭 الفريق الخاسر</div>
+    </div>
+    <div class="cel-action-btns">
+      <button class="btn-judge" onclick="openRouletteFromCelebration()">😈 يلا نحكم على الخسرانين!</button>
+      <button class="btn btn-primary" onclick="playAgain()">لعب مرة أخرى 🔄</button>
+    </div>
+  </div>
+
+  <!-- ======== ROULETTE OVERLAY ======== -->
+  <div class="roulette-overlay hidden" id="rouletteOverlay">
+    <div class="roulette-card">
+      <div class="roulette-title">😈 روليت عدد الأحكام!</div>
+      <div class="roulette-loser-name" id="rouletteLoserName">الفريق الخاسر</div>
+
+      <!-- Spin area (wheel) -->
+      <div class="roulette-spin-area" id="rouletteSpinArea">
+        <div class="roulette-wheel-container">
+          <div class="roulette-pointer">▼</div>
+          <canvas id="rouletteCanvas" style="width:100%;aspect-ratio:1;border-radius:50%;display:block;"></canvas>
+          <div class="roulette-center" id="rouletteCenterNum">?</div>
+        </div>
+        <button class="spin-btn" id="spinBtn" onclick="spinRoulette()">🎡 لف الروليت!</button>
+        <button class="skip-roulette-btn" id="skipRouletteBtn" onclick="closeRoulette()" style="display:none;">← رجوع للنتيجة</button>
+      </div>
+
+      <!-- Result area (shown after spin) -->
+      <div class="roulette-result-final" id="rouletteResultFinal">
+        <div class="roulette-result-card-new">
+          <div class="roulette-big-num" id="rouletteBigNum">3</div>
+          <div class="roulette-verdict-text" id="rouletteVerdictText">الفريق الخاسر هياخد 3 أحكام!</div>
+          <div class="roulette-verdict-sub" id="rouletteVerdictSub">اللي بيكسب هو اللي بيحكم 😈</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- buttons outside card, full width -->
+    <div class="cel-action-btns" id="rouletteFinalBtns" style="display:none;">
+      <button class="btn btn-primary" onclick="playAgainFromRoulette()">لعب مرة أخرى 🔄</button>
+      <button class="btn btn-ghost" onclick="window.location.href='index.html'">← القائمة الرئيسية</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ==================== CATEGORY NAMES ====================
+const CATEGORY_NAMES = {
+  places: 'أماكن',
+  food: 'اكل',
+  tools: 'اشياء',
+  jobs:'شغلانة',
+  animals: 'حيوانات',
+  fruits: 'فواكه',
+  vegetables: 'خضروات'
+};
+
+// ==================== WORDS ====================
+const WORDS_BY_CATEGORY = {
+  places: [
+    {word:"المتحف المصري",icon:"🏛️",hints:["فيه آثار فرعونية","بجوار ميدان التحرير","أقدم متاحف العالم"],category:"places"},
+    {word:"الشاطئ",icon:"🏖️",hints:["رمل ومياه وشمس","بتلاقي فيه ناس بتسبح","على الكورنيش أو البحر"],category:"places"},
+    {word:"مسجد الحسين",icon:"🕌",hints:["في قلب القاهرة التاريخية","مكان ديني مشهور","بجواره خان الخليلي"],category:"places"},
+    {word:"كوبري قصر النيل",icon:"🌉",hints:["فيه تماثيل أسود","على النيل","ربط الزمالك بالتحرير"],category:"places"},
+    {word:"مول مصر",icon:"🏢",hints:["من أكبر المولات في أفريقيا","في 6 أكتوبر","فيه حديقة داخلية"],category:"places"},
+    {word:"العتبة",icon:"🎪",hints:["سوق شعبي قديم","في وسط البلد","بتلاقي فيه كل حاجة"],category:"places"},
+    {word:"حديقة الحيوان",icon:"🦒",hints:["بتلاقي فيه الحيوانات","في الجيزة","بتروح فيه مع العيلة"],category:"places"},
+    {word:"سينما",icon:"🎥",hints:["بتشوف فيه أفلام","في الظلام تقعد","بتاكل فشار وبتتفرج"],category:"places"},
+    {word:"ملعب كرة",icon:"⚽",hints:["المباريات بتتلعب هنا","فيه نص عشبي","بتتفرج على الكورة"],category:"places"},
+    {word:"مستشفى حكومي",icon:"🏥",hints:["بتروح لما تتعب","فيه دكاترة وممرضين","بتاخد فيه علاج"],category:"places"},
+    {word:"صيدلية",icon:"💊",hints:["بتجيب منها الدواء","في كل شارع","ليها إضاءة خضرا"],category:"places"},
+    {word:"محطة مترو",icon:"🚇",hints:["قطار تحت الأرض","بتدفع تذكرة وتدخل","من أسرع وسائل المواصلات"],category:"places"},
+    {word:"بنك",icon:"🏦",hints:["بتحط فيه فلوسك","فيه ATM برة","بتروح تسحب أو تودع"],category:"places"},
+    {word:"مطعم فول وطعمية",icon:"🥙",hints:["فطار مصري أصيل","على العربية في الشارع","بكره دايماً زحمة"],category:"places"},
+    {word:"جامعة القاهرة",icon:"🏫",hints:["أكبر جامعة في مصر","في الجيزة","بوابتها مشهورة جداً"],category:"places"},
+    {word:"كافيه",icon:"☕",hints:["بتشرب قهوة أو كابتشينو","بتسهر مع صحابك","فيه واي فاي"],category:"places"},
+    {word:"السجن",icon:"🔒",hints:["الناس اللي غلطت هنا","بيبقى فيه حراسة","مش بتتمنى تزوره"],category:"places"},
+    {word:"مخيم",icon:"🏕️",hints:["بتنام فيه في الطبيعة","فيه خيام","بتشعل نار ونجوم"],category:"places"},
+    {word:"الاستاد",icon:"🏟️",hints:["ملعب كبير جداً","بتتفرج فيه على المباريات","ضوضاء وزحمة وفرحة"],category:"places"},
+    {word:"قاعة افراح",icon:"💒",hints:["هنا الناس بتتجوز","فيه موسيقى وأكل","بتلبس تحفة عشانه"],category:"places"},
+    {word:"برج ايفل",icon:"🗼",hints:["معلم باريس الشهير","عالي جداً ومضاء بالليل","في فرنسا"],category:"places"},
+    {word:"البيت الأبيض",icon:"🏛️",hints:["فيه الرئيس الأمريكي","في واشنطن","أشهر بيت في العالم"],category:"places"},
+    {word:"بولينج",icon:"🎳",hints:["بتضرب كور على كباية","رياضة ترفيهية","في المولات"],category:"places"},
+    {word:"نايت كلوب",icon:"🪩",hints:["بتروحه بالليل","فيه موسيقى ورقص","بيبقى مظلم وإضاءة ملونة"],category:"places"},
+    {word:"معرض عربيات",icon:"🚗",hints:["بتشوف فيه عربيات جديدة لامعة","ريحتها دهان وجلد","بتتمنى تمشي بواحدة"],category:"places"},
+    {word:"حضانة",icon:"🧸",hints:["الأطفال الصغيرة بتروح هناك","فيه ألعاب كتير ومربية","بتودي ابنك الصبح وتجيبيه بالعصر"],category:"places"},
+    {word:"مغسلة",icon:"🧺",hints:["بتودي هدومك الوسخة","بتطلع نضيفة ومكوية","بتدفع فلوس على الكيلو"],category:"places"},
+    {word:"كنيسة",icon:"⛪",hints:["مكان عبادة للمسيحيين","فيه صلبان وأجراس","بتتعمل فيها قداسات"],category:"places"},
+    {word:"صالون حلاقة",icon:"💇",hints:["بتقعد على الكرسي وبتتقلع شعرك","بتطلع بشكل جديد ومنظم","بتشم فيه ريحة كريمات"],category:"places"},
+    {word:"جامعة حلوان",icon:"🏫",hints:["جامعة كبيرة في مصر","في منطقة حلوان","ملتقى الحبايب"],category:"places"},
+    {word:"جيم",icon:"🏋️",hints:["بتروح تعمل رياضة","فيه أجهزة كتير ودمبلز","بتعرق وبتتعب"],category:"places"},
+    {word:"حمام سباحة",icon:"🏊",hints:["بتسبح فيه","ميه معقمة فيها كلور","فيه ناس كتير في الصيف"],category:"places"},
+    {word:"استوديو تصوير",icon:"📸",hints:["بتصور فيه صور تذكارية","خلفيات وأضواء","للمناسبات"],category:"places"},
+    {word:"مسرح",icon:"🎭",hints:["فيه ممثلين بيمثلوا قصة قدامك","خشبة وستارة","بتدفع تذكرة عشان تدخل"],category:"places"},
+    {word:"دار أوبرا",icon:"🎭",hints:["مسرح كبير وفخم","فيه باليه وموسيقى كلاسيكية","لبس أنيق"],category:"places"},
+    {word:"مركز شباب",icon:"⚽",hints:["للشباب الصغير","فيه ملاعب وأنشطة","الاشتراك برخص"],category:"places"},
+    {word:"نافورة",icon:"⛲",hints:["بتطلع مية لأعلى بشكل جميل","فيه ألوان في الليل","الناس بتتصور قدامها"],category:"places"},
+    {word:"كورنيش",icon:"🌊",hints:["جمب النيل أو البحر","بتتمشى فيه وتاخد هوا","ناس كتير قاعدين"],category:"places"},
+    {word:"حديقة عامة",icon:"🌳",hints:["مكان فيه أشجار وزرع","بتاخد ساندوتش وتقعد مع عيلتك","أطفال بتلعب"],category:"places"},
+    {word:"جنينة",icon:"🌻",hints:["نفس الحديقة العامة بس صغيرة","جنان في الحتة","اللي جنب البيت"],category:"places"},
+    {word:"نادي",icon:"🏌️",hints:["مكان لإقامة الأنشطة الرياضية والاجتماعية","فيه حمام سباحة وملاعب","العضوية بفلوس"],category:"places"},
+    {word:"حمام",icon:"🛁",hints:["بتستحمى فيه وتنضف","فيه بانيو أو شاور","كافي لوحده"],category:"places"},
+    {word:"مطبخ",icon:"🍳",hints:["بتطبخ فيه الأكل","فيه تلاجة وبوتاجاز","مكان الأسرار"],category:"places"},
+    {word:"أوضة نوم",icon:"🛌",hints:["بتنام فيها","فيه سرير ودولاب","هدوء وراحة"],category:"places"},
+    {word:"سطح",icon:"🏠",hints:["آخر البناية فوق","بتنشر فيه الغسيل","بتشوف النجوم من غير زحمة"],category:"places"},
+    {word:"بدروم",icon:"🚪",hints:["تحت الأرض","مظلم وبارد","بيحطوا فيه الحاجات القديمة"],category:"places"},
+    {word:"كراج",icon:"🚗",hints:["بتوقف فيه العربية","تحت البناية أو جنبها","بتنزل فيه السلم"],category:"places"},
+    {word:"مصنع",icon:"🏭",hints:["بيصنعوا فيه منتجات","آلات كتير وعمال","بتطلع دخان ساعات"],category:"places"},
+    {word:"ورشة",icon:"🔧",hints:["بيصلحوا فيها حاجات","نجارة أو حدادة أو ميكانيكا","صوت آلات"],category:"places"},
+    {word:"فندق",icon:"🏨",hints:["السياح بينزلوا فيه","غرف وأسرة وخدمة","بتدفع عشان تنام"],category:"places"},
+    {word:"موتيل",icon:"🏨",hints:["فندق صغير على الطريق السريع","توقف بسرعة تنام","زبالة أقل"],category:"places"},
+    {word:"مطار",icon:"✈️",hints:["الطيارة بتقلع وتهبط فيه","جوازات وشنط","مسافرين ورايحين"],category:"places"},
+    {word:"محطة قطار",icon:"🚉",hints:["القطار بيقف عشان يركب الناس","سكة حديدية وشبابيك","صوت صفارة"],category:"places"},
+    {word:"محطة أتوبيس",icon:"🚌",hints:["الأتوبيسات بتقف عشان تركبه","زحمة وناس واقفة","مواقف"],category:"places"},
+    {word:"موقف",icon:"🚏",hints:["الميكروباص بيقف عشان ياخد ركاب","ناس بتنادي على الأماكن","انطلق بروو"],category:"places"},
+    {word:"سنترال",icon:"📞",hints:["كنت بتكلم منها تليفون أرضي قديماً","خدمة عملاء","مش موجود دلوقتي"],category:"places"},
+    {word:"قسم شرطة",icon:"👮",hints:["الشرطة هناك","لو اتعرضت لمشكلة روح هناك","حقوق ومحاضر"],category:"places"},
+    {word:"محكمة",icon:"⚖️",hints:["القاضي بيحكم بين الناس","محامي واكد الناس","عدالة"],category:"places"},
+    {word:"سجن",icon:"🔒",hints:["المجرمين مسجونين هناك","قضبان وحارس","مفيش حرية"],category:"places"},
+    {word:"مأذون",icon:"📜",hints:["اللي بيجوز الناس","عنده مكتب","عقد الجواز"],category:"places"},
+    {word:"شهر عقاري",icon:"🏢",hints:["بتسجل فيه الشقق والعقارات","التمليك قانوني","توقيع وختم"],category:"places"},
+    {word:"السجل المدني",icon:"🪪",hints:["بتطلع له بطاقة الرقم القومي","شهادة ميلاد للولاد","الأوراق الرسمية"],category:"places"},
+    {word:"مدينة الإنتاج الإعلامي", icon:"🎬", hints:["المسلسلات والأفلام بتتصور هناك", "ديكورات ضخمة واستوديوهات تصوير", "الفنانين والمخرجين شغالين هناك"], category:"places"}
+
+
+    
+  ],
+  food: [
+    {word:"فول وطعمية",icon:"🥙",hints:["فطار مصري بحت","بيتزاحم عليه في الصبح","أكل شعبي بحبه كل الناس"],category:"food"},
+    {word:"بيتزا",icon:"🍕",hints:["دقيق و جبنة وصلصة","إيطالية الأصل","بتطلبها توصيل"],category:"food"},
+    {word:"شاورما",icon:"🌯",hints:["دجاج أو لحمة في خبز","شرقية الأصل","بتلاقيها في كل مطعم"],category:"food"},
+    {word:"برجر",icon:"🍔",hints:["خبزتين ولحمة بالنص","بتاكله باليدين","شهير في الفاست فود"],category:"food"},
+    {word:"سوشي",icon:"🍣",hints:["ياباني الأصل","أرز ولفائف ومأكولات بحرية","بيتاكل بالعيدان"],category:"food"},
+    {word:"كباب",icon:"🍢",hints:["لحم مشوي","في سفود","شرقي ولذيذ"],category:"food"},
+    {word:"آيس كريم",icon:"🍦",hints:["باردة وحلوة","في صيفك الحل","بتاخد في كون"],category:"food"},
+    {word:"فتة",icon:"🍲",hints:["خبز وأرز ولحمة","أكلة مصرية تقيلة","بتتعمل في المناسبات"],category:"food"},
+    {word:"كاب كيك",icon:"🧁",hints:["حلوة صغيرة بكريمة","في المخبوزات","شكلها ظريف ومزين"],category:"food"},
+    {word:"دوناتس",icon:"🍩",hints:["عجين دائري محلى","بالتبعيل والملونات","من المخابز الأمريكية"],category:"food"},
+    {word:"فشار",icon:"🍿",hints:["بتاكله في السينما","بيتفشفش من الذرة","مالح أو سكر"],category:"food"},
+    {word:"مخاصي",icon:"🐏",hints:["محشي بالأرز","أكلة مصرية أصيلة","بتتعمل في المناسبات"],category:"food"},
+    {word:"فسيخ",icon:"🐟🧂",hints:["سمك مخمر","أكلة شم النسيم","ريحته مميزة"],category:"food"},
+    {word:"وافل",icon:"🧇",hints:["بتاكله بالنيلا","شكله مربعات","في الإفطار"],category:"food"},
+    {word:"كوارع",icon:"🐄",hints:["أرجل البقر","بتتطبخ طويل","أكلة مصرية شعبية"],category:"food"},
+    {word:"فطير",icon:"🥧",hints:["عجين بالسمنة والعسل","مصري أصيل","بيتاكل بالعسل الأسود"],category:"food"},
+    {word:"ملوخية",icon:"🍃",hints:["خضرا بتتطبخ مع الثوم","بتتاكل مع أرز ودجاج","أكلة مصرية مشهورة"],category:"food"},
+    {word:"باستا",icon:"🍝",hints:["إيطالية","بتتعمل بالمكرونة","فيها صلصة وجبنة"],category:"food"},
+    {word:"سلطة",icon:"🥗",hints:["خضار طازجة","صحية جداً","بتاكلها رجيم"],category:"food"},
+    {word:"تورتة",icon:"🎂",hints:["بتتعمل في عيد الميلاد","كريمة وطبقات","بتنفخ الشمعة عليها"],category:"food"},
+    {word:"مشروب غازي",icon:"🥤",hints:["فيه فقاعات","بارد ومنعش","بيجي في علبة أو زجاجة"],category:"food"},
+    {word:"جمبري",icon:"🦐",hints:["من المأكولات البحرية","بيتشال في الزيت","وردي بعد الطبخ"],category:"food"},
+    {word:"هوت دوج",icon:"🌭",hints:["سجق في خبز","من الأكل الأمريكي","بتلاقيه في الحفلات"],category:"food"},
+    {word:"بطاطس محمرة",icon:"🍟",hints:["مقلية وصفرا","مالحة ولذيذة","بتيجي مع الوجبات"],category:"food"},
+    {word:"قطايف",icon:"🥟",hints:["بتتحشي مكسرات او شوكولاتة","بتتقلى","من أشهر حلويات رمضان"],category:"food"},
+    {word:"ماتشا",icon:"🍵",hints:["شاي أخضر بودرة أصله ياباني","لونه أخضر زاهي","بيتعمل حلويات ومشروبات"],category:"food"},
+    {word:"مياه",icon:"💧",hints:["شفافة ومهمة للحياة","بتشربها كل يوم عشان تروي عطشك","بدونها مينفعش تعيش"],category:"food"},
+    {word:"ايس كوفي",icon:"🥤",hints:["قهوة باردة فيها تلج","منعشة في الصيف","بتتحلى بسكر أو كaramel"],category:"food"},
+    {word:"شاي",icon:"🍵",hints:["مشروب ساخن بنشربه كل يوم","بيتحلى بسكر أو بنعناع","أحمر أو أخضر"],category:"food"},
+    {word:"رنجة",icon:"🐟",hints:["سمك مملح","بتتاكل في شم النسيم","بتنقع في المية عشان تبقى مالحة"],category:"food"},
+    {word:"جبنة",icon:"🧀",hints:["من منتجات الألبان","بيتقال على الفطار أو السحور","بيجي بأنواع كتير زي الرومي والتركي"],category:"food"},
+  ],
+  tools: [
+    {word:"فستان",icon:"👗",hints:["ملبس للبنات","بيجي في حفلات","طويل أو قصير"],category:"tools"},
+    {word:"تليفون",icon:"📱",hints:["بتكلم بيه وتنزل سوشيال ميديا","في إيدك دايماً","ذكي ومتطور"],category:"tools"},
+    {word:"شاحن",icon:"🔌",hints:["بتشحن بيه التليفون","لو نسيته حياتك وقفت","بيوصل بالكهرباء"],category:"tools"},
+    {word:"سماعة",icon:"🎧",hints:["بتسمع بيها موسيقى","بتتحط في الأذن","بلوتوث أو سلك"],category:"tools"},
+    {word:"شنطة",icon:"👜",hints:["بتشيل فيها حاجاتك","للبنات عادةً","بتيجي بأشكال وألوان"],category:"tools"},
+    {word:"ساعة",icon:"⌚",hints:["بتعرف بيها الوقت","في إيدك","ذكية أو عادية"],category:"tools"},
+    {word:"سجاير",icon:"🚬",hints:["بيدخنوها ناس كتير","مضرة للصحة","بتولع بولاعة"],category:"tools"},
+    {word:"كتاب",icon:"📚",hints:["بتقرأ فيه","فيه أوراق مطبوعة","بيوسع ثقافتك"],category:"tools"},
+    {word:"قلم",icon:"✒️",hints:["بتكتب بيه","أزرق أو جاف","في الجيب دايماً"],category:"tools"},
+    {word:"مرآة",icon:"🪞",hints:["بتشوف نفسك فيها","في الحمام والأوضة","بتاخد سيلفي أمامها"],category:"tools"},
+    {word:"مفتاح",icon:"🗝️",hints:["بتفتح بيه الباب","لازم تشيله دايماً","لو ضيّعته مشكلة"],category:"tools"},
+    {word:"نضارة شمس",icon:"🕶️",hints:["بتحط على عنيك في الشمس","بيجي بأشكال كتير","بتخليك تشوف تمام"],category:"tools"},
+    {word:"شامبو",icon:"🧴",hints:["بتغسل بيه شعرك","ريحته حلوة","في الحمام"],category:"tools"},
+    {word:"صابون",icon:"🧼",hints:["بتغسل بيه إيدك","مهم للنظافة","بيبقى زلق"],category:"tools"},
+    {word:"شيشة",icon:"💨",hints:["بيحطوا فيها تفاح أو توت","في الكافيهات","بتطلع دخان بارد"],category:"tools"},
+    {word:"روج",icon:"💄",hints:["بتحطيه على الشفاه","مكياج للبنات","بيجي بألوان كتير"],category:"tools"},
+    {word:"فرشة اسنان",icon:"🪥",hints:["بتجوجلها كل يوم","مع المعجون","للنظافة الشخصية"],category:"tools"},
+    {word:"ريموت",icon:"🔳",hints:["بتتحكم بيه في التلفزيون","بيتضيع دايماً","بطارية بتخلص"],category:"tools"},
+    {word:"مناديل",icon:"🧻",hints:["بتتمسح بيها","في الحقيبة دايماً","ورق خفيف"],category:"tools"},
+    {word:"هيلز",icon:"👠",hints:["جزمة بكعب عالي","للبنات في الحفلات","بتوجع الرجلين"],category:"tools"},
+    {word:"بنطلون",icon:"👖",hints:["ملبس للرجلين","بيجي جينز أو قماش","ملبس أساسي"],category:"tools"},
+    {word:"طرحة",icon:"🧕",hints:["بتتلفع على الشعر","مش كل البنات بتلبسها","بتيجي بألوان كتير"],category:"tools"},
+    {word:"فلوس",icon:"💵",hints:["بتشتري بيها أي حاجة","ورق أو كويز","حياتك اتغيرت من غيرها"],category:"tools"},
+    {word:"راوتر",icon:"📡",hints:["بيوزع النت على البيت","شكله غريب وله إضاءة","بدونه مفيش واي فاي"],category:"tools"},
+    {word:"لاب توب",icon:"💻",hints:["كمبيوتر portable بتقفل غطاه","بتشتغل عليه من أي حتة","شاشته وكيبورد مع بعض"],category:"tools"},
+    {word:"دولاب",icon:"🚪",hints:["بتحط فيه هدومك","خشب أو ألمنيوم","ليه درف وباب"],category:"tools"},
+    {word:"تلاجة",icon:"🧊",hints:["بتخزن فيها الأكل","باردة جداً","بتشتغل كهربا طول اليوم"],category:"tools"},
+    {word:"كنبة",icon:"🛋️",hints:["بتقعد عليها تتفرج تلفزيون","ناعمة ومبطنة","بتنام عليها ساعات"],category:"tools"},
+    {word:"بطارية",icon:"🔋",hints:["بتخزن الكهربا","بتشحن التليفون أو العربية","بتخلص بسرعة لو بتلعب كتير"],category:"tools"},
+    {word:"مخدرات",icon:"🚫",hints:["حرام وقانونياً ممنوع","بتدمر الصحة والعقل","بلاش تقرب منها خالص"],category:"tools"},
+    {word:"معلقة",icon:"🥄",hints:["بتستخدمها في الأكل والشوربة","بتقلب بيها الشاي كمان","اداة منزلية"],category:"tools"},
+    {word:"سكينة",icon:"🔪",hints:["بتقطع بيها الأكل","اداة منزلية","لازم تتعامل معاها بحذر"],category:"tools"},
+    {word:"طاسة",icon:"🍳",hints:["بتقلي فيها البيض والبطاطس","معدنية ومقبضها طويل","بتتغسل بعد ما تبرد"],category:"tools"},
+    {word:"حلة",icon:"🍲",hints:["بتطبخ فيها الأكل","عشان تعمل فيها شوربة أو طبخة كبيرة","بتتحط على النار"],category:"tools"},
+    {word:"مقلاة",icon:"🍳",hints:["نفس الطاسة بس أوسع","بتستخدم في القلي","فيها جوانب عالية"],category:"tools"},
+    {word:"سكينة",icon:"🔪",hints:["بتقطع بيها الخضار واللحمة","حاد وبيقطع بسرعة","لازم تتوصل"],category:"tools"},
+    {word:"مفرمة",icon:"🥩",hints:["بتفرم اللحمة","كهربائية أو يدوي","بتطلع فرم ناعم"],category:"tools"},
+    {word:"عجانة",icon:"🥣",hints:["بتعجن العجين","فيها مضارب","بتريح اليد"],category:"tools"},
+    {word:"خلاط",icon:"🥤",hints:["بتعمل به عصائر وسموزي","كبه بتاعته بتحتوي مية","صوته عالي"],category:"tools"},
+    {word:"إسفنجة",icon:"🧽",hints:["بتنضف بيها المواعين","ناعمة وبتتشرب مية","بتتغير كل فترة"],category:"tools"},
+    {word:"لحاف",icon:"🛏️",hints:["بتغطي بيه جسمك في الشتاء","تقيل ودافي","فيه صوف"],category:"tools"},
+    {word:"كرسي",icon:"🪑",hints:["بتقعد عليه","ليه ضهر وأربع رجول","خشب أو بلاستيك"],category:"tools"},
+    {word:"ماوس",icon:"🖱️",hints:["بتتحكم بيه على الكمبيوتر","ليه أزرار يسار ويمين","بيتحرك على المكتب"],category:"tools"},
+    {word:"كيبورد",icon:"⌨️",hints:["بتكتب بيه على الكمبيوتر","ليه أزرار حروف وأرقام","سلك أو وايرلس"],category:"tools"},
+    {word:"مفك",icon:"🪛",hints:["بتفك وتربط المسامير اللولبية","يدوي أو كهربائي","عندك في البكج"],category:"tools"},
+    {word:"شاكوش",icon:"🔨",hints:["بتدق الميازيب","بتخبط على المسامير","تقع على رجلك توجع"],category:"tools"},
+    {word:"منشار",icon:"🪚",hints:["أسنانه حادة تقطع الخشب","بتسمع صوت صررر","لازم تلبس جوانتي"],category:"tools"},
+    {word:"مفتاح براغي",icon:"🔧",hints:["بتفك وتربط الصواميل والبراغي","معدني ثقيل","السباكين بيستخدموه"],category:"tools"},
+    {word:"ميزان",icon:"⚖️",hints:["بتوزن بيه الحاجات","بتعرف الوزن الحقيقي","عند بتوع الخضار والفاكهة"],category:"tools"},
+    {word:"متر قياس",icon:"📏",hints:["بتقيس بيه الأطوال","شريط معدني بينفك","النجارين عارفينه"],category:"tools"},
+
+
+  ],
+
+  jobs: [
+    {word:"دكتور",icon:"👨‍⚕️",hints:["بتروح له لما تتعب","بيشخص الأمراض","بيصف الدواء"],category:"jobs"},
+    {word: "سمكري","icon": "🪣✨","hints": ["بيرجع العربية لطبيعتها بعد الحادثة","شغله كله قَص ولحام وطرق","بتاخده معاك وانت رايح تشتري عربية"],"category": "jobs"},
+    {word:"مهندس",icon:"👷",hints:["بيبني الأبنية","بيصمم المشاريع","بيحتاج حسابات كتير"],category:"jobs"},
+    {word:"معلم",icon:"👨‍🏫",hints:["بيشرح الدروس","في الفصل مع الطلاب","محتاج صبر كبير"],category:"jobs"},
+    {word:"طيار",icon:"👨‍✈️",hints:["بيقود الطيارة","محتاج رخصة خاصة","بيتعامل مع ارتفاعات"],category:"jobs"},
+    {word:"مبرمج",icon:"💻",hints:["بيكتب كود","بيصنع المواقع والتطبيقات","شغلته على الكمبيوتر"],category:"jobs"},
+    {word:"شرطي",icon:"👮",hints:["بيحافظ على الأمن","بيلبس يونيفورم","بتلجأ له وقت المشاكل"],category:"jobs"},
+    {word:"طباخ",icon:"👨‍🍳",hints:["بيطبخ الأكل","بيشتغل في المطاعم","بيلبس كابوشه ابيض"],category:"jobs"},
+    {word:"سائق",icon:"🚗",hints:["بيقود العربية","بيعرف الشوارع كويس","سواء أوبر أو تاكسي"],category:"jobs"},
+    {word:"محامي",icon:"⚖️",hints:["بيدافع عنك في المحكمة","عنده رأي في القانون","شغلته الكلام والحجة"],category:"jobs"},
+    {word:"رسام",icon:"🎨",hints:["بيرسم ويلون","فنان إبداعي","شغلته الريشة والألوان"],category:"jobs"},
+    {word:"صحفي",icon:"📰",hints:["بيكتب الأخبار","بيعمل تقارير","بيكون في الأحداث"],category:"jobs"},
+    {word:"مغني",icon:"🎤",hints:["بيغني على المسرح","عنده ألبومات","بيكون مشهور"],category:"jobs"},
+    {word:"لاعب كورة",icon:"⚽",hints:["بيلعب في ملعب","بيجري كتير","النجوم بياخدوا فلوس كتير"],category:"jobs"},
+    {word:"مزارع",icon:"👨‍🌾",hints:["بيزرع الأرض","بيحصد المحاصيل","شغله في الفلاحة"],category:"jobs"},
+    {word:"حلاق",icon:"💈",hints:["بيقص الشعر","بيحلق الدقن","عنده دولاب وعصاية ملونة"],category:"jobs"},
+    {word:"بواب",icon:"🚪",hints:["بيحرس البناية","بيعرف كل ساكن","شغله في الدور الأرضي"],category:"jobs"},
+    {word:"كول سنتر",icon:"🎧",hints:["بيكلم الناس على التليفون","بيحل المشاكل","شغلته الكلام طول اليوم"],category:"jobs"},
+    {word:"يوتيوبر",icon:"📹",hints:["بيصنع فيديوهات","بيرفع على يوتيوب","بيعيش من الإعلانات"],category:"jobs"},
+    {word:"سمسار",icon:"🏢",hints:["بيتعامل في العقارات","بيبيع ويأجر الشقق","شغلته التفاوض"],category:"jobs"},
+    {word:"ممثل",icon:"🎥",hints:["بيمثل في الأفلام","بيلعب أدوار مختلفة","بيبقى مشهور"],category:"jobs"},
+    {word:"رائد فضاء",icon:"🧑‍🚀",hints:["بيروح الفضاء","بيلبس بدلة خاصة","محتاج تدريب طويل جداً"],category:"jobs"},
+    {word:"جزار",icon:"🥩",hints:["بيذبح ويقطع اللحمة","عنده سكاكين كتير","في المحل أو السوق"],category:"jobs"},
+    {word:"ساحر",icon:"🧙",hints:["بيعمل حيل مذهلة","بيخرج أرنب من قبعة","بيخدع العيون"],category:"jobs"},
+    {word:"موديل",icon:"👩",hints:["بيظهر في الإعلانات","بيلبس الملابس","بتلاقيه في الصور والفيديوهات"],category:"jobs"},
+    {word:"رقاصة",icon:"💃",hints:["بتترقص في الأفراح والمناسبات","لبسها مخصوص وبه ألوان","ناس يعتبروها فن"],category:"jobs"},
+    {word:"بيطري",icon:"🐕",hints:["دكتور بيعالج الحيوانات","القطط والكلاب بتروح له","بتجبله العيان عشان يكشف عليه"],category:"jobs"},
+    {word:"دكتور جامعة",icon:"👨‍🏫",hints:["بيدرس الطلاب في الكلية","عنده دكتوراه","بيصحح الأبحاث"],category:"jobs"},
+    {word:"معيد",icon:"📚",hints:["بيشتغل في الكلية بعد التخرج","بيعمل أبحاث ويدرس طلاب","بيحضر للماجستير أو الدكتوراه"],category:"jobs"},
+    {word:"مخرج",icon:"🎬",hints:["بيوجه الممثلين","بيقول وقف وكمل","المسرح أو السينما"],category:"jobs"},
+    {word:"مصور",icon:"📸",hints:["بيصور الفيديوهات والصور","فاهم في الإضاءة","ياناسب كاميرته"],category:"jobs"},
+    {word:"كاتب سيناريو",icon:"✍️",hints:["بيكتب قصة الفيلم","بيكتب حوارات بين الشخصيات","بيحول الأفكار لورق"],category:"jobs"},
+    {word:"منتج",icon:"🎬",hints:["بيجمع فلوس للفيلم","بيوظف الممثلين","بيخاطر بمستثمرات"],category:"jobs"},
+    {word:"نينجا",icon:"🥷",hints:["محارب ياباني قديم","بيتحرك بصمت وبسرعة","بيعرف يتخبى ويقاتل"],category:"jobs"},
+    {word:"رابر",icon:"🎤",hints:["بيغني راب","كلامه سريع وبيقف مع الإيقاع","مشهور في ثقافة الهيب هوب"],category:"jobs"},
+    {word:"مصارع",icon:"🤼",hints:["بيتخانق في الحلبة","بيعرف يمسك ويوقع خصمه","رياضة قتالية"],category:"jobs"},
+    {word:"ملاكم",icon:"🥊",hints:["بيضرب بكفوفه","بيرتدي جوانتيات","بيتدرب على كيس ملاكم"],category:"jobs"},
+    {word:"رئيس دولة",icon:"👨‍💼",hints:["أكبر واحد في الدولة","بيحكم ويوجه","عنده صلاحيات كبيرة"],category:"jobs"},
+    {word:"ملك",icon:"👑",hints:["بيحكم المملكة","بيتوارث الحكم عن أبوه","عنده تاج وقصر"],category:"jobs"},
+    {word:"وزير",icon:"📋",hints:["مسؤول عن وزارة معينة","بيشتغل مع رئيس الدولة","عنده صلاحيات واسعة"],category:"jobs"},
+    {word:"رئيس وزراء",icon:"🏛️",hints:["بيترأس مجلس الوزراء","بينسق بين الوزارات","ثاني أهم منصب في الدولة"],category:"jobs"},
+    {word:"مدرب كورة",icon:"⚽",hints:["بيوجه اللعيبة في الملعب","بيحط طريقة اللعب","بيزعق لما الفريق يخسر"],category:"jobs"},
+    {word:"منقذ",icon:"🦸",hints:["بينقذ الناس من الغرق","بيقفز في البحر","عنده شهادة إنقاذ"],category:"jobs"},
+    {word:"حارس أمن",icon:"👮",hints:["بيتأكد محدش يدخل من غير تذكرة","آخر الليل في البوابات","عنده كرسي ومية"],category:"jobs"},
+    {word:"غواص",icon:"🤿",hints:["بينزل تحت المية","بيتنفس من اسطوانة","بيشوف الشعاب المرجانية"],category:"jobs"},
+    {word:"حارس أمن",icon:"👮",hints:["بيتأكد محدش يدخل من غير تذكرة","آخر الليل في البوابات","عنده كرسي ومية"],category:"jobs"},
+    {word:"قاضي",icon:"⚖️",hints:["بيحكم بين الناس","عنده عباءة سودة","لازم يكون عادل"],category:"jobs"},
+    {word:"خباز",icon:"🥖",hints:["بيشغل العجين وبيعمله خبز","بيصحى الفجر عشان يجهز الفرن","ريحة العيش السخن بتاعت"],category:"jobs"},
+    {word:"حداد",icon:"🔨",hints:["بيشتغل في الحديد","بيعمل شبابيك وبوايت","دقه عاليه"],category:"jobs"},
+    {word:"نجار",icon:"🪚",hints:["بيشتغل في الخشب","بيعمل ترابيزات ودولاب","عنده منشار"],category:"jobs"},
+    {word:"سباك",icon:"🔧",hints:["بيصلح الحنفيات","عنده مفتاح فرنساوي","شغله في الحمامات"],category:"jobs"},
+    {word:"كهربائي",icon:"⚡",hints:["بيصلح الأسلاك","عنده مفك","لازم يطلع العداد"],category:"jobs"},
+    {word:"ميكانيكي",icon:"🔩",hints:["بيصلح العربية","بيعرف صوت المحرك","عنده عدة كاملة"],category:"jobs"},
+    {word:"نقاش",icon:"🎨",hints:["بيستخدم سكينة معجون","عنده فرش وألوان","بيخلع الدهن القديم"],category:"jobs"},
+    {word:"صائغ",icon:"💍",hints:["بيشتغل في الذهب","بيعمل خواتم وحلقان","عنده ميزان حساس"],category:"jobs"},
+    {word:"طبيب أسنان",icon:"🦷",hints:["بيقلع الأسنان","بيدخل السنان","صوت الدريل مرعب"],category:"jobs"},
+    {word:"طبيب عيون",icon:"👁️",hints:["بيكشف على العين","بيوصف نظارات","يفهم في الرمد"],category:"jobs"},
+    {word:"جراح",icon:"🔪",hints:["بيشتغل في العمليات","عنده سكاكين معقمة","لازم يلبس جوانتي"],category:"jobs"},
+    {word:"ممرض",icon:"💉",hints:["بيعطي إبر وطعوم","بيخدم المرضى","لبسه أبيض"],category:"jobs"},
+    {word:"رجل إطفاء",icon:"🧯",hints:["بيطفى النار","بيطلع سلم طويل","بيعمل بطولة"],category:"jobs"},
+    {word:"فلكي",icon:"🔭",hints:["بيدرس النجوم","عنده تلسكوب كبير","يفهم في الفضاء"],category:"jobs"},
+    {word:"عالم آثار",icon:"🏺",hints:["بينبش تحت الأرض","بيدور على تماثيل فرعونية","بيحلل الحاجات القديمة"],category:"jobs"},
+    {word:"مترجم",icon:"🌐",hints:["بيترجم من لغة للتانية","بيعرف كلام كتير","مهم في الاجتماعات"],category:"jobs"},
+    {word:"مذيع",icon:"🎙️",hints:["بيتكلم في الراديو أو التلفزيون","صوته واضح","عنده جمهور"],category:"jobs"},
+    {word:"معلق رياضي",icon:"📢",hints:["بيوصف الماتش على التلفزيون","بيزعق وقت الجون","جمهوره في البيوت"],category:"jobs"},
+    {word:"إعلامي",icon:"📺",hints:["بيقدم برامج","عنده آراء وانتقادات","بيظهر على الشاشة"],category:"jobs"},
+    {word:"سياسي",icon:"🗳️",hints:["شغله في الحكم والقوانين","بيحضر برلمان","عنده حزب"],category:"jobs"},
+    {word:"مندوب مبيعات",icon:"📦",hints:["بيروح للشركات ويعرض منتجه","بيتنقل كتير","شغله كله مقابلات"],category:"jobs"},
+    {word:"سفير",icon:"🚩",hints:["أعلى منصب دبلوماسي","عايش في دولة تانية","بيحل مشاكل السياسة"],category:"jobs"},
+    {word:"سايس",icon:"🚗",hints:["بيركن العربية في الزقايق","بيقولك انطلق برووو","بياخد منك جنيهين وتريح دماغك"],category:"jobs"},
+    {word:"ترزي",icon:"🧵",hints:["بيصلح وخياطة البنطلونات","وعنده ماكينة خياطة","الستات بتروحله تزقزق"],category:"jobs"},
+    {word:"فكهاني",icon:"🍎",hints:["ببيع فاكهة على عربية","ينادي بصوت عالي","البرتقان بجنيه"],category:"jobs"},
+    {word:"مسحراتي",icon:"🥁",hints:["بيصحى الناس للسحور","يادوووود ياناييييم","طبله ومزمار"],category:"jobs"},
+    {word:"فراش",icon:"🧹",hints:["بينضف المكاتب والمدارس","عنده مكنسة وشكارة","الشغلانة تعبانة"],category:"jobs"},
+    {word:"دليفري",icon:"🛵",hints:["بيوصل الأكل للبيوت","سريع وبيجري في الشوارع","بتتصل بيه كتير"],category:"jobs"},
+    {word:"قهوجي",icon:"☕",hints:["صاحب القهوة","بيحضر المنسف","بيفرفش مكان"],category:"jobs"},
+    {"word": "ميك أب أرتيست","icon": "💄","hints": ["بيجهّز العرايس للمناسبات والتصوير","بيستخدم الفاونديشن والآيشادو","بيختار الألوان المناسبة حسب لون البشرة"],"category": "jobs"}
+
+
+
+
+
+
+
+
+  ],
+  animals: [
+    {word:"أسد",icon:"🦁",hints:["ملك الغابة","أصوات زعيقه مسمعة","بيعيش في أفريقيا"],category:"animals"},
+    {word:"خفاش",icon:"🦇",hints:["بيطير بالليل","باتمان","بيستخدم الموجات الصوتية عشان يشوف"],category:"animals"},
+    {word:"فيل",icon:"🐘",hints:["أكبر حيوان بري","خرطومه مميز","يشرب بالخرطوم"],category:"animals"},
+    {word:"وشق",icon:"🐱",hints:["قط بري كبير","عنده ودن طويلة وذيل قصير","سريع جداً"],category:"animals"},
+    {word:"لاما",icon:"🦙",hints:["حيوان غامض شبه الجمل بس من غير سنام","صوفي أبيض أو بني","صوصه بزق"],category:"animals"},
+    {word:"فرس نهر",icon:"🦛",hints:["بيحب الماء","عنده فم كبير جداً وفتك","بيعيش في الأنهار"],category:"animals"},
+    {word:"فقمة",icon:"🦭",hints:["عايشة في القطب المتجمد","بتسبح كويس وتمشي على الثلج","بتاكل سمك"],category:"animals"},
+    {word:"برغوث",icon:"🦟",hints:["حشرة صغيرة جداً","بتعض الإنسان والحيوان","صعب تشوفها"],category:"animals"},
+    {word:"سلطعون",icon:"🦀",hints:["عنده قشر صلب","يمشي جنب على جنب","بيعيش في البحر والشط"],category:"animals"},
+    {word:"اخطبوط",icon:"🐙",hints:["عنده 8 أرجل","بيغير لونه وشكله عشان يخبي نفسه","عنده 3 قلوب"],category:"animals"},
+    {word:"دودة",icon:"🐛",hints:["حيوان صغير زاحف","بتزحف تحت الأرض","الطيور بتحب تاكلها"],category:"animals"},
+    {word:"حبار",icon:"🦑",hints:["شبه الاخطبوط بس عنده 10 أرجل","بينفخ حبر أسود عشان يهرب","عنده زعانف"],category:"animals"},
+    {word:"نجم البحر",icon:"⭐",hints:["شكل نجمة","بيعيش في قاع البحر","لو اتقطع جزء منه بيرجع"],category:"animals"},
+    {word:"زرافة",icon:"🦒",hints:["رقبته طويلة جداً","مرقط بالبقع البنية","في السافانا"],category:"animals"},
+    {word:"دولفين",icon:"🐬",hints:["ذكي جداً","بيعيش في البحر","بيتعلم حركات"],category:"animals"},
+    {word:"ببغاء",icon:"🦜",hints:["بيكلم الناس","بيقلد الأصوات","ريشه ملون"],category:"animals"},
+    {word:"تمساح",icon:"🐊",hints:["أسنانه خطيرة","بيعيش في النيل","يحتاج حذر شديد"],category:"animals"},
+    {word:"حصان",icon:"🐴",hints:["بيركبوا عليه","سريع جداً","في الخيل والرياضة"],category:"animals"},
+    {word:"قنفذ",icon:"🦔",hints:["جسمه بالشوك","صغير وبيتكور","لو خاف يتكور"],category:"animals"},
+    {word:"نمر",icon:"🐆",hints:["مرقط بالنقط السود","أسرع حيوانات الجري","جنسه القطط الكبيرة"],category:"animals"},
+    {word:"طاووس",icon:"🦚",hints:["ذيله الملون جميل","بيفرد ذيله تيه","طائر جميل"],category:"animals"},
+    {word:"عقرب",icon:"🦂",hints:["في الصحراء","ذيله مسموم","خطير جداً"],category:"animals"},
+    {word:"بطريق",icon:"🐧",hints:["في القطب الجنوبي","بيمشي مضحك","مش بيطير لكن بيسبح"],category:"animals"},
+    {word:"خروف",icon:"🐑",hints:["بيدي لبن وصوف","في العيد بيتذبح","بيعيش في مزارع"],category:"animals"},
+    {word:"قرد",icon:"🐒",hints:["بيتشبه بالإنسان","في الغابة","بيطلع على الشجر"],category:"animals"},
+    {word:"نسر",icon:"🦅",hints:["ملك الطيور","بيحلق عالي جداً","بصره قوي جداً"],category:"animals"},
+    {word:"ضفدع",icon:"🐸",hints:["بيتنطط ويقفز","بيعيش جنب المية","صوته ضف ضف"],category:"animals"},
+    {word:"صقر",icon:"🦅",hints:["طير جارح قوي","بيعرف يصطاد","رمزه موجود عند الفراعنة"],category:"animals"},
+    {word:"غزال",icon:"🦌",hints:["حيوان جميل وسريع","لونه بني فاتح","عنده قرون رفيعة"],category:"animals"},
+    {word:"حمار",icon:"🐴",hints:["بيحمل الأغراض الثقيلة","صوته عالي ومزعج","بيتاكل فاكهة وخضار"],category:"animals"},
+    {word:"جاموس",icon:"🐃",hints:["بيعيش في المزارع","لونه أسود أو رمادي","قرونه كبيرة وملفوفة"],category:"animals"},
+    {word:"بقرة",icon:"🐮",hints:["بتدي لبن وجبنة","بتاكل عشب","بتقول مووو"],category:"animals"},
+    {word:"ماعز",icon:"🐐",hints:["لونه أبيض أو بني","عنده لحية صغيرة","بيتسلق الجبال"],category:"animals"},
+    {word:"قطة",icon:"🐱",hints:["الحيوان الأليف المنتشر","بتناكل فيش وتشرب لبن","بتقول مياو مياو"],category:"animals"},
+    {word:"كلب",icon:"🐶",hints:["صديق الإنسان الليفي","بيحب يلعب ويجري","بيحرس البيت"],category:"animals"},
+    {word:"أرنب",icon:"🐰",hints:["وذنبه قصير","بيحب أكل الجزر","بيقفز عالي"],category:"animals"},
+    {word:"فأر",icon:"🐭",hints:["حيوان صغير رمادي","بيحب الجبنة","القطط بتصطاده"],category:"animals"},
+    {word:"سنجاب",icon:"🐿️",hints:["عنده ذيل كثيف كبير","بيحب المكسرات","بيطلع على الشجر بسرعة"],category:"animals"},
+    {word:"دب",icon:"🐻",hints:["ضخم ومفترس","بيحب العسل","بيعيش في الغابات"],category:"animals"},
+    {word:"ذئب",icon:"🐺",hints:["شبه الكلب بس أكبر وأشرس","بيعيش في مجموعات","صوته عواء"],category:"animals"},
+    {word:"ثعبان",icon:"🐍",hints:["بيزحف على بطنه","سمه خطير","مالوش رجلين"],category:"animals"},
+    {word:"سلحفاة برية",icon:"🐢",hints:["بطيئة جداً","بتشيل بيتها على ضهرها","بتعيش عمر طويل"],category:"animals"},
+    {word:"ضبع",icon:"🐕",hints:["حيوان مفترس ليلي","صوته ضحكة غريبة","بيعيش في الصحراء"],category:"animals"},
+    {word:"كنغر",icon:"🦘",hints:["بيتنطط عالي","بيحط صغاره في جيبه","موجود في أستراليا"],category:"animals"},
+    {word:"كوالا",icon:"🐨",hints:["حيوان أسترالي كيوت","بيحب أكل أوراق الكافور","بينام 20 ساعة في اليوم"],category:"animals"},
+    {word:"ماموث",icon:"🦣",hints:["فيل قديم منقرض","عنده أنياب طويلة جداً","عاش في العصر الجليدي"],category:"animals"},
+    {word:"ثعلب",icon:"🦊",hints:["حيوان ماكر ومشهور بالدهاء","ذيله كبير وكثيف","لونه برتقالي"],category:"animals"},
+    {word:"فهد",icon:"🐆",hints:["مرقط بنقط سودا","أسرع حيوان في الجري","بيعيش في أفريقيا"],category:"animals"},
+    {word:"هامسستر",icon:"🐹",hints:["حيوان أليف صغير كيوت","بيحب الجري على العجلة","بيخزن الأكل في خدوده"],category:"animals"},
+    {word:"ثور",icon:"🐂",hints:["ذكر البقرة","عنده قرون كبيرة","قوي جداً"],category:"animals"},
+    {word:"برص",icon:"🦎",hints:["زاحف صغير بيطلع على الحيطة","صوته مزعج بالليل","بيتغير لونه ساعات"],category:"animals"},
+    {word:"صرصار",icon:"🪳",hints:["حشرة بنية بتتخبأ في المطبخ","ناس كتير بتخاف منها","بتجري بسرعة لما ينام النور"],category:"animals"},
+    {word:"فراشة",icon:"🦋",hints:["حشرة جميلة بألوان كتير","بتطير بين الزهور","أجنحتها فيها نقوش"],category:"animals"},
+    {word:"حرباية",icon:"🦎",hints:["بتغير لونها عشان تخبي نفسها","لسانها طويل بتصطاد بيه","عينها بتلف 360 درجة"],category:"animals"},
+    {word:"حمار وحشي",icon:"🦓",hints:["عليه خطوط أبيض وأسود","شبه الحصان بس مخطط","بيعيش في أفريقيا"],category:"animals"},
+    {word:"نمل",icon:"🐜",hints:["حشرة صغيرة جداً","بتشتغل في مجموعات كتيرة","بتشيل حاجات أكبر منها"],category:"animals"},
+    {word:"حوت",icon:"🐋",hints:["أكبر حيوان في العالم","بيعيش في البحر","بيطلع مية من راسه"],category:"animals"},
+    {word:"قرش",icon:"🦈",hints:["سمكة مفترسة","سنانه حادة وخطيرة","بيعيش في البحار"],category:"animals"},
+    {word:"قنديل",icon:"🪼",hints:["كائن بحري شفاف","شكله زي المظلة","لسعته بتوجع"],category:"animals"},
+    {word:"ذبابة",icon:"🪰",hints:["حشرة مزعجة","بتوقع على الأكل","صوتها زززز"],category:"animals"},
+    {word:"ناموس",icon:"🦟",hints:["حشرة صغيرة بتطلع بالليل","بتبقى جنب ودانه","لسعتها بتسبب حكة"],category:"animals"},
+    {word:"نعامة",icon:"🐦",hints:["أكبر طير في العالم","بتجري بسرعة لكن مبتطيرش","بتخبي راسها في التراب ساعات"],category:"animals"},
+    {word:"فلامنجو",icon:"🦩",hints:["طير ورده اللون","عنده رقبة طويلة ورجلين طوال","بيعيش في المياه المالحة"],category:"animals"},
+    {word:"سمندل",icon:"🦎",hints:["زاحف صغير شبه السحلية","بيعيش في الأماكن الرطبة","مش بيتحرق في النار"],category:"animals"},
+  ],
+  fruits: [
+    {word:"بطيخ",icon:"🍉",hints:["أحمر من داخل","أخضر من بره","صيف وبرودة"],category:"fruits"},
+    {word:"مانجو",icon:"🥭",hints:["فاكهة صيف","حلوة جداً","بيجي بألوان كتير"],category:"fruits"},
+    {word:"فراولة",icon:"🍓",hints:["حمرا ومنقطة","حلوة وحامضة","في تورتة أو عصير"],category:"fruits"},
+    {word:"موز",icon:"🍌",hints:["أصفر وبيجي في قشرة","حلو وبيديك طاقة","القرود بتحبه"],category:"fruits"},
+    {word:"تفاح",icon:"🍎",hints:["أحمر أو أخضر","يومياً يبعد الدكتور","مقرمش ولذيذ"],category:"fruits"},
+    {word:"برتقان",icon:"🍊",hints:["برتقالي اللون","عصيره مشهور","فيه فيتامين C"],category:"fruits"},
+    {word:"عنب",icon:"🍇",hints:["حبات صغيرة في عنقود","بنفسجي أو أخضر","بيتعمل منه نبيذ وزبيب"],category:"fruits"},
+    {word:"خوخ",icon:"🍑",hints:["برتقالي أو وردي","ناعم من بره","حلو وفيه نواة"],category:"fruits"},
+    {word:"كمثرى",icon:"🍐",hints:["شكل الكلوة","أخضر أو أصفر","حلوة لما تنضج"],category:"fruits"},
+    {word:"أناناس",icon:"🍍",hints:["شكله مميز جداً","حلو وحامض","من الاستوائية"],category:"fruits"},
+    {word:"رمان",icon:"🍎",hints:["فيه حبات كتير","أحمر اللون","صعب تاكله بدون وسخ"],category:"fruits"},
+    {word:"ليمون",icon:"🍋",hints:["أصفر وحامض جداً","في العصائر والسلطة","بتحطه في الشاي"],category:"fruits"},
+    {word:"تمر",icon:"🌴",hints:["من نخلة التمر","حلو جداً","بيتاكل في رمضان"],category:"fruits"},
+    {word:"جوافة",icon:"🍈",hints:["وردية من الداخل","ريحتها قوية","من الفواكه المصرية"],category:"fruits"},
+    {word:"كيوي",icon:"🥝",hints:["بني من بره وأخضر من جوه","فيه بذور سودة صغيرة","حامض وحلو في نفس الوقت"],category:"fruits"},
+    {word:"شمام",icon:"🍈",hints:["شبيه بالبطيخ بس من جوا برتقاني","ريحته قوية وحلوة","من فواكه الصيف"],category:"fruits"},
+    {word:"كانتالوب",icon:"🍈",hints:["نوع من الشمام","لحمته برتقاني وشبكي من بره","طعمه حلو جداً"],category:"fruits"},
+    {word:"توت أزرق",icon:"🫐",hints:["أزرق غامق صغير","من الفواكه السوبر","غني بمضادات الأكسدة"],category:"fruits"},
+    {word:"توت أحمر",icon:"🍓",hints:["أحمر صغير وحامض","بيتحط على الكيك","شبه الفراولة بس أصغر"],category:"fruits"},
+    {word:"كرز",icon:"🍒",hints:["أحمر صغير ومدور","فيه نواة جوه","حلو ولذيذ"],category:"fruits"},
+    {word:"مشمش",icon:"🍑",hints:["برتقاني صغير","ناعم من بره وطعمه حلو","منها قمر الدين"],category:"fruits"},
+    {word:"تين ابيض",icon:"🍈",hints:["من جواه حبوب صغيرة مقرمشة","لونه بنفسجي أو أخضر","ريحته مميزة"],category:"fruits"},
+    {word:"تين برشومي",icon:"🍈",hints:["تين حجمه كبير","لونه بني","طعمه سكري جداً"],category:"fruits"},
+    {word:"بلح",icon:"🌴",hints:["تمر لسه طري أصفر","بيتاكل في أول الموسم","حلو بس مش ناشف"],category:"fruits"},
+    {word:"زيتون",icon:"🫒",hints:["أخضر أو أسود","مش حلو عادة","بيتعمل منه زيت ومخلل"],category:"fruits"},
+    {word:"جوز الهند",icon:"🥥",hints:["كبيرة وبنية من بره","جواها لبن أبيض","بتنموا على شجر النخيل"],category:"fruits"},
+    {word:"باباظ",icon:"🍈",hints:["باباي بالفصحى","لحمتها برتقانية وبها بذور سودة","بتساعد على الهضم"],category:"fruits"},
+    {word:"قشطة",icon:"🍈",hints:["خضرا من بره وبيضة من جوه","طعمها سكري جدا","فيها بذور سودة كبيرة"],category:"fruits"},
+    {word:"نكتارين",icon:"🍑",hints:["شبه الخوخ بس ملساء من بره","حلوة جداً","نضيفة ومش عليها وبر"],category:"fruits"},
+    {word:"يوسفي",icon:"🍊",hints:["نوع من البرتقال صغير","بيتقشر بسهولة باليد","طعمه أحلى من البرتقان"],category:"fruits"},
+    {word:"جريب فروت",icon:"🍊",hints:["شبه البرتقان بس أكبر","طعمه مر شوية","بينفع للرجيم"],category:"fruits"},
+    {word:"تمر هندي",icon:"🟤",hints:["قرون بنية","طعمه حامض وحلو","بيتعمل منه مشروب رمضاني"],category:"fruits"},
+    {word:"تين شوكي",icon:"🌵",hints:["فاكهة الصبار","لونها أخضر أو أحمر","لازم تقشرها بحذر"],category:"fruits"},
+    {word:"كاكا",icon:"🍈",hints:["برتقاني لونها","طعمها زي العسل","لما تنضج بتبقى طرية"],category:"fruits"},
+  ],
+  vegetables: [
+    {word:"طماطم",icon:"🍅",hints:["حمرا ومدورة","بتتحط في السلطة والطبخ","منها عصير وكاتشب"],category:"vegetables"},
+    {word:"خيار",icon:"🥒",hints:["أخضر ومقرمش","بتاكله في السلطة","منعش في الصيف"],category:"vegetables"},
+    {word:"جزر",icon:"🥕",hints:["برتقاني طويل","مفيد للعين","بتاكله نيء أو مطبوخ"],category:"vegetables"},
+    {word:"بصل",icon:"🧅",hints:["لونه أبيض أو أحمر","بيقطع وعينك تدمع","قاعدتك في أي طبخة"],category:"vegetables"},
+    {word:"بطاطس",icon:"🥔",hints:["بتتقشر وتتسلق أو تتقلى","معروفه في كل حتة","منها شيبسي"],category:"vegetables"},
+    {word:"فلفل",icon:"🫑",hints:["أخضر أو أحمر أو أصفر","بيتحط في السلطة والمحشي","مقرمش ولذيذ"],category:"vegetables"},
+    {word:"بامية",icon:"🥬",hints:["خضرا صغيرة ولزقة","بتتطبخ بالصلصة","طبخة مصرية أصيلة"],category:"vegetables"},
+    {word:"كوسة",icon:"🥒",hints:["خضرا طويلة","بتتحشي بالأرز","من الخضروات الصيفية"],category:"vegetables"},
+    {word:"سبانخ",icon:"🥬",hints:["ورقها أخضر","بتقوي العضلات","بتحبها زي باباي"],category:"vegetables"},
+    {word:"كرنب",icon:"🥬",hints:["ورق كبير مدور","بيتعمل منه محشي","لونه أخضر فاتح"],category:"vegetables"},
+    {word:"قرنبيط",icon:"🥦",hints:["أبيض ومقسم زهر","بيتقلى أو يتسلق","صحته حلوة"],category:"vegetables"},
+    {word:"بروكلي",icon:"🥦",hints:["أخضر غامق وشكل شجرة","صحي جداً","بنصحوا بيه في الرجيم"],category:"vegetables"},
+    {word:"فجل",icon:"🥕",hints:["أحمر صغير وطويل","حريف شوية","بيتاكل في السلطة"],category:"vegetables"},
+    {word:"باذنجان",icon:"🍆",hints:["بنفسجي طويل","بيتعمل منه مسقعة","مشهور في المطبخ المصري"],category:"vegetables"},
+    {word:"خس",icon:"🥬",hints:["ورق أخضر مقرمش","قاعدة السلطة","منعش ومفيد"],category:"vegetables"},
+    {word:"جرجير",icon:"🥬",hints:["ورق صغير وحراق","بيتحط في الفتة والسلطة","طعمه مميز"],category:"vegetables"},
+    {word:"بقدونس",icon:"🌿",hints:["ورق أخضر صغير","بتزين بيه الأكل","ريحته جميلة"],category:"vegetables"},
+    {word:"كزبرة",icon:"🌿",hints:["ورق خضرا ريحتها قوية","بتتحط على الشوربة","ناس بتحبها وناس لأ"],category:"vegetables"},
+    {word:"شمندر",icon:"🍠",hints:["أحمر غامق","بيسموه بنجر","لونه بيصبح إيدك"],category:"vegetables"},
+    {word:"ثوم",icon:"🧄",hints:["فصوص صغيرة بيضة","ريحته قوية","بيتحط في الأكل كله"],category:"vegetables"},
+    {word:"شبت",icon:"🌿",hints:["ورق خضرا خفيف وشعر","بيتحط على الأكل والسلطة","طعمه مميز وحلو"],category:"vegetables"},
+    {word:"بسلة",icon:"🟢",hints:["حب خضرا مدور صغير","بتتطبخ مع الجزر","الولاد بتحبها"],category:"vegetables"},
+    {word:"كرات",icon:"🧅",hints:["شبه البصل بس طعمه أحلى","بيتعمل منه محشي","مشهور في إيطاليا"],category:"vegetables"},
+    {word:"ورق عنب",icon:"🍃",hints:["ورق كرمة","بيتعمل منه محشي","طبخة رمضانية"],category:"vegetables"},
+    {word:"لوبيا",icon:"🫘",hints:["حب بيض طويل","بتتطبخ صلصة","أكلة مصرية شعبية"],category:"vegetables"},
+    {word:"قلقاس",icon:"🥔",hints:["مدور وبني من بره","بيتسلق ويتحمر","ريحته حلوة"],category:"vegetables"},
+  ]
+};
+
+let ALL_WORDS = [];
+for (let cat in WORDS_BY_CATEGORY) ALL_WORDS = ALL_WORDS.concat(WORDS_BY_CATEGORY[cat]);
+
+// ==================== ROULETTE ====================
+const ROULETTE_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const ROULETTE_COLORS  = ['#ff8c94','#aa96da','#a8d8ea','#fdcb6e','#55efc4','#fd79a8','#74b9ff','#fcb69f','#c7ecee','#ffeaa7'];
+
+// ==================== GAME STATE ====================
+const G = {
+  redName: "الأحمر", blueName: "الأزرق",
+  redPlayers: [], bluePlayers: [],
+  redScore: 0, blueScore: 0,
+  timeMinutes: 2.5,
+  currentWord: null,
+  wordTeam: "red",
+  askingTeam: "blue",
+  qUsed: 0,
+  redCards: { extra: false, freeze: false, hint: false, time: false, double: false },
+  blueCards: { extra: false, freeze: false, hint: false, time: false, double: false },
+  cardsUsedThisRound: 0,
+  isDoubleActive: false,
+  hintShown: false,
+  freezeActive: false,
+  timerInterval: null,
+  secondsLeft: 0,
+  guessTimerInterval: null,
+  guessSecondsLeft: 20,
+  correctGuess: false,
+  MAX_SCORE: 7,
+  CARDS_PER_TEAM: 5,
+  CARDS_PER_ROUND: 1,
+  firstAskingTeam: "blue",
+  pendingWin: false,
+  pendingWinTeam: null,
+  pendingWinScore: 0,
+  rouletteSpun: false,
+  rouletteCurrentAngle: 0,
+  celebrationShown: false,
+  // guard to prevent double goGuess calls
+  guessStarted: false,
+};
+
+// ==================== PROGRESS BAR ====================
+function renderProgressBars(prefix) {
+  const maxScore = G.MAX_SCORE;
+  
+  function buildDots(score, container, barEl, numEl, labelEl, name, pct) {
+    barEl.style.width = Math.max(pct, 8) + '%';
+    numEl.textContent = score;
+    labelEl.textContent = name;
+    container.innerHTML = '';
+    
+    // حساب عدد الكرات البرتقالية (كل 7 = كرة) والنقاط الفردية
+    const groupsOf7 = Math.floor(score / 7);
+    const remainder = score % 7;
+    const totalSlots = groupsOf7 + remainder; // إجمالي الأشكال
+    
+    // حجم ديناميكي بناءً على العدد الكلي
+    const dotSize = totalSlots <= 7 ? '4.5vw' :
+                    totalSlots <= 10 ? '3.8vw' :
+                    totalSlots <= 14 ? '3.2vw' : '2.8vw';
+    const groupSize = totalSlots <= 7 ? '7vw' :
+                      totalSlots <= 10 ? '6vw' :
+                      totalSlots <= 14 ? '5.2vw' : '4.5vw';
+    const groupFontSize = totalSlots <= 7 ? '2.8vw' :
+                          totalSlots <= 10 ? '2.4vw' :
+                          totalSlots <= 14 ? '2vw' : '1.8vw';
+    
+    // رسم الكرات البرتقالية أولاً
+    for (let i = 0; i < groupsOf7; i++) {
+      const g = document.createElement('div');
+      g.style.cssText = `
+        width:${groupSize}; height:${groupSize}; border-radius:50%;
+        background:#ff8c00; border:2px solid rgba(255,255,255,0.9);
+        display:flex; align-items:center; justify-content:center;
+        font-size:${groupFontSize}; color:#fff; font-weight:900;
+        flex-shrink:0; box-shadow:0 0 10px rgba(255,140,0,0.5);
+        font-family:'Cairo',sans-serif;
+      `;
+      g.textContent = '7';
+      container.appendChild(g);
+    }
+    
+    // رسم النقاط البيضاء للنقاط الفردية
+    for (let i = 0; i < remainder; i++) {
+      const d = document.createElement('div');
+      d.style.cssText = `
+        width:${dotSize}; height:${dotSize}; border-radius:50%;
+        background:#fff; border:2px solid rgba(255,255,255,0.6);
+        box-shadow:0 0 8px rgba(255,255,255,0.8);
+        flex-shrink:0;
+      `;
+      container.appendChild(d);
+    }
+  }
+  
+  const redPct = Math.min((G.redScore / maxScore) * 100, 100);
+  const redBar = document.getElementById(`${prefix}RedBar`);
+  const redDots = document.getElementById(`${prefix}RedDots`);
+  const redNum = document.getElementById(`${prefix}RedNum`);
+  const redLabel = document.getElementById(`${prefix}RedLabel`);
+  if (!redBar) return;
+  buildDots(G.redScore, redDots, redBar, redNum, redLabel, G.redName, redPct);
+  
+  const bluePct = Math.min((G.blueScore / maxScore) * 100, 100);
+  const blueBar = document.getElementById(`${prefix}BlueBar`);
+  const blueDots = document.getElementById(`${prefix}BlueDots`);
+  const blueNum = document.getElementById(`${prefix}BlueNum`);
+  const blueLabel = document.getElementById(`${prefix}BlueLabel`);
+  buildDots(G.blueScore, blueDots, blueBar, blueNum, blueLabel, G.blueName, bluePct);
+}
+
+function animateNewPoint(team, prefix) {
+  const dotsId = team === 'red' ? `${prefix}RedDots` : `${prefix}BlueDots`;
+  const container = document.getElementById(dotsId);
+  if (!container) return;
+  const dots = container.querySelectorAll('.progress-dot.filled');
+  if (dots.length > 0) {
+    const last = dots[dots.length - 1];
+    last.classList.add('pop');
+    setTimeout(() => last.classList.remove('pop'), 600);
+  }
+}
+
+// ==================== NAVIGATION ====================
+function goToRules() {
+  const r = document.getElementById('redName').value.trim();
+  const b = document.getElementById('blueName').value.trim();
+
+  if (!r || !b) { showToast('⚠️ اكتب أسماء الفريقين!'); return; }
+  if (r === b) { showToast('⚠️ اسم الفريقين لازم يكون مختلف!'); return; }
+
+  G.redName = r.length > 8 ? r.slice(0, 8) + '…' : r;
+  G.blueName = b.length > 8 ? b.slice(0, 8) + '…' : b;
+  G.redPlayers = [];
+  G.bluePlayers = [];
+  showScreen('rulesScreen');
+}
+function getNameFontSize(name, baseSize) {
+  if (name.length > 8) return (baseSize * 0.75) + 'vw';
+  return baseSize + 'vw';
+}
+function startGame() {
+  G.redScore = 0; G.blueScore = 0;
+  G.wordTeam = "red"; G.askingTeam = "blue";
+  G.firstAskingTeam = "blue";
+  G.pendingWin = false;
+  G.pendingWinTeam = null;
+  G.pendingWinScore = 0;
+  G.MAX_SCORE = 7;
+  G.celebrationShown = false;
+  resetAllCards();
+  G.cardsUsedThisRound = 0;
+  G.isDoubleActive = false;
+  G.freezeActive = false;
+  showHandoff();
+}
+
+function showHandoff() {
+  const tName = G.wordTeam === "red" ? G.redName : G.blueName;
+  const cls   = G.wordTeam === "red" ? "red" : "blue";
+  const box   = document.getElementById('handoffBox');
+  const msg   = document.getElementById('handoffMsg');
+  const btn   = document.getElementById('handoffBtn');
+  box.className = `handoff-box ${cls}`;
+  msg.textContent = `📱 أعطِ التليفون لـ ${tName}`;
+  btn.style.background = cls === 'red'
+    ? 'linear-gradient(45deg,var(--red),var(--red-light))'
+    : 'linear-gradient(45deg,var(--blue),var(--blue-light))';
+
+  const banner = document.getElementById('lastChanceBanner');
+  if (G.pendingWin) {
+    document.getElementById('lastChanceTarget').textContent = G.pendingWinScore;
+    banner.classList.remove('hidden');
+  } else {
+    banner.classList.add('hidden');
+  }
+  showScreen('handoffScreen');
+}
+
+function showWordReveal() {
+  G.currentWord = getRandomWord();
+  document.getElementById('revealIcon').textContent = G.currentWord.icon;
+  document.getElementById('revealWord').textContent = G.currentWord.word;
+  const catKey = G.currentWord.category;
+  const catName = CATEGORY_NAMES[catKey] || catKey;
+  document.getElementById('revealCategory').textContent = catName;
+  const wordTeamName = G.wordTeam === "red" ? G.redName : G.blueName;
+  const askTeamName  = G.askingTeam === "red" ? G.redName : G.blueName;
+  const wordEmoji    = G.wordTeam === "red" ? "🔴" : "🔵";
+  const askEmoji     = G.askingTeam === "red" ? "🔴" : "🔵";
+  const wordColor    = G.wordTeam === "red" ? "red-color" : "blue-color";
+  const askColor     = G.askingTeam === "red" ? "red-color" : "blue-color";
+  const boxTheme     = G.wordTeam === "red" ? "red-theme" : "blue-theme";
+  document.getElementById('wordRevealTitle').textContent = `الكلمة لـ ${wordTeamName} ${wordEmoji} 🤫`;
+  document.getElementById('roleBox').className = `role-box ${boxTheme}`;
+  document.getElementById('seeTeamLabel').textContent  = `${wordTeamName} ${wordEmoji}`;
+  document.getElementById('seeTeamLabel').className    = `role-team ${wordColor}`;
+  document.getElementById('askTeamLabel').textContent  = `${askTeamName} ${askEmoji}`;
+  document.getElementById('askTeamLabel').className    = `role-team ${askColor}`;
+  showScreen('wordRevealScreen');
+}
+
+function showGameplay() {
+  G.qUsed = 0;
+  G.isDoubleActive = false;
+  G.hintShown = false;
+  G.freezeActive = false;
+  G.cardsUsedThisRound = 0;
+  G.secondsLeft = Math.floor(G.timeMinutes * 60);
+  // reset guess guard every new round
+  G.guessStarted = false;
+
+  const askName = G.askingTeam === "red" ? G.redName : G.blueName;
+  const cls     = G.askingTeam === "red" ? "red" : "blue";
+  const lbl     = document.getElementById('askingLabel');
+  lbl.textContent = `${askName} ${G.askingTeam==="red"?"🔴":"🔵"} يسأل`;
+  lbl.className = `now-playing-label ${cls}`;
+ const pgRedLabel = document.getElementById('pgRedLabel');
+  pgRedLabel.textContent = G.redName;
+  pgRedLabel.style.fontSize = getNameFontSize(G.redName, 3.8);
+  const pgBlueLabel = document.getElementById('pgBlueLabel');
+  pgBlueLabel.textContent = G.blueName;
+  pgBlueLabel.style.fontSize = getNameFontSize(G.blueName, 3.8); 
+  updateTimerDisplay();
+  renderProgressBars('pg');
+  renderQBoxes();
+  renderCards();
+  document.getElementById('hintDisplay').classList.add('hidden');
+  document.getElementById('doubleIndicator').classList.add('hidden');
+  showScreen('gameplayScreen');
+}
+
+// ==================== QUESTIONS ====================
+function renderQBoxes() {
+  const c = document.getElementById('qBoxes');
+  c.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const d = document.createElement('div');
+    d.className = 'q-box' + (i < G.qUsed ? ' used' : '');
+    d.textContent = i < G.qUsed ? '✓' : '❓';
+    if (i >= G.qUsed) d.onclick = () => useQuestion(i);
+    c.appendChild(d);
+  }
+}
+
+function useQuestion(idx) {
+  // Only allow pressing the NEXT available question box
+  if (idx !== G.qUsed) return;
+  // Guard: if guess already started, ignore
+  if (G.guessStarted) return;
+
+  if (G.freezeActive) {
+    G.freezeActive = false;
+    showToast('❄️ السؤال اتجمد ومش محسوب!');
+    renderCards();
+    return;
+  }
+  G.qUsed++;
+  renderQBoxes();
+
+  // When 7th question is pressed → go to guess IMMEDIATELY, no delay, no timer race
+  if (G.qUsed >= 7) {
+    G.guessStarted = true;
+    stopTimer();
+    goGuess();
+  }
+}
+
+// ==================== CARDS (1 per round) ====================
+function getCurrentTeamCards() { return G.askingTeam === "red" ? G.redCards : G.blueCards; }
+function getCurrentTeamCardsUsedCount() { 
+  return Object.values(getCurrentTeamCards()).filter(v => v === true || v === 'used_recoverable' || v === 'ad_done').length; 
+}
+
+function resetAllCards() {
+  G.redCards  = { extra: false, freeze: false, hint: false, time: false, double: false };
+  G.blueCards = { extra: false, freeze: false, hint: false, time: false, double: false };
+  G.redCardsAdUsed  = { extra: false, hint: false };
+  G.blueCardsAdUsed = { extra: false, hint: false };
+}
+
+function useCard(cardKey) {
+  const currentCards = getCurrentTeamCards();
+  const totalUsed = getCurrentTeamCardsUsedCount();
+  if (totalUsed >= G.CARDS_PER_TEAM) { showToast('خلاص! استنفدت كل كروت فريقك!'); return; }
+  if (G.cardsUsedThisRound >= G.CARDS_PER_ROUND) { showToast('كارت واحد بس في الجولة!'); return; }
+  if (currentCards[cardKey]) { showToast('الكارت ده استخدمته قبل كده!'); return; }
+
+if (cardKey === 'hint' || cardKey === 'extra') {
+  currentCards[cardKey] = 'used_recoverable';
+} else {
+  currentCards[cardKey] = true;
+}
+  G.cardsUsedThisRound++;
+
+  if (cardKey === 'extra') {
+    if (G.qUsed > 0) { G.qUsed--; renderQBoxes(); showToast('🔄 استرجعت سؤال إضافي!'); }
+    else showToast('مفيش أسئلة مستهلكة!');
+  } else if (cardKey === 'freeze') {
+    G.freezeActive = true; showToast('🛡️ السؤال الجاي مش محسوب!');
+  } else if (cardKey === 'hint') {
+    const h = document.getElementById('hintDisplay');
+    h.textContent = `💡 تلميح: ${G.currentWord.hints ? G.currentWord.hints[0] : 'فكر كويس!'}`;
+    h.classList.remove('hidden');
+    showToast('💡 ظهر التلميح!');
+  } else if (cardKey === 'time') {
+    G.secondsLeft += 30; updateTimerDisplay(); showToast('⏰ +30 ثانية!');
+  } else if (cardKey === 'double') {
+    G.isDoubleActive = true;
+    document.getElementById('doubleIndicator').classList.remove('hidden');
+    showToast('✨ التخمين القادم بنقطتين!');
+  }
+  renderCards();
+}
+
+function useAdCard(cardKey) {
+  const currentCards = getCurrentTeamCards();
+  const adUsedCards  = G.askingTeam === 'red' ? G.redCardsAdUsed : G.blueCardsAdUsed;
+
+  // ✅ أوقف التايمر قبل الإعلان
+  const wasRunning = G.timerInterval !== null;
+  stopTimer();
+
+  showRewardedAd(() => {
+    // ✅ أعد التايمر بعد الإعلان لو كان شغّال
+    if (wasRunning) startTimer();
+
+    adUsedCards[cardKey] = true;
+    currentCards[cardKey] = 'ad_done';
+    G.cardsUsedThisRound++;
+
+    if (cardKey === 'hint') {
+      const h = document.getElementById('hintDisplay');
+      h.textContent = `💡 تلميح: ${G.currentWord.hints ? G.currentWord.hints[0] : 'فكر كويس!'}`;
+      h.classList.remove('hidden');
+      showToast('💡 ظهر التلميح!');
+    } else if (cardKey === 'extra') {
+      if (G.qUsed > 0) { G.qUsed--; renderQBoxes(); showToast('🔄 استرجعت سؤال إضافي!'); }
+      else showToast('مفيش أسئلة مستهلكة!');
+    }
+    renderCards();
+  });
+}
+
+
+
+function renderCards() {
+  const currentCards = getCurrentTeamCards();
+  const totalUsed = getCurrentTeamCardsUsedCount();
+  const remaining = G.CARDS_PER_TEAM - totalUsed;
+  const askingTeamName = G.askingTeam === "red" ? G.redName : G.blueName;
+  document.getElementById('cardsLeft').innerHTML = `🎴 كروت ${askingTeamName}: ${remaining} / ${G.CARDS_PER_TEAM}`;
+
+  const defs = [
+    {key:'extra',  name:'سؤال إضافي', icon:'1️⃣', cls:'card-extra'},
+    {key:'freeze', name:'تجميد سؤال', icon:'🛡️', cls:'card-freeze'},
+    {key:'hint',   name:'تلميح',       icon:'💡', cls:'card-hint'},
+    {key:'time',   name:'+30 ث',       icon:'⏰', cls:'card-time'},
+    {key:'double', name:'دوبل',         icon:'2️⃣', cls:'card-double'},
+  ];
+  const row = document.getElementById('cardsRow');
+  row.innerHTML = '';
+  const adUsedCards = G.askingTeam === 'red' ? G.redCardsAdUsed : G.blueCardsAdUsed;
+
+  defs.forEach(d => {
+    const cardVal    = currentCards[d.key];
+    const roundFull  = G.cardsUsedThisRound >= G.CARDS_PER_ROUND;
+    const allGone    = totalUsed >= G.CARDS_PER_TEAM;
+    const isRecoverable = (d.key === 'hint' || d.key === 'extra');
+    const isAdRecoverable = cardVal === 'used_recoverable' && !adUsedCards[d.key] && !roundFull;
+    const isFullyUsed = cardVal === true || cardVal === 'ad_done' || (cardVal === 'used_recoverable' && (adUsedCards[d.key] || roundFull));
+
+    const btn = document.createElement('button');
+
+    if (isAdRecoverable) {
+      // يظهر بلونه مع بادج الإعلان
+      btn.className = `card-btn ${d.cls} ad-recoverable`;
+      btn.innerHTML = `<span class="card-icon">${d.icon}</span><span class="card-label">${d.name}</span>`;
+      btn.onclick = () => useAdCard(d.key);
+    } else if (isFullyUsed || (cardVal && !isAdRecoverable)) {
+      // رمادي نهائي
+      btn.className = `card-btn ${d.cls} used-card`;
+      btn.innerHTML = `<span class="card-icon">${d.icon}</span><span class="card-label">${d.name}</span>`;
+    } else {
+      // متاح عادي
+      btn.className = `card-btn ${d.cls}${(roundFull || allGone) ? ' used-card' : ''}`;
+      btn.innerHTML = `<span class="card-icon">${d.icon}</span><span class="card-label">${d.name}</span>`;
+      if (!roundFull && !allGone) btn.onclick = () => useCard(d.key);
+    }
+
+    row.appendChild(btn);
+  });
+}
+
+// ==================== TIMER ====================
+function startTimer() {
+  if (G.timerInterval) return;
+  G.timerInterval = setInterval(() => {
+    if (G.secondsLeft > 0) { G.secondsLeft--; updateTimerDisplay(); }
+    else {
+      stopTimer();
+      // Timer expired: go to guess only if not already started
+      if (!G.guessStarted) {
+        G.guessStarted = true;
+        goGuess();
+      }
+    }
+  }, 1000);
+}
+function stopTimer() { clearInterval(G.timerInterval); G.timerInterval = null; }
+function updateTimerDisplay() {
+  const m = Math.floor(G.secondsLeft / 60);
+  const s = G.secondsLeft % 60;
+  const el = document.getElementById('gameTimer');
+  el.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  el.className = G.secondsLeft <= 15 ? 'timer-big timer-danger' : 'timer-big';
+}
+
+// ==================== GUESS ====================
+// Called from "نخمن دلوقتي" button
+function goGuessFromBtn() {
+  if (G.guessStarted) return; // already going to guess
+  G.guessStarted = true;
+  stopTimer();
+  goGuess();
+}
+
+function goGuess() {
+  const category = G.currentWord.category;
+  let options = [];
+  if (category && WORDS_BY_CATEGORY[category]) {
+    const others = WORDS_BY_CATEGORY[category].filter(w => w.word !== G.currentWord.word);
+    const selected = [...others].sort(() => Math.random() - 0.5).slice(0, 9).map(w => w.word);
+    options = [...selected, G.currentWord.word].sort(() => Math.random() - 0.5);
+  } else {
+    const others = ALL_WORDS.filter(w => w.word !== G.currentWord.word).sort(() => Math.random() - 0.5).slice(0, 9);
+    options = [...others.map(o => o.word), G.currentWord.word].sort(() => Math.random() - 0.5);
+  }
+
+  const grid = document.getElementById('guessGrid');
+  grid.innerHTML = '';
+  G.correctGuess = false;
+
+  options.forEach(opt => {
+    const d = document.createElement('div');
+    d.className = 'guess-opt';
+    d.textContent = opt;
+    d.onclick = () => {
+      if (document.querySelectorAll('.guess-opt.correct, .guess-opt.wrong').length > 0) return;
+      clearInterval(G.guessTimerInterval);
+      if (opt === G.currentWord.word) {
+        d.classList.add('correct'); G.correctGuess = true;
+        spawnCheerParticles(true);
+        playCorrectSound(); // ✅ إضافة 1
+      } else {
+        d.classList.add('wrong'); G.correctGuess = false;
+        grid.querySelectorAll('.guess-opt').forEach(el => {
+          if (el.textContent === G.currentWord.word) el.classList.add('correct');
+        });
+        spawnCheerParticles(false);
+        playWrongSound(); // ✅ إضافة 2
+      }
+      setTimeout(() => showResult(), 1200);
+    };
+    grid.appendChild(d);
+  });
+
+  G.guessSecondsLeft = 20;
+  const timerEl = document.getElementById('guessTimerDisplay');
+  timerEl.textContent = '00:20';
+  timerEl.style.color = '#fff';
+  G.guessTimerInterval = setInterval(() => {
+    G.guessSecondsLeft--;
+    timerEl.textContent = `00:${G.guessSecondsLeft.toString().padStart(2, '0')}`;
+    if (G.guessSecondsLeft <= 5) timerEl.style.color = '#ffd700';
+    if (G.guessSecondsLeft <= 0) {
+      clearInterval(G.guessTimerInterval);
+      G.correctGuess = false;
+      grid.querySelectorAll('.guess-opt').forEach(el => {
+        if (el.textContent === G.currentWord.word) el.classList.add('correct');
+      });
+      spawnCheerParticles(false);
+      playWrongSound(); // ✅ إضافة 3
+      setTimeout(() => showResult(), 1000);
+    }
+  }, 1000);
+
+  showScreen('guessScreen');
+}
+
+// ==================== RESULT (fairness logic) ====================
+function showResult() {
+  clearInterval(G.guessTimerInterval);
+
+  const askName = G.askingTeam === "red" ? G.redName : G.blueName;
+  const rbox = document.getElementById('resultBox');
+  let pts = 0;
+  let scoringTeam = null;
+
+  if (G.correctGuess) {
+    pts = G.isDoubleActive ? 2 : 1;
+    if (G.askingTeam === "red") G.redScore += pts; else G.blueScore += pts;
+    scoringTeam = G.askingTeam;
+    rbox.className = 'result-box win';
+    rbox.textContent = `✅ ${askName} خمّن صح! +${pts} ${pts > 1 ? 'نقطتين' : 'نقطة'}`;
+  } else {
+    rbox.className = 'result-box lose';
+    rbox.textContent = `❌ للأسف ${askName} غلّط... الكلمة كانت: ${G.currentWord.word} ${G.currentWord.icon}`;
+  }
+
+  renderProgressBars('resPg');
+  if (scoringTeam) setTimeout(() => animateNewPoint(scoringTeam, 'resPg'), 300);
+
+  // ======== FAIRNESS LOGIC ========
+  const statusDiv = document.getElementById('nextRoundStatus');
+  const nextRoundBtn = document.getElementById('nextRoundBtn');
+  const redWon  = G.redScore >= G.MAX_SCORE;
+  const blueWon = G.blueScore >= G.MAX_SCORE;
+
+  nextRoundBtn.classList.remove('hidden');
+
+  if (G.pendingWin) {
+    const replyingTeam  = G.askingTeam;
+    const pendingWinner = G.pendingWinTeam;
+    const pendingScore  = G.pendingWinScore;
+    const replyScore    = replyingTeam === 'red' ? G.redScore : G.blueScore;
+
+    if (replyScore > pendingScore) {
+      statusDiv.innerHTML = `<div class="last-chance-banner">🎉 ${askName} قلبوا الطاولة وفازوا!</div>`;
+      G.pendingWin = false;
+      nextRoundBtn.classList.add('hidden');
+      // FIX: reduced delay from 2000 to 800ms
+      setTimeout(() => showCelebration(), 800);
+    } else if ((replyScore === pendingScore) && (redWon || blueWon)) {
+      G.pendingWin = false;
+      G.pendingWinTeam = null;
+      const newTarget = Math.max(G.redScore, G.blueScore) + 1;
+      G.MAX_SCORE = newTarget;
+      showToast('🔥 تعادل! جولة فاصلة!');
+      statusDiv.innerHTML = `<div class="last-chance-banner">🔥 تعادل! جولة فاصلة — أول فريق يجيب نقطة يفوز!</div>`;
+    } else {
+      const isReplyDone = (replyingTeam !== G.firstAskingTeam);
+      if (isReplyDone && replyScore < pendingScore) {
+        statusDiv.innerHTML = `<div class="last-chance-banner">⏰ انتهت جولة الرد...</div>`;
+        G.pendingWin = false;
+        nextRoundBtn.classList.add('hidden');
+        // FIX: reduced delay from 2000 to 800ms
+        setTimeout(() => showCelebration(), 800);
+      } else {
+        const winnerName = pendingWinner === 'red' ? G.redName : G.blueName;
+        statusDiv.innerHTML = `<div class="last-chance-banner">⚡ جولة الرد — ${askName} محتاج يتجاوز ${pendingScore} نقطة!</div>`;
+      }
+    }
+  } else if (redWon || blueWon) {
+    const justScoredTeam = G.askingTeam;
+    if (pts === 0) {
+      if (G.firstAskingTeam === (G.redScore >= G.MAX_SCORE ? 'red' : 'blue')) {
+        const winnerTeam = G.redScore >= G.MAX_SCORE ? 'red' : 'blue';
+        const winnerName = winnerTeam === 'red' ? G.redName : G.blueName;
+        const otherName  = winnerTeam === 'red' ? G.blueName : G.redName;
+        G.pendingWin     = true;
+        G.pendingWinTeam = winnerTeam;
+        G.pendingWinScore = G.redScore >= G.MAX_SCORE ? G.redScore : G.blueScore;
+        statusDiv.innerHTML = `<div class="last-chance-banner">⚡ ${winnerName} وصلوا لـ${G.pendingWinScore}!<br>${otherName} ليهم جولة رد!</div>`;
+      } else {
+        nextRoundBtn.classList.add('hidden');
+        // FIX: reduced delay
+        setTimeout(() => showCelebration(), 800);
+      }
+    } else if (justScoredTeam === G.firstAskingTeam) {
+      const winnerName = justScoredTeam === 'red' ? G.redName : G.blueName;
+      const otherTeam  = justScoredTeam === 'red' ? 'blue' : 'red';
+      const otherName  = otherTeam === 'red' ? G.redName : G.blueName;
+      G.pendingWin     = true;
+      G.pendingWinTeam = justScoredTeam;
+      G.pendingWinScore = justScoredTeam === 'red' ? G.redScore : G.blueScore;
+      statusDiv.innerHTML = `<div class="last-chance-banner">⚡ ${winnerName} وصلوا لـ${G.pendingWinScore}!<br>${otherName} ليهم جولة رد — لازم يجيبوا ${G.pendingWinScore} أو أكتر!</div>`;
+    } else {
+      nextRoundBtn.classList.add('hidden');
+      // FIX: reduced delay
+      setTimeout(() => showCelebration(), 800);
+    }
+  } else {
+    const nxtAskTeam  = G.wordTeam;
+    const nxtAskName  = nxtAskTeam === 'red' ? G.redName : G.blueName;
+    statusDiv.innerHTML = `<p style="font-size:4.5vw;color:#888;font-weight:700;">الجولة الجاية: ${nxtAskName} ${nxtAskTeam==="red"?"🔴":"🔵"} يسأل</p>`;
+  }
+
+  showScreen('resultScreen');
+}
+
+function nextRound() {
+  if (G.celebrationShown) return;
+
+  if (!G.pendingWin && (G.redScore >= G.MAX_SCORE || G.blueScore >= G.MAX_SCORE)) {
+    showCelebration(); return;
+  }
+
+  if (G.pendingWin) {
+    const replyingTeam  = G.askingTeam;
+    const pendingWinner = G.pendingWinTeam;
+    const pendingScore  = G.pendingWinScore;
+    const replyScore    = replyingTeam === 'red' ? G.redScore : G.blueScore;
+    const isReplyTeamDone = (replyingTeam !== G.firstAskingTeam);
+
+    if (isReplyTeamDone && replyScore < pendingScore) {
+      G.pendingWin = false;
+      showCelebration(); return;
+    } else if (isReplyTeamDone && replyScore === pendingScore) {
+      G.pendingWin = false;
+      G.pendingWinTeam = null;
+      const newTarget = Math.max(G.redScore, G.blueScore) + 1;
+      G.MAX_SCORE = newTarget;
+      showToast('🔥 تعادل! جولة فاصلة!');
+    }
+  }
+
+  G.cardsUsedThisRound = 0;
+  G.isDoubleActive = false;
+  G.freezeActive = false;
+  const tmp = G.wordTeam; G.wordTeam = G.askingTeam; G.askingTeam = tmp;
+  showHandoff();
+}
+
+function restartRound() {
+  stopTimer();
+  clearInterval(G.guessTimerInterval);
+  G.guessStarted = false;
+  showWordReveal();
+}
+
+// ==================== ROULETTE ====================
+function drawRoulette(rotation) {
+  const canvas = document.getElementById('rouletteCanvas');
+  if (!canvas) return;
+  const dpr  = window.devicePixelRatio || 1;
+  const size = canvas.offsetWidth || 280;
+  canvas.width  = size * dpr;
+  canvas.height = size * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const cx = size / 2, cy = size / 2, r = size / 2 - 4;
+  const n = ROULETTE_NUMBERS.length;
+  const slice = (Math.PI * 2) / n;
+  ctx.clearRect(0, 0, size, size);
+
+  for (let i = 0; i < n; i++) {
+    const start = rotation + i * slice;
+    const end   = start + slice;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = ROULETTE_COLORS[i % ROULETTE_COLORS.length];
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + slice / 2);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 4;
+    ctx.font = `bold ${size * 0.1}px Cairo, sans-serif`;
+    ctx.fillStyle = '#fff';
+    ctx.fillText(ROULETTE_NUMBERS[i].toString(), r * 0.65, 0);
+    ctx.restore();
+  }
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 6;
+  ctx.stroke();
+}
+
+function getSegmentAtPointer(angle) {
+  const n     = ROULETTE_NUMBERS.length;
+  const slice = (Math.PI * 2) / n;
+  const pointerAngle = -Math.PI / 2;
+  let offset = (pointerAngle - angle) % (Math.PI * 2);
+  if (offset < 0) offset += Math.PI * 2;
+  const idx = Math.floor(offset / slice) % n;
+  return idx;
+}
+
+function openRouletteFromCelebration() {
+  document.getElementById('celebrationOverlay').classList.add('hidden');
+  showRouletteScreen();
+}
+
+function showRouletteScreen() {
+  const winnerTeam = G.redScore > G.blueScore ? 'red' : 'blue';
+  const loserTeam  = winnerTeam === 'red' ? G.blueName : G.redName;
+  const winnerName = winnerTeam === 'red' ? G.redName : G.blueName;
+
+  document.getElementById('rouletteLoserName').textContent = `🏆 ${winnerName} بيلف على ${loserTeam}!`;
+
+  document.getElementById('rouletteSpinArea').style.display = 'flex';
+  document.getElementById('rouletteSpinArea').style.opacity = '1';
+  document.getElementById('rouletteResultFinal').classList.remove('show');
+  document.getElementById('spinBtn').style.display = 'block';
+  document.getElementById('skipRouletteBtn').style.display = 'none';
+  document.getElementById('rouletteCenterNum').textContent = '?';
+  document.getElementById('rouletteFinalBtns').style.display = 'none';
+  G.rouletteSpun = false;
+  G.rouletteCurrentAngle = 0;
+  document.getElementById('rouletteOverlay').classList.remove('hidden');
+  setTimeout(() => drawRoulette(0), 80);
+}
+
+function closeRoulette() {
+  document.getElementById('rouletteOverlay').classList.add('hidden');
+  document.getElementById('celebrationOverlay').classList.remove('hidden');
+}
+
+function spinRoulette() {
+  if (G.rouletteSpun) return;
+  G.rouletteSpun = true;
+  document.getElementById('spinBtn').style.display = 'none';
+
+  const n         = ROULETTE_NUMBERS.length;
+  const slice     = (Math.PI * 2) / n;
+  const winIndex  = Math.floor(Math.random() * n);
+
+  const extraSpins  = 5 + Math.floor(Math.random() * 3);
+  const targetRotation = -Math.PI / 2 - (winIndex + 0.5) * slice;
+  let delta = (targetRotation - G.rouletteCurrentAngle) % (Math.PI * 2);
+  if (delta > 0) delta -= Math.PI * 2;
+  delta += extraSpins * Math.PI * 2;
+  const endAngle = G.rouletteCurrentAngle + delta;
+
+  const duration  = 4000 + Math.random() * 1000;
+  const startTime = performance.now();
+  const startAngle = G.rouletteCurrentAngle;
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3.5); }
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const currentAngle = startAngle + (endAngle - startAngle) * easeOut(t);
+    drawRoulette(currentAngle);
+
+    if (t < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      G.rouletteCurrentAngle = endAngle;
+      const landedIndex  = getSegmentAtPointer(endAngle);
+      const landedNumber = ROULETTE_NUMBERS[landedIndex];
+
+      document.getElementById('rouletteCenterNum').textContent = landedNumber;
+
+      const winnerTeamKey = G.redScore > G.blueScore ? 'red' : 'blue';
+      const loserName  = winnerTeamKey === 'red' ? G.blueName : G.redName;
+      const winnerName = winnerTeamKey === 'red' ? G.redName : G.blueName;
+
+      document.getElementById('rouletteBigNum').textContent = landedNumber;
+      document.getElementById('rouletteVerdictText').textContent =
+        `${loserName} هياخد ${landedNumber} احكام`;
+      document.getElementById('rouletteVerdictSub').textContent =
+        `${winnerName} هو اللي بيحكم 😈`;
+
+      const spinArea = document.getElementById('rouletteSpinArea');
+      spinArea.style.transition = 'opacity 0.4s ease';
+      spinArea.style.opacity = '0';
+      setTimeout(() => {
+        spinArea.style.display = 'none';
+        document.getElementById('rouletteResultFinal').classList.add('show');
+        document.getElementById('rouletteFinalBtns').style.display = 'flex';
+        addConfetti();
+      }, 400);
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+function playAgainFromRoulette() {
+  document.getElementById('rouletteOverlay').classList.add('hidden');
+  playAgain();
+}
+
+// ==================== CELEBRATION ====================
+function showCelebration() {
+  if (G.celebrationShown) return;
+  G.celebrationShown = true;
+
+  let winnerTeam, loserTeam;
+  if (G.redScore > G.blueScore) {
+    winnerTeam = 'red'; loserTeam = 'blue';
+  } else if (G.blueScore > G.redScore) {
+    winnerTeam = 'blue'; loserTeam = 'red';
+  } else {
+    winnerTeam = G.redScore >= G.MAX_SCORE ? 'red' : 'blue';
+    loserTeam  = winnerTeam === 'red' ? 'blue' : 'red';
+  }
+
+  const winnerName = winnerTeam === 'red' ? G.redName : G.blueName;
+  const loserName  = loserTeam  === 'red' ? G.redName : G.blueName;
+  const winnerScore = winnerTeam === 'red' ? G.redScore : G.blueScore;
+  const loserScore  = loserTeam  === 'red' ? G.redScore : G.blueScore;
+
+  document.getElementById('celebWinner').textContent  = `🏆 ${winnerName}`;
+  document.getElementById('celebLoser').textContent   = `😭 ${loserName} خسروا`;
+  document.getElementById('celWinnerName').textContent = winnerName;
+  document.getElementById('celWinnerNum').textContent  = winnerScore;
+  document.getElementById('celLoserName').textContent  = loserName;
+  document.getElementById('celLoserNum').textContent   = loserScore;
+
+  addConfetti();
+  document.getElementById('celebrationOverlay').classList.remove('hidden');
+}
+
+function playAgain() {
+  document.getElementById('celebrationOverlay').classList.add('hidden');
+  G.redScore = 0; G.blueScore = 0;
+  resetAllCards();
+  G.wordTeam = "red"; G.askingTeam = "blue";
+  G.firstAskingTeam = "blue";
+  G.pendingWin = false;
+  G.pendingWinTeam = null;
+  G.pendingWinScore = 0;
+  G.MAX_SCORE = 7;
+  G.cardsUsedThisRound = 0;
+  G.isDoubleActive = false;
+  G.celebrationShown = false;
+  G.guessStarted = false;
+  showHandoff();
+}
+
+// ==================== VISUAL EFFECTS ====================
+function spawnCheerParticles(correct) {
+  const emojis = correct ? ['🎉','🌟','✨','🏆','🥳','💫'] : ['😭','💔','😢','🤦','😩'];
+  for (let i = 0; i < 8; i++) {
+    const el = document.createElement('div');
+    el.className = 'cheer-particle';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = (10 + Math.random() * 80) + 'vw';
+    el.style.bottom = (10 + Math.random() * 20) + 'vw';
+    el.style.animationDelay = (Math.random() * 0.5) + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }
+}
+
+function addConfetti() {
+  for (let i = 0; i < 80; i++) {
+    const c = document.createElement('div');
+    c.style.cssText = `position:fixed;left:${Math.random()*100}vw;top:-20px;
+      width:${Math.random()*12+6}px;height:${Math.random()*12+6}px;
+      background:hsl(${Math.random()*360},80%,60%);
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      pointer-events:none;z-index:99999;
+      animation:confettiFall ${Math.random()*3+2}s linear forwards;`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+
+function flashScreen() {
+  const el = document.createElement('div');
+  el.className = 'flash-overlay';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 500);
+}
+
+// دالة عرض إعلان المكافأة - للنشر الحقيقي 100%
+function showRewardedAd(onRewarded) {
+  const { AdMob } = window.Capacitor.Plugins;
+  let userWatchedFull = false;
+
+  // ✅ استمع لحدث المكافأة
+  const rewardListener = AdMob.addListener('onRewardedVideoAdReward', () => {
+    userWatchedFull = true;
+  });
+
+  // ✅ استمع لإغلاق الإعلان
+  const dismissListener = AdMob.addListener('onRewardedVideoAdDismissed', () => {
+    rewardListener.remove();
+    dismissListener.remove();
+    if (userWatchedFull) onRewarded();
+    else showToast('لازم تكمل الإعلان عشان تاخد الكارت!');
+  });
+
+  // ✅ حمّل الإعلان أولاً، ثم اعرضه بعد التحميل
+  AdMob.addListener('onRewardedVideoAdLoaded', () => {
+    AdMob.showRewardVideoAd();
+  });
+
+  AdMob.prepareRewardVideoAd({
+    adId: 'ca-app-pub-7625725860156398/6862663762',
+    isTesting: false
+  });
+}
+
+// ==================== HELPERS ====================
+function playCorrectSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const times = [0, 0.15, 0.3];
+  const freqs = [523, 659, 784];
+  times.forEach((t, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freqs[i];
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.4, ctx.currentTime + t);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.3);
+    osc.start(ctx.currentTime + t);
+    osc.stop(ctx.currentTime + t + 0.3);
+  });
+}
+
+function playWrongSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(300, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.5);
+  gain.gain.setValueAtTime(0.3, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+  osc.start(ctx.currentTime);
+  osc.stop(ctx.currentTime + 0.5);
+}
+
+function getRandomWord() { return { ...ALL_WORDS[Math.floor(Math.random() * ALL_WORDS.length)] }; }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  flashScreen();
+}
+
+function showToast(msg) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2200);
+}
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const canvas = document.getElementById('rouletteCanvas');
+    if (canvas) drawRoulette(0);
+  }, 200);
+});
+</script>
+</body>
+</html>

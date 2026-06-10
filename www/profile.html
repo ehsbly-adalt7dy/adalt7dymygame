@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>قد التحدي؟ - البروفايل</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    :root {
+      --purple: #aa96da;
+      --purple-dark: #9b84d0;
+      --blue: #a8d8ea;
+      --blue-dark: #7ec8e3;
+      --pink: #ff8c94;
+      --pink-light: #ffaaa5;
+      --peach: #ffd3b6;
+      --green: #c7f0db;
+      --green-dark: #a8e6c8;
+      --bg-grad: linear-gradient(135deg, #a8d8ea 0%, #aa96da 100%);
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
+      background: var(--bg-grad);
+      min-height: 100vh;
+      padding: 4vw;
+    }
+
+    .profile-panel {
+      max-width: 500px;
+      margin: 0 auto;
+      background: linear-gradient(170deg, rgba(168,216,234,0.98) 0%, rgba(170,150,218,0.98) 100%);
+      border-radius: 6vw;
+      padding: 6vw 5vw 10vw;
+      display: flex;
+      flex-direction: column;
+      gap: 4vw;
+      box-shadow: 0 -8px 32px rgba(170,150,218,0.35);
+      border: 2px solid rgba(255,255,255,0.4);
+      backdrop-filter: blur(12px);
+    }
+
+    /* ══ OVERLAY BASE ══ */
+    .full-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-grad);
+      z-index: 10000;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .full-overlay.visible {
+      transform: translateX(0);
+    }
+
+    .full-overlay.hidden {
+      display: flex !important;
+      transform: translateX(100%);
+      pointer-events: none;
+    }
+
+    /* ══ CAT SCREEN HEADER ══ */
+    .cat-screen-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(140, 180, 210, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: env(safe-area-inset-top, 10px) 4vw 3.5vw 4vw;
+      padding-top: max(env(safe-area-inset-top), 12vw);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+    }
+
+    .cat-header-back {
+      width: 11vw;
+      height: 11vw;
+      max-width: 50px;
+      max-height: 50px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      border: 1.5px solid rgba(255,255,255,0.5);
+      color: #fff;
+      font-size: 5.5vw;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cat-header-title {
+      font-size: 5.5vw;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+
+    .cat-header-tokens {
+      display: flex;
+      align-items: center;
+      gap: 1.5vw;
+      background: rgba(245,196,0,0.25);
+      border: 1.5px solid rgba(245,196,0,0.5);
+      border-radius: 8vw;
+      padding: 1.5vw 3vw;
+    }
+
+    .cat-header-tokens span {
+      font-size: 4.5vw;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .cat-screen-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding: 4vw;
+      display: flex;
+      flex-direction: column;
+      gap: 4vw;
+      max-width: 560px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .cat-section-card {
+      background: rgba(255,255,255,0.2);
+      border: 1.5px solid rgba(255,255,255,0.4);
+      border-radius: 5vw;
+      padding: 5vw 4vw;
+      display: flex;
+      flex-direction: column;
+      gap: 3vw;
+    }
+
+    .cat-section-label {
+      font-size: 4.5vw;
+      font-weight: 900;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 2vw;
+    }
+
+    .cat-input {
+      font-family: 'Cairo', sans-serif;
+      font-size: 4.5vw;
+      font-weight: 700;
+      text-align: right;
+      border: 2px solid rgba(255,255,255,0.5);
+      border-radius: 3vw;
+      padding: 3vw 4vw;
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      outline: none;
+      width: 100%;
+    }
+
+    .cat-input::placeholder { color: rgba(255,255,255,0.5); }
+
+    .words-progress-bar-wrap {
+      background: rgba(255,255,255,0.15);
+      border-radius: 2vw;
+      height: 2.5vw;
+      overflow: hidden;
+      margin-top: 1vw;
+    }
+
+    .words-progress-bar-fill {
+      height: 100%;
+      border-radius: 2vw;
+      background: linear-gradient(90deg, #ff8c94, #a8e6c8);
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .words-progress-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 3.5vw;
+      color: rgba(255,255,255,0.8);
+      margin-top: 1vw;
+    }
+
+    .word-item-number {
+      font-size: 3.5vw;
+      color: rgba(255,255,255,0.55);
+      min-width: 7vw;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .cat-save-footer {
+      position: sticky;
+      bottom: 0;
+      z-index: 200;
+      padding: 3vw 4vw;
+      padding-bottom: max(3vw, env(safe-area-inset-bottom));
+      background: rgba(140, 180, 210, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255,255,255,0.3);
+      display: flex;
+      align-items: center;
+      gap: 3vw;
+    }
+
+    .cat-save-footer-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5vw;
+    }
+
+    .cat-save-footer-count {
+      font-size: 4vw;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .cat-save-footer-hint {
+      font-size: 3.2vw;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .cat-save-btn {
+      padding: 3.5vw 7vw;
+      border-radius: 4vw;
+      background: linear-gradient(135deg, #c7f0db, #a8e6c8);
+      border: none;
+      color: #1a5c34;
+      font-size: 4.5vw;
+      font-weight: 900;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    .cat-save-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ══ PROFILE ══ */
+    .profile-handle {
+      width: 12vw;
+      height: 1.2vw;
+      max-width: 48px;
+      background: rgba(255,255,255,0.45);
+      border-radius: 2vw;
+      margin: 0 auto 2vw;
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 4vw;
+    }
+
+    .profile-avatar-big {
+      width: 20vw;
+      height: 20vw;
+      max-width: 95px;
+      max-height: 95px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.35);
+      border: 3px solid rgba(255,255,255,0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5vw;
+      flex-shrink: 0;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .profile-avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .profile-avatar-text {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      font-size: 10.5vw;
+    }
+
+    .avatar-edit-icon {
+      position: absolute;
+      bottom: -0.5vw;
+      right: -0.5vw;
+      width: 7vw;
+      height: 7vw;
+      max-width: 35px;
+      max-height: 35px;
+      background: var(--pink);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4vw;
+      border: 2px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      cursor: pointer;
+    }
+
+    .profile-username {
+      font-size: 6.5vw;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.2;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    }
+
+    .profile-sub {
+      font-size: 4vw;
+      color: rgba(255,255,255,0.75);
+      margin-top: 0.5vw;
+    }
+
+    .profile-section-title {
+      font-size: 4vw;
+      color: #fff;
+      font-weight: 900;
+      padding-bottom: 1.5vw;
+      border-bottom: 1.5px solid rgba(255,255,255,0.35);
+      margin-bottom: 1vw;
+    }
+
+    .profile-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3vw;
+    }
+
+    .profile-stat-card {
+      background: rgba(255,255,255,0.28);
+      border: 1.5px solid rgba(255,255,255,0.5);
+      border-radius: 4vw;
+      padding: 4vw 3vw;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5vw;
+    }
+
+    .stat-icon { font-size: 6vw; }
+    .stat-value { font-size: 7vw; font-weight: 900; color: #fff; }
+    .stat-label { font-size: 3.5vw; color: rgba(255,255,255,0.78); }
+
+    .profile-rank-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3vw 3.5vw;
+      background: rgba(255,255,255,0.22);
+      border-radius: 3.5vw;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      margin-bottom: 1.5vw;
+    }
+
+    .rank-row-left {
+      display: flex;
+      align-items: center;
+      gap: 3vw;
+    }
+
+    .rank-medal { font-size: 7vw; }
+    .rank-name { font-size: 4.5vw; font-weight: 700; color: #fff; }
+    .rank-count {
+      font-size: 5vw;
+      font-weight: 900;
+      color: #fff;
+      background: rgba(255,255,255,0.28);
+      padding: 1vw 3vw;
+      border-radius: 3vw;
+    }
+
+    .profile-info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2.5vw 1vw;
+      border-bottom: 1px solid rgba(255,255,255,0.25);
+    }
+
+    .profile-info-label { font-size: 4vw; color: rgba(255,255,255,0.75); }
+    .profile-info-value {
+      font-size: 4.2vw;
+      font-weight: 700;
+      color: #fff;
+      max-width: 55%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ══ زر اعمل كاتيجوري ══ */
+    .custom-cat-btn {
+      width: 100%;
+      padding: 4vw;
+      border-radius: 4vw;
+      background: linear-gradient(135deg, var(--pink), #ff6b75);
+      border: 1.5px solid rgba(255,255,255,0.4);
+      color: #fff;
+      font-size: 5vw;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 3vw;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    .profile-close-btn {
+      width: 100%;
+      padding: 4vw;
+      border-radius: 4vw;
+      background: rgba(255,255,255,0.25);
+      border: 1.5px solid rgba(255,255,255,0.5);
+      color: #fff;
+      font-size: 5vw;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    .profile-version {
+      text-align: center;
+      font-size: 3.5vw;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2vw;
+    }
+
+    /* ══ COLOR WHEEL ══ */
+    .color-wheel-container {
+      position: relative;
+      width: 52vw;
+      height: 52vw;
+      max-width: 220px;
+      max-height: 220px;
+      margin: 0 auto;
+    }
+
+    .color-wheel-canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      cursor: crosshair;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      border: 3px solid rgba(255,255,255,0.5);
+    }
+
+    .color-preview {
+      display: flex;
+      align-items: center;
+      gap: 3vw;
+      justify-content: center;
+      margin-top: 2vw;
+    }
+
+    .color-box {
+      width: 12vw;
+      height: 12vw;
+      max-width: 50px;
+      max-height: 50px;
+      border-radius: 3vw;
+      border: 2px solid rgba(255,255,255,0.6);
+    }
+
+    /* ══ WORDS ══ */
+    .add-word-section {
+      display: flex;
+      gap: 2vw;
+      align-items: center;
+      margin-bottom: 4vw;
+    }
+
+    .add-word-input {
+      flex: 1;
+      font-family: 'Cairo', sans-serif;
+      font-size: 4.5vw;
+      font-weight: 700;
+      text-align: right;
+      border: 2px solid rgba(255,255,255,0.5);
+      border-radius: 3vw;
+      padding: 3vw 4vw;
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      outline: none;
+    }
+
+    .add-word-input::placeholder { color: rgba(255,255,255,0.5); }
+
+    .add-word-submit {
+      width: 13vw;
+      height: 13vw;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4CAF50, #2e7d32);
+      border: none;
+      color: white;
+      font-size: 6vw;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .words-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2vw;
+      max-height: 40vh;
+      overflow-y: auto;
+      padding: 1vw;
+      background: rgba(255,255,255,0.08);
+      border-radius: 3vw;
+    }
+
+    .word-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.2);
+      border-radius: 3vw;
+      padding: 3vw 4vw;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .word-text {
+      font-size: 4.5vw;
+      font-weight: 700;
+      color: #fff;
+      flex: 1;
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .delete-word-btn {
+      width: 9vw;
+      height: 9vw;
+      border-radius: 50%;
+      background: rgba(255,80,80,0.8);
+      border: none;
+      color: white;
+      font-size: 5vw;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .delete-word-btn:active { transform: scale(0.9); }
+
+    .word-count-badge {
+      background: rgba(255,255,255,0.2);
+      border-radius: 2vw;
+      padding: 0.5vw 2vw;
+      font-size: 3.5vw;
+      margin-right: 2vw;
+    }
+
+    .words-list::-webkit-scrollbar { width: 1vw; }
+    .words-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 1vw; }
+    .words-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 1vw; }
+
+    /* ══ AVATAR POPUP ══ */
+    .avatar-popup-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100000;
+      animation: fadeIn 0.25s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .avatar-popup-box {
+      background: linear-gradient(170deg, rgba(168,216,234,0.98) 0%, rgba(170,150,218,0.98) 100%);
+      border-radius: 6vw;
+      padding: 6vw 4vw;
+      width: 92vw;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4vw;
+      box-shadow: 0 16px 64px rgba(0,0,0,0.35);
+      border: 2px solid rgba(255,255,255,0.5);
+      animation: popIn 0.35s ease;
+    }
+
+    .avatar-popup-title { font-size: 6vw; font-weight: 900; color: #fff; text-align: center; }
+
+    .avatar-carousel-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .avatar-carousel {
+      position: relative;
+      width: 260px;
+      height: 140px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: pan-y;
+    }
+
+    .avatar-item {
+      position: absolute;
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      overflow: hidden;
+      transition: transform .35s cubic-bezier(.22,.61,.36,1), opacity .35s ease;
+      cursor: pointer;
+      border: 3px solid transparent;
+    }
+
+    .avatar-item.active {
+      border-color: var(--pink);
+      box-shadow: 0 0 0 4px rgba(255,140,148,0.3), 0 6px 24px rgba(0,0,0,0.3);
+    }
+
+    .avatar-item img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+
+    .avatar-nav {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.25);
+      color: white;
+      font-size: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-dots { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+    .avatar-dot {
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.4);
+      transition: .25s;
+      cursor: pointer;
+    }
+
+    .avatar-dot.active { width: 24px; background: var(--pink); }
+    .avatar-counter { text-align: center; color: white; font-weight: 700; }
+
+    .avatar-confirm {
+      width: 72%; padding: 14px 0;
+      border: none; border-radius: 999px;
+      background: linear-gradient(135deg, var(--pink), #ff6b75);
+      color: white; font-size: 20px; font-weight: 700; cursor: pointer;
+    }
+
+    /* ══ شاشة اختيار العمل (قائمة الزرين) ══ */
+    #catActionSheet {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 50000;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+      animation: fadeIn 0.2s ease;
+    }
+
+    .cat-action-box {
+      background: linear-gradient(170deg, rgba(168,216,234,0.99) 0%, rgba(170,150,218,0.99) 100%);
+      border-radius: 6vw 6vw 0 0;
+      padding: 5vw 5vw 8vw;
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 3.5vw;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.25);
+      border: 1.5px solid rgba(255,255,255,0.4);
+      animation: slideUpSheet 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    @keyframes slideUpSheet {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .cat-action-title {
+      font-size: 5.5vw;
+      font-weight: 900;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 1vw;
+    }
+
+    .cat-action-btn {
+      width: 100%;
+      padding: 4.5vw;
+      border-radius: 4vw;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      color: #fff;
+      font-size: 5vw;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2vw;
+    }
+
+    .cat-action-btn.new-cat {
+      background: linear-gradient(135deg, var(--pink), #ff6b75);
+    }
+
+    .cat-action-btn.edit-cat {
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+    }
+
+    .cat-action-btn.cancel {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* ══ شاشة التعديل - عرض الكاتيجوريز (شبكة مربعات) ══ */
+    #manageCatsOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg-grad);
+      z-index: 20000;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    #manageCatsOverlay.visible {
+      transform: translateX(0);
+    }
+
+    #manageCatsOverlay.hidden {
+      display: flex !important;
+      transform: translateX(100%);
+      pointer-events: none;
+    }
+
+    /* ══ شاشة تعديل كاتيجوري واحدة ══ */
+    #editSingleCatOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg-grad);
+      z-index: 30000;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    #editSingleCatOverlay.visible {
+      transform: translateX(0);
+    }
+
+    #editSingleCatOverlay.hidden {
+      display: flex !important;
+      transform: translateX(100%);
+      pointer-events: none;
+    }
+
+    /* ══ شبكة الكاتيجوريز (نفس شكل الاوضة) ══ */
+    .manage-cats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 3.5vw;
+      padding: 4vw;
+    }
+
+    .manage-cat-card {
+      width: 100%;
+      aspect-ratio: 1/1;
+      border-radius: 4vw;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5vw;
+      font-family: 'Cairo', sans-serif;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    .manage-cat-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .manage-cat-card:active { transform: scale(0.94); }
+
+    .manage-cat-emoji { font-size: 10vw; line-height: 1; }
+    .manage-cat-name { font-size: 4.5vw; font-weight: 700; color: #fff; text-align: center; padding: 0 2vw; }
+    .manage-cat-count { font-size: 3.2vw; color: rgba(255,255,255,0.8); }
+
+    /* ══ بادج التعديل على الكارد ══ */
+    .manage-cat-badge {
+      position: absolute;
+      top: 2vw;
+      left: 2vw;
+      background: rgba(0,0,0,0.3);
+      border-radius: 2vw;
+      padding: 1vw 2vw;
+      font-size: 3vw;
+      color: #fff;
+      z-index: 2;
+    }
+
+    /* ══ TOKENS HEADER في شاشة التعديل ══ */
+    .manage-header-tokens {
+      display: flex;
+      align-items: center;
+      gap: 1.5vw;
+      background: rgba(245,196,0,0.25);
+      border: 1.5px solid rgba(245,196,0,0.5);
+      border-radius: 8vw;
+      padding: 1.5vw 3vw;
+    }
+
+    input, button { font-family: 'Cairo', sans-serif; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .profile-panel { animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeInOut {
+      0%   { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      20%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+      80%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-20px); visibility: hidden; }
+    }
+
+    @keyframes popIn {
+      0%  { transform: scale(0.6); opacity: 0; }
+      70% { transform: scale(1.05); }
+      100%{ transform: scale(1); opacity: 1; }
+    }
+
+    .hidden { display: none !important; }
+  </style>
+
+  <script>
+  const AdConfig = {
+    banner: 'ca-app-pub-7625725860156398/2955208343',
+    rewarded: 'ca-app-pub-7625725860156398/6862663762',
+    interstitial: 'ca-app-pub-7625725860156398/3066888987'
+  };
+  </script>
+
+  <script>
+  // ====== نظام الإعلانات ======
+  let rewardedReady = false;
+  let _rewardedLoading = false;
+  let _lsnRwD = null, _lsnRwR = null;
+
+  function _adLsnRm(h) {
+    try { if (h && typeof h.remove === 'function') h.remove(); } catch(e) {}
+  }
+
+  function _showAdLoading(msg) {
+    let el = document.getElementById('adLoadingOverlay');
+    if (el) return;
+    el = document.createElement('div');
+    el.id = 'adLoadingOverlay';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:99999;gap:5vw;animation:fadeIn 0.2s ease;backdrop-filter:blur(8px);';
+    el.innerHTML = `<div style="font-size:14vw;animation:countPop 0.8s ease-out infinite alternate">⏳</div><div style="font-size:6vw;font-weight:700;color:#fff;font-family:'Cairo',sans-serif;text-align:center;padding:0 8vw;line-height:1.7">${msg || 'جاري التحميل...'}</div><div style="width:60vw;height:1.5vw;background:rgba(255,255,255,0.15);border-radius:2vw;overflow:hidden;margin-top:2vw"><div id="adLoadingBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2vw;transition:width 0.3s ease"></div></div>`;
+    document.body.appendChild(el);
+    let p = 0;
+    const bar = setInterval(() => {
+      const barEl = document.getElementById('adLoadingBar');
+      if (!barEl) { clearInterval(bar); return; }
+      p = Math.min(p + (Math.random() * 8 + 3), 88);
+      barEl.style.width = p + '%';
+    }, 300);
+    el._barInterval = bar;
+  }
+
+  function _hideAdLoading() {
+    const el = document.getElementById('adLoadingOverlay');
+    if (!el) return;
+    const barEl = document.getElementById('adLoadingBar');
+    if (barEl) barEl.style.width = '100%';
+    if (el._barInterval) clearInterval(el._barInterval);
+    setTimeout(() => el.remove(), 200);
+  }
+
+  async function preloadRewarded() {
+    if (_rewardedLoading || rewardedReady) return;
+    _rewardedLoading = true;
+    try {
+      const { AdMob } = window.Capacitor.Plugins;
+      await AdMob.prepareRewardVideoAd({ adId: AdConfig.rewarded, isTesting: false });
+      rewardedReady = true;
+    } catch(e) {
+      rewardedReady = false;
+    }
+    _rewardedLoading = false;
+  }
+
+  async function showRewardedForToken(cb) {
+    try {
+      const { AdMob } = window.Capacitor.Plugins;
+      _adLsnRm(_lsnRwD); _adLsnRm(_lsnRwR);
+      _lsnRwD = _lsnRwR = null;
+
+      if (!rewardedReady) {
+        const loadTimer = setTimeout(() => _showAdLoading('جاري تحميل الإعلان...'), 800);
+        await preloadRewarded();
+        clearTimeout(loadTimer);
+        _hideAdLoading();
+      }
+
+      if (!rewardedReady) {
+        _hideAdLoading();
+        alert("مفيش إعلان متاح دلوقتي، جرب تاني بعد شوية");
+        cb(false);
+        return;
+      }
+
+      let done = false;
+      const fn = (rewarded) => {
+        if (!done) {
+          done = true;
+          rewardedReady = false;
+          _adLsnRm(_lsnRwD); _adLsnRm(_lsnRwR);
+          _lsnRwD = _lsnRwR = null;
+          preloadRewarded();
+          cb(rewarded);
+        }
+      };
+
+      _lsnRwD = AdMob.addListener('onRewardedVideoAdDismissed', () => setTimeout(() => fn(false), 300));
+      _lsnRwR = AdMob.addListener('onRewardedVideoAdReward',    () => setTimeout(() => fn(true),  300));
+      await AdMob.showRewardVideoAd();
+
+    } catch(e) {
+      _hideAdLoading();
+      rewardedReady = false;
+      _adLsnRm(_lsnRwD); _adLsnRm(_lsnRwR);
+      _lsnRwD = _lsnRwR = null;
+      preloadRewarded();
+      cb(false);
+    }
+  }
+
+  // ====== نظام التوكنز ======
+  const TokenSystem = {
+    STORAGE_KEY: 'qadAlTahadi_tokens',
+    ADS_KEY: 'qadAlTahadi_adsToday',
+    LAST_AD_KEY: 'qadAlTahadi_lastAdTime',
+    MAX_ADS_PER_DAY: 5,
+    AD_COOLDOWN_MS: 60 * 1000,
+    TOKENS_PER_CAT: 5,
+    TOKENS_PER_WIN: 5,
+    TOKENS_PER_AD: 1,
+
+    getTokens() {
+      try { return parseInt(localStorage.getItem(this.STORAGE_KEY) || '0'); } catch(e) { return 0; }
+    },
+    addTokens(amount) {
+      try {
+        const current = this.getTokens();
+        localStorage.setItem(this.STORAGE_KEY, String(current + amount));
+        this.updateDisplay();
+      } catch(e) {}
+    },
+    spendTokens(amount) {
+      const current = this.getTokens();
+      if (current < amount) return false;
+      try { localStorage.setItem(this.STORAGE_KEY, String(current - amount)); } catch(e) {}
+      this.updateDisplay();
+      return true;
+    },
+    getAdsWatchedToday() {
+      try {
+        const data = JSON.parse(localStorage.getItem(this.ADS_KEY) || '{}');
+        const today = new Date().toDateString();
+        if (data.date !== today) return 0;
+        return data.count || 0;
+      } catch(e) { return 0; }
+    },
+    recordAdWatched() {
+      try {
+        const today = new Date().toDateString();
+        const count = this.getAdsWatchedToday() + 1;
+        localStorage.setItem(this.ADS_KEY, JSON.stringify({ date: today, count }));
+        localStorage.setItem(this.LAST_AD_KEY, String(Date.now()));
+      } catch(e) {}
+    },
+    canWatchAd() {
+      if (this.getAdsWatchedToday() >= this.MAX_ADS_PER_DAY) return false;
+      const last = parseInt(localStorage.getItem(this.LAST_AD_KEY) || '0');
+      return (Date.now() - last) >= this.AD_COOLDOWN_MS;
+    },
+    getCooldownRemaining() {
+      const last = parseInt(localStorage.getItem(this.LAST_AD_KEY) || '0');
+      const remaining = this.AD_COOLDOWN_MS - (Date.now() - last);
+      return remaining > 0 ? remaining : 0;
+    },
+    updateDisplay() {
+      const el = document.getElementById('profileTokenCount');
+      if (el) el.textContent = this.getTokens();
+      const el2 = document.getElementById('catScreenTokenCount');
+      if (el2) el2.textContent = this.getTokens();
+      const el3 = document.getElementById('manageCatsTokenCount');
+      if (el3) el3.textContent = this.getTokens();
+      const el4 = document.getElementById('editSingleTokenCount');
+      if (el4) el4.textContent = this.getTokens();
+    }
+  };
+
+  function handleWatchAd() {
+    const canWatch = TokenSystem.canWatchAd();
+    if (!canWatch) {
+      const remaining = TokenSystem.getCooldownRemaining();
+      if (remaining > 0) {
+        alert(`⏱️ استنى ${Math.ceil(remaining / 1000)} ثانية`);
+      } else {
+        alert(`✅ وصلت للحد اليومي (${TokenSystem.MAX_ADS_PER_DAY})`);
+      }
+      return;
+    }
+    showRewardedForToken((rewarded) => {
+      if (rewarded) {
+        TokenSystem.addTokens(TokenSystem.TOKENS_PER_AD);
+        TokenSystem.recordAdWatched();
+        TokenSystem.updateDisplay();
+        showSuccessToast(`🎉 +${TokenSystem.TOKENS_PER_AD} توكن`);
+        updateAdButtonsState();
+      }
+    });
+  }
+
+  function updateAdButtonsState() {
+    const watchBtn = document.getElementById('watchAdForTokenBtn');
+    const cooldownMsg = document.getElementById('adCooldownMsg');
+    const limitMsg = document.getElementById('adLimitMsg');
+    const cooldownTimer = document.getElementById('cooldownTimer');
+
+    const canWatch = TokenSystem.canWatchAd();
+    const remaining = TokenSystem.getCooldownRemaining();
+    const adsToday = TokenSystem.getAdsWatchedToday();
+
+    if (adsToday >= TokenSystem.MAX_ADS_PER_DAY) {
+      if (watchBtn) watchBtn.style.opacity = '0.5';
+      if (limitMsg) limitMsg.style.display = 'block';
+      if (cooldownMsg) cooldownMsg.style.display = 'none';
+    } else if (!canWatch && remaining > 0) {
+      if (watchBtn) watchBtn.style.opacity = '0.5';
+      if (cooldownMsg) cooldownMsg.style.display = 'block';
+      if (limitMsg) limitMsg.style.display = 'none';
+      let remainingSec = Math.ceil(remaining / 1000);
+      if (cooldownTimer) cooldownTimer.textContent = remainingSec;
+      const interval = setInterval(() => {
+        const newRemaining = TokenSystem.getCooldownRemaining();
+        if (newRemaining <= 0) {
+          clearInterval(interval);
+          if (watchBtn) watchBtn.style.opacity = '1';
+          if (cooldownMsg) cooldownMsg.style.display = 'none';
+        } else {
+          if (cooldownTimer) cooldownTimer.textContent = Math.ceil(newRemaining / 1000);
+        }
+      }, 1000);
+    } else {
+      if (watchBtn) watchBtn.style.opacity = '1';
+      if (cooldownMsg) cooldownMsg.style.display = 'none';
+      if (limitMsg) limitMsg.style.display = 'none';
+    }
+  }
+
+  function showSuccessToast(message) {
+    const old = document.getElementById('dynamicToast');
+    if (old) old.remove();
+    const toast = document.createElement('div');
+    toast.id = 'dynamicToast';
+    toast.textContent = message;
+    toast.style.cssText = `position:fixed;bottom:25vw;left:50%;transform:translateX(-50%);background:#2e7d32;color:white;padding:3vw 6vw;border-radius:8vw;font-size:4.5vw;font-weight:bold;z-index:100000;white-space:nowrap;animation:fadeInOut 2.5s ease forwards;`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    TokenSystem.updateDisplay();
+    const watchAdBtn = document.getElementById('watchAdForTokenBtn');
+    if (watchAdBtn) watchAdBtn.addEventListener('click', () => { SoundSystem.click(); handleWatchAd(); });
+    setInterval(updateAdButtonsState, 1000);
+    updateAdButtonsState();
+    setTimeout(() => { preloadRewarded(); }, 2000);
+  });
+  </script>
+</head>
+<body>
+  <div class="profile-panel">
+    <div class="profile-handle"></div>
+
+    <div class="profile-header">
+      <div class="profile-avatar-big" id="profileAvatarBig">
+        <img id="profileAvatarImg" class="profile-avatar-img" src="" alt="صورة شخصية">
+        <span id="profileAvatarText" class="profile-avatar-text">👤</span>
+        <div class="avatar-edit-icon" id="avatarEditIcon">✏️</div>
+      </div>
+      <div>
+        <div class="profile-username" id="profileUsername">اللاعب</div>
+        <div class="profile-sub">مود الأوضة 🏠</div>
+      </div>
+    </div>
+
+    <div class="profile-section-title">📊 إحصائياتك</div>
+    <div class="profile-stats-grid">
+      <div class="profile-stat-card">
+        <span class="stat-icon">🎮</span>
+        <span class="stat-value" id="statGamesPlayed">0</span>
+        <span class="stat-label">عدد الادوار</span>
+      </div>
+      <div class="profile-stat-card">
+        <span class="stat-icon">🏆</span>
+        <span class="stat-value" id="statWins">0</span>
+        <span class="stat-label">مرات الفوز</span>
+      </div>
+      <div class="profile-stat-card">
+        <span class="stat-icon">🗓️</span>
+        <span class="stat-value" id="statLastPlay">—</span>
+        <span class="stat-label">آخر دور</span>
+      </div>
+      <div class="profile-stat-card">
+        <span class="stat-icon">🥇</span>
+        <span class="stat-value" id="statLastWin">—</span>
+        <span class="stat-label">آخر فوز</span>
+      </div>
+    </div>
+
+    <div class="profile-section-title" style="display:flex;align-items:center;gap:2vw;"><img src="images/token_coin.png" style="width:8vw;height:8vw;max-width:24px;max-height:24px;object-fit:contain;" onerror="this.outerHTML='🪙'"> التوكنز</div>
+    <div style="background:rgba(245,196,0,0.2);border:2px solid rgba(245,196,0,0.5);border-radius:4vw;padding:4vw;display:flex;align-items:center;justify-content:space-between;margin-bottom:3vw;">
+      <div style="display:flex;align-items:center;gap:3vw;">
+        <img src="images/token_coin.png" style="width:14vw;height:14vw;object-fit:contain;" onerror="this.outerHTML='<span style=\'font-size:10vw\'>🪙</span>'">
+        <div>
+          <div id="profileTokenCount" style="font-size:9vw;font-weight:900;color:#fff;font-family:'Cairo',sans-serif;line-height:1;">0</div>
+          <div style="font-size:3.5vw;color:rgba(255,255,255,0.75);">رصيدك الحالي</div>
+        </div>
+      </div>
+      <div style="text-align:left;font-size:3.5vw;color:rgba(255,255,255,0.75);">
+        <div style="display:flex;align-items:center;gap:1.5vw;justify-content:flex-end;">تعمل كاتيجوري  = 5 <img src="images/token_coin.png" style="width:5vw;height:5vw;max-width:18px;max-height:18px;object-fit:contain;" onerror="this.outerHTML='🪙'"></div>
+        <div style="display:flex;align-items:center;gap:1.5vw;justify-content:flex-end;">فوز x الاوضة = +5 <img src="images/token_coin.png" style="width:5vw;height:5vw;max-width:18px;max-height:18px;object-fit:contain;" onerror="this.outerHTML='🪙'"></div>
+        <div style="display:flex;align-items:center;gap:1.5vw;justify-content:flex-end;">تشوف اعلان = +1 <img src="images/token_coin.png" style="width:5vw;height:5vw;max-width:18px;max-height:18px;object-fit:contain;" onerror="this.outerHTML='🪙'"></div>
+      </div>
+    </div>
+
+    <button id="watchAdForTokenBtn" style="width:100%;padding:4vw;border-radius:4vw;background:linear-gradient(135deg,#f5c400,#d4a000);border:none;color:#5a3200;font-size:5vw;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;margin-bottom:3vw;display:flex;align-items:center;justify-content:center;gap:2vw;">
+      <span>▶ شاهد إعلان واحصل على 1</span>
+      <img src="images/token_coin.png" style="width:7.5vw;height:7.5vw;max-width:22px;max-height:22px;object-fit:contain;" onerror="this.outerHTML='🪙'">
+    </button>
+
+    <div id="adCooldownMsg" style="text-align:center;font-size:4vw;color:rgba(255,255,255,0.75);margin-bottom:3vw;display:none;">⏱️ انتظر <span id="cooldownTimer">60</span> ثانية للإعلان التالي</div>
+    <div id="adLimitMsg" style="text-align:center;font-size:4vw;color:rgba(255,220,100,0.9);margin-bottom:3vw;display:none;">وصلت للحد اليومي — ارجع غداً!</div>
+
+    <div class="profile-section-title">❤️ المفضلة</div>
+    <div class="profile-info-row">
+      <span class="profile-info-label">أكثر اسم استخدمته</span>
+      <span class="profile-info-value" id="statFavName">—</span>
+    </div>
+    <div class="profile-info-row">
+      <span class="profile-info-label">أكثر كاتيجوري لعبتها</span>
+      <span class="profile-info-value" id="statFavCat">—</span>
+    </div>
+    <div class="profile-info-row">
+      <span class="profile-info-label">أكثر كاتيجوري فزت فيها</span>
+      <span class="profile-info-value" id="statWinCat">—</span>
+    </div>
+
+    <div class="profile-section-title">🥇 ترتيباتك</div>
+    <div id="rankRowsContainer"></div>
+
+    <div class="profile-section-title">✨ كاتيجوريز مخصصة</div>
+    <div id="myCatsContainer" style="display:flex;flex-direction:column;gap:3vw;margin-bottom:4vw;"></div>
+    <div id="noCatsMsg" style="display:none;text-align:center;color:rgba(255,255,255,0.65);font-size:4vw;padding:4vw 0;background:rgba(255,255,255,0.1);border-radius:4vw;margin-bottom:4vw;">
+      لسه ما عندكش كاتيجوريز مخصصة
+    </div>
+
+    <!-- زر اعمل كاتيجوري للاوضة (يفتح قائمة الاختيار) -->
+    <button class="custom-cat-btn" id="openCustomCatBtn">✨ اعمل كاتيجوري للاوضة</button>
+
+    <div class="profile-version">2.4.22</div>
+
+    <button class="profile-close-btn" id="profileCloseBtn">← رجوع للصفحة الرئيسية</button>
+  </div>
+
+  <!-- ══ قائمة اختيار العمل (شيت من الأسفل) ══ -->
+  <div id="catActionSheet" style="display:none;">
+    <div class="cat-action-box">
+      <div class="cat-action-title">✨ كاتيجوريز الاوضة</div>
+      <button class="cat-action-btn new-cat" id="actionBtnNewCat">
+        ✨ اعمل كاتيجوري جديدة
+      </button>
+      <button class="cat-action-btn edit-cat" id="actionBtnManageCats">
+        ✏️ تعديل كاتيجوري
+      </button>
+      <button class="cat-action-btn cancel" id="actionBtnCancel">
+        إلغاء
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ شاشة إدارة الكاتيجوريز (عرض شبكة مربعات ملونة) ══ -->
+  <div id="manageCatsOverlay" class="hidden">
+    <div class="cat-screen-header">
+      <button class="cat-header-back" id="closeManageCatsBtn">←</button>
+      <div class="cat-header-title">✏️ تعديل كاتيجوري</div>
+      <div class="manage-header-tokens">
+        <img src="images/token_coin.png"
+          style="width:7vw;height:7vw;max-width:28px;max-height:28px;object-fit:contain;"
+          onerror="this.style.display='none'">
+        <span id="manageCatsTokenCount" style="font-size:4.5vw;font-weight:900;color:#fff;font-family:'Cairo',sans-serif;">0</span>
+      </div>
+    </div>
+
+      <!-- شبكة الكاتيجوريز -->
+      <div id="manageCatsGrid" class="manage-cats-grid"></div>
+
+      <!-- رسالة لو مفيش كاتيجوريز -->
+      <div id="manageCatsEmpty" style="display:none;text-align:center;color:rgba(255,255,255,0.7);font-size:4.5vw;padding:8vw 4vw;">
+        <div style="font-size:14vw;margin-bottom:3vw;">📭</div>
+        <div>لسه ما عندكش كاتيجوريز مخصصة</div>
+        <div style="font-size:3.5vw;color:rgba(255,255,255,0.5);margin-top:2vw;">اعمل كاتيجوري جديدة الأول!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ شاشة تعديل كاتيجوري واحدة ══ -->
+  <div id="editSingleCatOverlay" class="hidden">
+    <div class="cat-screen-header">
+      <button class="cat-header-back" id="closeEditSingleBtn">←</button>
+      <div class="cat-header-title" id="editSingleTitle">✏️ تعديل</div>
+      <div class="manage-header-tokens">
+        <img src="images/token_coin.png"
+          style="width:7vw;height:7vw;max-width:28px;max-height:28px;object-fit:contain;"
+          onerror="this.style.display='none'">
+        <span id="editSingleTokenCount" style="font-size:4.5vw;font-weight:900;color:#fff;font-family:'Cairo',sans-serif;">0</span>
+      </div>
+    </div>
+
+    <div class="cat-screen-content">
+      <div class="cat-section-card">
+        <div class="cat-section-label">✏️ اسم الكاتيجوري</div>
+        <input id="editSingleNameInput" type="text" maxlength="20" placeholder="مثال: حيوانات" class="cat-input">
+      </div>
+
+      <div class="cat-section-card">
+        <div class="cat-section-label">
+          📝 الكلمات
+          <span id="editSingleWordCountLabel" style="background:rgba(255,255,255,0.2);border-radius:2vw;padding:0.5vw 2vw;font-size:3.5vw;margin-right:2vw;">(0 / 50)</span>
+        </div>
+        <div class="words-progress-bar-wrap">
+          <div class="words-progress-bar-fill" id="editSingleProgressBar"></div>
+        </div>
+        <div class="words-progress-text">
+          <span id="editSingleProgressLabel">0 / 20 مطلوبة</span>
+          <span id="editSingleProgressStatus">أضف المزيد ⬆️</span>
+        </div>
+        <div class="add-word-section">
+          <input type="text" id="editSingleNewWordInput" class="add-word-input" placeholder="اكتب كلمة ثم اضغط +" maxlength="20">
+          <button id="editSingleAddWordBtn" class="add-word-submit">+</button>
+        </div>
+        <div class="words-list" id="editSingleWordsList"></div>
+      </div>
+    </div>
+
+    <div class="cat-save-footer">
+      <div class="cat-save-footer-left">
+        <div class="cat-save-footer-count" id="editSingleFooterCount">0 كلمة</div>
+        <div class="cat-save-footer-hint" id="editSingleFooterHint">لازم 20 كلمة على الأقل</div>
+      </div>
+      <button class="cat-save-btn" id="saveEditSingleBtn">💾 حفظ التعديلات</button>
+    </div>
+  </div>
+
+  <!-- ══ شاشة الكاتيجوري الجديدة ══ -->
+  <div id="customCatOverlay" class="full-overlay hidden">
+
+    <div class="cat-screen-header">
+      <button class="cat-header-back" id="cancelCatBtn">←</button>
+      <div class="cat-header-title">✨ كاتيجوري جديدة</div>
+      <div class="cat-header-tokens">
+        <img src="images/token_coin.png"
+          style="width:7vw;height:7vw;max-width:28px;max-height:28px;object-fit:contain;"
+          onerror="this.style.display='none'">
+        <span id="catScreenTokenCount">0</span>
+      </div>
+    </div>
+
+    <div class="cat-screen-content">
+
+      <div class="cat-section-card">
+        <div class="cat-section-label">✏️ اسم الكاتيجوري</div>
+        <input id="catNameInput" type="text" maxlength="20" placeholder="مثال: حيوانات" class="cat-input">
+      </div>
+
+      <div class="cat-section-card">
+        <div class="cat-section-label">🎨 لون الكاتيجوري</div>
+        <div class="color-wheel-container">
+          <canvas id="colorWheelCanvas" width="220" height="220" class="color-wheel-canvas"></canvas>
+          <div id="colorPickerDot" style="position:absolute;width:6vw;height:6vw;max-width:24px;max-height:24px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.5);pointer-events:none;transform:translate(-50%,-50%);top:50%;left:50%;transition:background 0.1s;"></div>
+        </div>
+        <div class="color-preview">
+          <div id="colorPreviewBox" class="color-box" style="background:rgba(255,255,255,0.2);"></div>
+          <span id="colorPreviewHex"
+            style="color:#fff;font-size:4vw;font-weight:700;cursor:pointer;
+            background:rgba(255,255,255,0.15);border:1.5px dashed rgba(255,255,255,0.5);
+            border-radius:2vw;padding:1.5vw 3vw;letter-spacing:1px;"
+            onclick="openHexEditor(this)">
+            اختر لون
+          </span>
+          <input id="hexInlineInput" type="text" maxlength="7"
+            style="display:none;font-family:'Cairo',sans-serif;font-size:4vw;font-weight:700;
+            direction:ltr;text-align:center;border:2px solid rgba(255,255,255,0.6);
+            border-radius:2vw;padding:1.5vw 3vw;background:rgba(255,255,255,0.2);
+            color:#fff;outline:none;width:28vw;max-width:130px;letter-spacing:1px;"
+            placeholder="#FF8C94">
+        </div>
+      </div>
+
+      <div class="cat-section-card">
+        <div class="cat-section-label">
+          📝 الكلمات
+          <span id="wordCountLabel" class="word-count-badge">(0 / 50)</span>
+        </div>
+
+        <div class="words-progress-bar-wrap">
+          <div class="words-progress-bar-fill" id="wordsProgressBar"></div>
+        </div>
+        <div class="words-progress-text">
+          <span id="wordsProgressLabel">0 / 20 مطلوبة</span>
+          <span id="wordsProgressStatus">أضف المزيد ⬆️</span>
+        </div>
+
+        <div class="add-word-section">
+          <input type="text" id="newWordInput" class="add-word-input" placeholder="اكتب كلمة ثم اضغط +" maxlength="20">
+          <button id="addWordBtn" class="add-word-submit">+</button>
+        </div>
+
+        <div class="words-list" id="wordsList"></div>
+      </div>
+
+    </div>
+
+    <div class="cat-save-footer" id="catSaveFooter">
+      <div class="cat-save-footer-left">
+        <div class="cat-save-footer-count" id="footerWordCount">0 كلمة</div>
+        <div class="cat-save-footer-hint" id="footerHint">لازم 20 كلمة على الأقل</div>
+      </div>
+      <button class="cat-save-btn" id="saveCatBtn" style="display:flex;align-items:center;gap:2vw;">
+        <span>💾 احفظ — 5</span>
+        <img src="images/token_coin.png" style="width:6vw;height:6vw;max-width:26px;max-height:26px;object-fit:contain;" onerror="this.outerHTML='🪙'">
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // SOUND SYSTEM
+    let _audioCtx = null;
+    function getAudioCtx() {
+      if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (_audioCtx.state === 'suspended') _audioCtx.resume();
+      return _audioCtx;
+    }
+
+    const SoundSystem = {
+      enabled: true,
+      click() {
+        if (!this.enabled) return;
+        try {
+          const ctx = getAudioCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.type = 'sine'; osc.frequency.value = 660;
+          const t = ctx.currentTime;
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+          osc.start(t); osc.stop(t + 0.12);
+        } catch (e) {}
+      }
+    };
+
+    document.addEventListener('touchstart', () => { try { getAudioCtx(); } catch(e) {} }, { once: true });
+    document.addEventListener('click',      () => { try { getAudioCtx(); } catch(e) {} }, { once: true });
+
+    // HEX EDITOR
+    function openHexEditor(spanEl) {
+      const input = document.getElementById('hexInlineInput');
+      input.value = selectedColor ? selectedColor.hex : '';
+      spanEl.style.display = 'none';
+      input.style.display = 'inline-block';
+      input.focus(); input.select();
+    }
+
+    document.getElementById('hexInlineInput').addEventListener('blur', applyHexInput);
+    document.getElementById('hexInlineInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') applyHexInput();
+      if (e.key === 'Escape') {
+        document.getElementById('hexInlineInput').style.display = 'none';
+        document.getElementById('colorPreviewHex').style.display = 'inline-block';
+      }
+    });
+
+    function applyHexInput() {
+      const input = document.getElementById('hexInlineInput');
+      const span = document.getElementById('colorPreviewHex');
+      let val = input.value.trim().replace('#', '');
+      input.style.display = 'none';
+      span.style.display = 'inline-block';
+      if (!/^[0-9A-Fa-f]{6}$/.test(val)) { showSuccessToast('كود غلط! لازم 6 خانات'); return; }
+      const hex = '#' + val.toUpperCase();
+      selectedColor = { hex };
+      document.getElementById('colorPreviewBox').style.background = hex;
+      span.textContent = hex;
+      document.getElementById('colorPickerDot').style.background = hex;
+    }
+
+    // NO TOKENS MODAL
+    function showNoTokensModal() {
+      const old = document.getElementById('noTokensModal');
+      if (old) old.remove();
+      const modal = document.createElement('div');
+      modal.id = 'noTokensModal';
+      modal.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:50000;backdrop-filter:blur(6px);`;
+      modal.innerHTML = `
+        <div style="background:linear-gradient(170deg,rgba(168,216,234,0.98),rgba(170,150,218,0.98));border-radius:6vw;padding:8vw 6vw;width:85%;max-width:380px;text-align:center;box-shadow:0 16px 64px rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.5);">
+          <div style="font-size:14vw;margin-bottom:3vw;"><img src="images/token_coin.png" style="width:14vw;height:14vw;object-fit:contain;" onerror="this.outerHTML='🪙'"></div>
+          <div style="font-size:6vw;font-weight:900;color:#fff;margin-bottom:3vw;">مش عندك توكنز كفاية!</div>
+          <div style="font-size:4.5vw;color:rgba(255,255,255,0.85);margin-bottom:5vw;line-height:1.8;">
+            الكاتيجوري تكلف <strong>5 <img src="images/token_coin.png" style="width:4.5vw;height:4.5vw;max-width:20px;max-height:20px;object-fit:contain;vertical-align:middle;" onerror="this.outerHTML='🪙'"></strong><br>
+            عندك <strong>${TokenSystem.getTokens()} <img src="images/token_coin.png" style="width:4.5vw;height:4.5vw;max-width:20px;max-height:20px;object-fit:contain;vertical-align:middle;" onerror="this.outerHTML='🪙'"></strong> دلوقتي<br><br>
+            اكسب توكنز بـ:<br>
+            📺 مشاهدة إعلانات (1 <img src="images/token_coin.png" style="width:4.5vw;height:4.5vw;max-width:20px;max-height:20px;object-fit:contain;vertical-align:middle;" onerror="this.outerHTML='🪙'"> / إعلان)<br>
+            🏆 الفوز في الجولة (+5 <img src="images/token_coin.png" style="width:4.5vw;height:4.5vw;max-width:20px;max-height:20px;object-fit:contain;vertical-align:middle;" onerror="this.outerHTML='🪙'">)
+          </div>
+          <button onclick="document.getElementById('noTokensModal').remove()" style="width:100%;padding:4vw;border-radius:4vw;background:linear-gradient(135deg,#f5c400,#d4a000);border:none;color:#5a3200;font-size:5vw;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;">حسناً 👍</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+    }
+
+    // AVATAR SYSTEM
+    const AVATAR_COUNT = 20;
+    let currentAvatar = 'av1';
+    const AVATAR_STORAGE_KEY = 'qadAlTahadi_avatar';
+
+    function saveAvatar(avatarName) {
+      try { localStorage.setItem(AVATAR_STORAGE_KEY, avatarName); currentAvatar = avatarName; } catch(e) {}
+    }
+
+    function loadSavedAvatar() {
+      try {
+        const saved = localStorage.getItem(AVATAR_STORAGE_KEY);
+        currentAvatar = (saved && saved.startsWith('av')) ? saved : 'av1';
+      } catch(e) { currentAvatar = 'av1'; }
+      return currentAvatar;
+    }
+
+    function updateProfileAvatar() {
+      const avatar = loadSavedAvatar();
+      const avatarImg = document.getElementById('profileAvatarImg');
+      const avatarText = document.getElementById('profileAvatarText');
+      if (avatarImg && avatarText) {
+        const img = new Image();
+        img.onload = () => { avatarImg.style.display = 'block'; avatarText.style.display = 'none'; avatarImg.src = `Avatar/${avatar}.png`; };
+        img.onerror = () => { avatarImg.style.display = 'none'; avatarText.style.display = 'flex'; avatarText.textContent = '👤'; };
+        img.src = `Avatar/${avatar}.png`;
+      }
+    }
+
+    function showAvatarPicker(onConfirm) {
+      const old = document.getElementById("avatarPopupOverlay");
+      if (old) old.remove();
+      const N = AVATAR_COUNT;
+      let current = parseInt((currentAvatar.match(/\d+/) || [1])[0]) - 1;
+      const overlay = document.createElement("div");
+      overlay.id = "avatarPopupOverlay";
+      overlay.className = "avatar-popup-overlay";
+      overlay.innerHTML = `
+        <div class="avatar-popup-box">
+          <div class="avatar-popup-title">🎭 اختار صورتك</div>
+          <div class="avatar-carousel-wrapper">
+            <button class="avatar-nav" id="avPrev">›</button> 
+            <div class="avatar-carousel" id="avatarCarousel"></div>
+            <button class="avatar-nav" id="avNext">‹</button>  
+          </div>
+          <div class="avatar-dots" id="avDots"></div>
+          <div class="avatar-counter" id="avCounter"></div>
+          <button class="avatar-confirm" id="avConfirmBtn">تمام</button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      const carousel = overlay.querySelector("#avatarCarousel");
+      const dots = overlay.querySelector("#avDots");
+      const counter = overlay.querySelector("#avCounter");
+      for (let i = 1; i <= N; i++) {
+        const item = document.createElement("div");
+        item.className = "avatar-item";
+        item.innerHTML = `<img src="Avatar/av${i}.png" draggable="false" onerror="this.src='https://via.placeholder.com/80?text=${i}'">`;
+        item.addEventListener("click", () => { current = i - 1; update(); });
+        carousel.appendChild(item);
+      }
+      const items = [...carousel.children];
+      function update() {
+        items.forEach((item, i) => {
+          const offset = i - current;
+          item.style.transform = `translateX(${offset * 90}px) scale(${i === current ? 1 : 0.72})`;
+          item.style.opacity = i === current ? "1" : Math.abs(offset) === 1 ? "0.55" : "0.18";
+          item.style.zIndex = 100 - Math.abs(offset);
+          item.classList.toggle("active", i === current);
+        });
+        counter.textContent = `${current + 1} / ${N}`;
+        dots.innerHTML = "";
+        for (let i = 0; i < N; i++) {
+          const dot = document.createElement("div");
+          dot.className = i === current ? "avatar-dot active" : "avatar-dot";
+          dot.addEventListener("click", () => { current = i; update(); });
+          dots.appendChild(dot);
+        }
+      }
+      function next() { current = (current + 1) % N; update(); }
+      function prev() { current = (current - 1 + N) % N; update(); }
+      overlay.querySelector("#avNext").onclick = next;
+      overlay.querySelector("#avPrev").onclick = prev;
+      let startX = 0, dragging = false;
+      carousel.addEventListener("pointerdown", e => { startX = e.clientX; dragging = true; });
+      window.addEventListener("pointermove", e => { if (!dragging) return; if (Math.abs(e.clientX - startX) > 50) { dragging = false; e.clientX - startX < 0 ? next() : prev(); } });
+      window.addEventListener("pointerup", () => { dragging = false; });
+      overlay.querySelector("#avConfirmBtn").addEventListener("click", () => {
+        SoundSystem.click();
+        overlay.remove();
+        const selected = "av" + (current + 1);
+        saveAvatar(selected);
+        if (onConfirm) onConfirm(selected);
+        updateProfileAvatar();
+      });
+      overlay.addEventListener("click", e => { if (e.target === overlay) { overlay.remove(); if (onConfirm) onConfirm(currentAvatar); } });
+      update();
+    }
+
+    // PROFILE SYSTEM
+    const PROFILE_KEY = 'qadAlTahadi_profile';
+    const CUSTOM_CATS_KEY = 'qadAlTahadi_customCats';
+    const MAX_CUSTOM_CATS = 10;
+    const MIN_WORDS = 20;
+    const MAX_WORDS = 50;
+
+    function getProfile() {
+      try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; } catch(e) { return {}; }
+    }
+
+    function getCustomCats() {
+      try { return JSON.parse(localStorage.getItem(CUSTOM_CATS_KEY)) || []; } catch(e) { return []; }
+    }
+
+    function saveCustomCats(cats) {
+      try { localStorage.setItem(CUSTOM_CATS_KEY, JSON.stringify(cats)); } catch(e) {}
+    }
+
+    const CategoryNames = {
+      places:'أماكن', food:'أكل', jobs:'شغلانة', tools:'اشياء',
+      clubs:'أندية', players:'لاعبين', countries:'دول', games:'فيديو جيمز',
+      animeSeries:'أنمي مسلسلات', animeCharacters:'أنمي شخصيات',
+      moviesArabic:'أفلام عربي', moviesForeign:'أفلام أجنبي',
+      tvseriesArabic:'مسلسلات عربي', tvseriesForeign:'مسلسلات أجنبي',
+      namesArabic:'مشاهير عربي', namesForeign:'مشاهير أجنبي', cars:'عربيات'
+    };
+
+    function getCategoryDisplayName(key) {
+      if (CategoryNames[key]) return CategoryNames[key];
+      if (key && key.startsWith('custom_')) {
+        try {
+          const cats = JSON.parse(localStorage.getItem('qadAlTahadi_customCats') || '[]');
+          const catId = key.replace('custom_', '');
+          const found = cats.find(c => c.id === catId || ('custom_' + c.id) === key);
+          if (found) return found.name;
+        } catch(e) {}
+        return 'كاتيجوري مخصصة';
+      }
+      return key;
+    }
+
+    function topKey(obj) {
+      if (!obj) return null;
+      return Object.entries(obj).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+    }
+
+    function openProfile() {
+      loadSavedAvatar();
+      updateProfileAvatar();
+      const p = getProfile();
+      document.getElementById('profileUsername').textContent = p.lastUsedName || '—';
+      document.getElementById('statGamesPlayed').textContent = p.gamesPlayed || 0;
+      document.getElementById('statWins').textContent = p.wins || 0;
+      document.getElementById('statLastPlay').textContent = p.lastPlay || '—';
+      document.getElementById('statLastWin').textContent = p.lastWin || '—';
+      document.getElementById('statFavName').textContent = topKey(p.nameUsage) || '—';
+      document.getElementById('statFavCat').textContent = (fav => fav ? getCategoryDisplayName(fav) : '—')(topKey(p.catUsage));
+      document.getElementById('statWinCat').textContent = (win => win ? getCategoryDisplayName(win) : '—')(topKey(p.winCatUsage));
+
+      const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+      const rankNames = ['المركز الأول','المركز الثاني','المركز الثالث','المركز الرابع','المركز الخامس','المركز السادس','المركز السابع','المركز الثامن','المركز التاسع','المركز العاشر'];
+      const container = document.getElementById('rankRowsContainer');
+      container.innerHTML = '';
+      const ranks = p.ranks || {};
+      if (Object.keys(ranks).length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.75);font-size:4.5vw;padding:4vw 0;background:rgba(255,255,255,0.22);border-radius:3.5vw;">لسه ما لعبتش في مود الأوضة 🏠</div>';
+      } else {
+        Object.entries(ranks).sort((a, b) => Number(a[0]) - Number(b[0])).forEach(([rank, count]) => {
+          const ri = Number(rank) - 1;
+          const row = document.createElement('div');
+          row.className = 'profile-rank-row';
+          row.innerHTML = `<div class="rank-row-left"><span class="rank-medal">${medals[ri] || '#'+rank}</span><span class="rank-name">${rankNames[ri] || 'المركز '+rank}</span></div><span class="rank-count">${count} مرة</span>`;
+          container.appendChild(row);
+        });
+      }
+      renderMyCats();
+    }
+
+    // ══ مساعد تفتيح/تغميق اللون ══
+    function darkenHex(hex, amount) {
+      let r = parseInt(hex.slice(1,3), 16);
+      let g = parseInt(hex.slice(3,5), 16);
+      let b = parseInt(hex.slice(5,7), 16);
+      r = Math.max(0, r - amount);
+      g = Math.max(0, g - amount);
+      b = Math.max(0, b - amount);
+      return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+    }
+
+    // ══ CUSTOM CATEGORIES - CREATE ══
+    let wordsArray = [];
+    let selectedColor = null;
+
+    function drawColorWheel(canvas) {
+      const ctx = canvas.getContext('2d');
+      const cx = canvas.width / 2, cy = canvas.height / 2;
+      const radius = Math.min(cx, cy) - 2;
+      for (let angle = 0; angle < 360; angle++) {
+        const startAngle = (angle - 1) * Math.PI / 180;
+        const endAngle = (angle + 1) * Math.PI / 180;
+        const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+        gradient.addColorStop(0, `hsl(${angle}, 0%, 100%)`);
+        gradient.addColorStop(0.5, `hsl(${angle}, 100%, 50%)`);
+        gradient.addColorStop(1, `hsl(${angle}, 100%, 20%)`);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+      const whiteGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+      whiteGrad.addColorStop(0, 'rgba(255,255,255,0.55)');
+      whiteGrad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fillStyle = whiteGrad;
+      ctx.fill();
+    }
+
+    function getColorFromWheel(canvas, x, y) {
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const px = Math.round((x - rect.left) * scaleX);
+      const py = Math.round((y - rect.top) * scaleY);
+      const cx = canvas.width / 2, cy = canvas.height / 2;
+      const radius = Math.min(cx, cy) - 2;
+      if (Math.sqrt((px - cx) ** 2 + (py - cy) ** 2) > radius) return null;
+      const data = ctx.getImageData(px, py, 1, 1).data;
+      return { hex: '#' + [data[0], data[1], data[2]].map(v => v.toString(16).padStart(2, '0')).join('') };
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function renderWordsList() {
+      const container = document.getElementById('wordsList');
+      container.innerHTML = '';
+      wordsArray.forEach((word, index) => {
+        const item = document.createElement('div');
+        item.className = 'word-item';
+        item.innerHTML = `
+          <span class="word-item-number">${index + 1}</span>
+          <span class="word-text">${escapeHtml(word)}</span>
+          <button class="delete-word-btn" data-index="${index}">✕</button>
+        `;
+        item.querySelector('.delete-word-btn').addEventListener('click', () => {
+          wordsArray.splice(index, 1);
+          renderWordsList();
+          updateWordCount();
+        });
+        container.appendChild(item);
+      });
+      updateWordCount();
+    }
+
+    function addNewWord() {
+      const input = document.getElementById('newWordInput');
+      const word = input.value.trim();
+      if (!word) return;
+      if (word.length > 20) { alert('الكلمة طويلة جداً (حد أقصى 20 حرف)'); return; }
+      if (wordsArray.includes(word)) { alert('الكلمة موجودة بالفعل!'); return; }
+      if (wordsArray.length >= MAX_WORDS) { alert(`وصلت للحد الأقصى (${MAX_WORDS} كلمة)`); return; }
+      wordsArray.push(word);
+      renderWordsList();
+      input.value = '';
+      input.focus();
+    }
+
+    function updateWordCount() {
+      const count = wordsArray.length;
+      const label = document.getElementById('wordCountLabel');
+      if (label) { label.textContent = `(${count} / ${MAX_WORDS})`; label.style.color = count >= MIN_WORDS ? '#a8e6c8' : 'rgba(255,200,200,0.9)'; }
+      const pct = Math.min((count / MIN_WORDS) * 100, 100);
+      const bar = document.getElementById('wordsProgressBar');
+      if (bar) bar.style.width = pct + '%';
+      const progLabel = document.getElementById('wordsProgressLabel');
+      if (progLabel) progLabel.textContent = `${count} / ${MIN_WORDS} مطلوبة`;
+      const progStatus = document.getElementById('wordsProgressStatus');
+      if (progStatus) {
+        if (count >= MAX_WORDS) { progStatus.textContent = '🎉 وصلت الحد الأقصى!'; progStatus.style.color = '#f5c400'; }
+        else if (count >= MIN_WORDS) { progStatus.textContent = `✅ جاهز! (${count - MIN_WORDS} إضافية)`; progStatus.style.color = '#a8e6c8'; }
+        else { progStatus.textContent = `أضف ${MIN_WORDS - count} أكتر ⬆️`; progStatus.style.color = 'rgba(255,255,255,0.7)'; }
+      }
+      const footerCount = document.getElementById('footerWordCount');
+      if (footerCount) footerCount.textContent = `${count} كلمة`;
+      const footerHint = document.getElementById('footerHint');
+      if (footerHint) { footerHint.textContent = count >= MIN_WORDS ? `✅ جاهز للحفظ!` : `لازم ${MIN_WORDS - count} كلمة أكتر`; footerHint.style.color = count >= MIN_WORDS ? '#a8e6c8' : 'rgba(255,255,255,0.7)'; }
+      const saveBtn = document.getElementById('saveCatBtn');
+      if (saveBtn) saveBtn.disabled = count < MIN_WORDS;
+    }
+
+    // ══ قائمة الاختيار ══
+    document.getElementById('openCustomCatBtn').addEventListener('click', () => {
+      SoundSystem.click();
+      const sheet = document.getElementById('catActionSheet');
+      sheet.style.display = 'flex';
+    });
+
+    // إغلاق القائمة عند الضغط على الخلفية
+    document.getElementById('catActionSheet').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('catActionSheet')) {
+        document.getElementById('catActionSheet').style.display = 'none';
+      }
+    });
+
+    // زر إلغاء
+    document.getElementById('actionBtnCancel').addEventListener('click', () => {
+      SoundSystem.click();
+      document.getElementById('catActionSheet').style.display = 'none';
+    });
+
+    // زر كاتيجوري جديدة
+    document.getElementById('actionBtnNewCat').addEventListener('click', () => {
+      SoundSystem.click();
+      document.getElementById('catActionSheet').style.display = 'none';
+      if (getCustomCats().length >= MAX_CUSTOM_CATS) {
+        alert(`وصلت للحد الأقصى (${MAX_CUSTOM_CATS} كاتيجوريز)`);
+        return;
+      }
+      openNewCatScreen();
+    });
+
+    // زر تعديل كاتيجوري
+    document.getElementById('actionBtnManageCats').addEventListener('click', () => {
+      SoundSystem.click();
+      document.getElementById('catActionSheet').style.display = 'none';
+      openManageCatsScreen();
+    });
+
+    function openNewCatScreen() {
+      document.getElementById('catNameInput').value = '';
+      document.getElementById('newWordInput').value = '';
+      wordsArray = [];
+      selectedColor = null;
+      renderWordsList();
+      document.getElementById('colorPreviewBox').style.background = 'rgba(255,255,255,0.2)';
+      document.getElementById('colorPreviewHex').textContent = 'اختر لون';
+      document.getElementById('colorPickerDot').style.background = 'rgba(255,255,255,0.5)';
+      document.getElementById('colorPickerDot').style.left = '50%';
+      document.getElementById('colorPickerDot').style.top = '50%';
+      const overlay = document.getElementById('customCatOverlay');
+      overlay.classList.remove('hidden');
+      const scroller = overlay.querySelector('.cat-screen-content');
+      if (scroller) scroller.scrollTop = 0;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        overlay.classList.add('visible');
+      }));
+      document.getElementById('catScreenTokenCount').textContent = TokenSystem.getTokens();
+      requestAnimationFrame(() => drawColorWheel(document.getElementById('colorWheelCanvas')));
+    }
+
+    // ══ شاشة إدارة الكاتيجوريز ══
+    function openManageCatsScreen() {
+      TokenSystem.updateDisplay();
+      const overlay = document.getElementById('manageCatsOverlay');
+      overlay.classList.remove('hidden');
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        overlay.classList.add('visible');
+      }));
+      renderManageCatsGrid();
+    }
+
+    function closeManageCatsScreen() {
+      const overlay = document.getElementById('manageCatsOverlay');
+      overlay.classList.remove('visible');
+      setTimeout(() => overlay.classList.add('hidden'), 350);
+    }
+
+    function renderManageCatsGrid() {
+      const grid = document.getElementById('manageCatsGrid');
+      const emptyMsg = document.getElementById('manageCatsEmpty');
+      const cats = getCustomCats();
+      grid.innerHTML = '';
+
+      if (cats.length === 0) {
+        emptyMsg.style.display = 'block';
+        grid.style.display = 'none';
+        return;
+      }
+
+      emptyMsg.style.display = 'none';
+      grid.style.display = 'grid';
+
+      cats.forEach((cat) => {
+        const colorDark = darkenHex(cat.color || '#aa96da', 25);
+        const card = document.createElement('button');
+        card.className = 'manage-cat-card';
+        card.style.cssText = `background: linear-gradient(135deg, ${cat.color || '#aa96da'}, ${colorDark});`;
+        card.innerHTML = `
+          <div class="manage-cat-badge">✏️</div>
+          <span class="manage-cat-emoji">${cat.emoji || '📝'}</span>
+          <span class="manage-cat-name">${escapeHtml(cat.name)}</span>
+          <span class="manage-cat-count">${(cat.words || []).length} كلمة</span>
+        `;
+        card.addEventListener('click', () => {
+          SoundSystem.click();
+          showCatManageOptions(cat.id, cat.name, cat.color);
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    // ══ خيارات إدارة كاتيجوري واحدة ══
+    function showCatManageOptions(catId, catName, catColor) {
+      const old = document.getElementById('catManageOptionsOverlay');
+      if (old) old.remove();
+
+      const overlay = document.createElement('div');
+      overlay.id = 'catManageOptionsOverlay';
+      overlay.style.cssText = `
+        position:fixed;top:0;left:0;right:0;bottom:0;
+        background:rgba(0,0,0,0.6);
+        z-index:40000;
+        display:flex;align-items:flex-end;justify-content:center;
+        backdrop-filter:blur(6px);
+        animation:fadeIn 0.2s ease;
+      `;
+
+      const colorDark = darkenHex(catColor || '#aa96da', 20);
+
+      overlay.innerHTML = `
+        <div style="
+          background:linear-gradient(170deg,rgba(168,216,234,0.99) 0%,rgba(170,150,218,0.99) 100%);
+          border-radius:6vw 6vw 0 0;
+          padding:5vw 5vw 8vw;
+          width:100%;max-width:560px;
+          display:flex;flex-direction:column;gap:3.5vw;
+          box-shadow:0 -8px 32px rgba(0,0,0,0.25);
+          border:1.5px solid rgba(255,255,255,0.4);
+          animation:slideUpSheet 0.3s cubic-bezier(0.22,0.61,0.36,1);
+        ">
+          <!-- معاينة الكاتيجوري -->
+          <div style="
+            background:linear-gradient(135deg,${catColor || '#aa96da'},${colorDark});
+            border-radius:4vw;padding:4vw;
+            display:flex;align-items:center;gap:3vw;
+            box-shadow:0 4px 16px rgba(0,0,0,0.2);
+            margin-bottom:1vw;
+          ">
+            <div style="font-size:8vw;">📝</div>
+            <div style="flex:1;">
+              <div style="font-size:5.5vw;font-weight:900;color:#fff;">${escapeHtml(catName)}</div>
+            </div>
+          </div>
+
+          <button id="optEditCatBtn" style="
+            width:100%;padding:4.5vw;border-radius:4vw;
+            background:linear-gradient(135deg,var(--purple),var(--purple-dark));
+            border:1.5px solid rgba(255,255,255,0.4);color:#fff;
+            font-size:5vw;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;
+            display:flex;align-items:center;justify-content:center;gap:2vw;
+          ">✏️ تعديل الكلمات والاسم</button>
+
+          <button id="optDeleteCatBtn" style="
+            width:100%;padding:4.5vw;border-radius:4vw;
+            background:linear-gradient(135deg,#ff4444,#cc0000);
+            border:1.5px solid rgba(255,100,100,0.4);color:#fff;
+            font-size:5vw;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;
+            display:flex;align-items:center;justify-content:center;gap:2vw;
+          ">🗑️ حذف الكاتيجوري</button>
+
+          <button id="optCancelBtn" style="
+            width:100%;padding:3.5vw;border-radius:4vw;
+            background:rgba(255,255,255,0.2);
+            border:1.5px solid rgba(255,255,255,0.4);color:#fff;
+            font-size:4.5vw;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;
+          ">إلغاء</button>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+
+      overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+      document.getElementById('optCancelBtn').addEventListener('click', () => { SoundSystem.click(); overlay.remove(); });
+
+      document.getElementById('optEditCatBtn').addEventListener('click', () => {
+        SoundSystem.click();
+        overlay.remove();
+        openEditSingleCat(catId);
+      });
+
+      document.getElementById('optDeleteCatBtn').addEventListener('click', () => {
+        SoundSystem.click();
+        overlay.remove();
+        showDeleteCatConfirm(catId, catName);
+      });
+    }
+
+    // ══ حذف كاتيجوري ══
+    function showDeleteCatConfirm(catId, catName) {
+      const old = document.getElementById('deleteCatModal');
+      if (old) old.remove();
+      const modal = document.createElement('div');
+      modal.id = 'deleteCatModal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:50000;backdrop-filter:blur(6px);';
+      modal.innerHTML = `<div style="background:linear-gradient(170deg,rgba(168,216,234,0.98),rgba(170,150,218,0.98));border-radius:6vw;padding:8vw 6vw;width:82%;max-width:360px;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.5);display:flex;flex-direction:column;align-items:center;gap:4vw;"><div style="font-size:12vw;">🗑️</div><div style="font-size:6vw;font-weight:900;color:#fff;font-family:'Cairo',sans-serif;">حذف الكاتيجوري</div><div style="font-size:4.5vw;color:rgba(255,255,255,0.85);line-height:1.8;font-family:'Cairo',sans-serif;">متأكد إنك عايز تحذف<br><strong>"${escapeHtml(catName)}"</strong>؟<br><span style="font-size:3.8vw;color:rgba(255,220,150,0.9);">الكلمات هتتحذف ومش هترجع</span></div><div style="display:flex;gap:3vw;width:100%;"><button id="confirmDelCatYes" style="flex:1;padding:4vw;border:none;border-radius:4vw;background:linear-gradient(135deg,#ff4444,#cc0000);color:#fff;font-size:5vw;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;">نعم، احذف</button><button id="confirmDelCatNo" style="flex:1;padding:4vw;border:none;border-radius:4vw;background:rgba(255,255,255,0.25);color:#fff;font-size:5vw;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;">لا</button></div></div>`;
+      document.body.appendChild(modal);
+      document.getElementById('confirmDelCatYes').addEventListener('click', () => {
+        SoundSystem.click(); modal.remove();
+        let cats = getCustomCats();
+        cats = cats.filter(c => c.id !== catId);
+        saveCustomCats(cats);
+        renderMyCats();
+        renderManageCatsGrid();
+        showSuccessToast('✅ تم حذف الكاتيجوري');
+      });
+      document.getElementById('confirmDelCatNo').addEventListener('click', () => modal.remove());
+      modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+    }
+
+    // ══ تعديل كاتيجوري واحدة ══
+    let editingCatId = null;
+    let editWordsArray = [];
+
+    function openEditSingleCat(catId) {
+      const cats = getCustomCats();
+      const cat = cats.find(c => c.id === catId);
+      if (!cat) return;
+
+      editingCatId = catId;
+      editWordsArray = cat.words ? cat.words.map(w => typeof w === 'string' ? w : w.word) : [];
+
+      document.getElementById('editSingleNameInput').value = cat.name || '';
+      document.getElementById('editSingleTitle').textContent = `✏️ ${cat.name}`;
+      document.getElementById('editSingleTokenCount').textContent = TokenSystem.getTokens();
+
+      renderEditSingleWordsList();
+      updateEditSingleWordCount();
+
+      const overlay = document.getElementById('editSingleCatOverlay');
+      overlay.classList.remove('hidden');
+      const scroller = overlay.querySelector('.cat-screen-content');
+      if (scroller) scroller.scrollTop = 0;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        overlay.classList.add('visible');
+      }));
+    }
+
+    function closeEditSingleCat() {
+      const overlay = document.getElementById('editSingleCatOverlay');
+      overlay.classList.remove('visible');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        editingCatId = null;
+        editWordsArray = [];
+      }, 350);
+    }
+
+    function renderEditSingleWordsList() {
+      const container = document.getElementById('editSingleWordsList');
+      container.innerHTML = '';
+      editWordsArray.forEach((word, index) => {
+        const item = document.createElement('div');
+        item.className = 'word-item';
+        item.innerHTML = `<span class="word-item-number">${index + 1}</span><span class="word-text">${escapeHtml(word)}</span><button class="delete-word-btn" data-index="${index}">✕</button>`;
+        item.querySelector('.delete-word-btn').addEventListener('click', () => {
+          editWordsArray.splice(index, 1);
+          renderEditSingleWordsList();
+          updateEditSingleWordCount();
+        });
+        container.appendChild(item);
+      });
+      updateEditSingleWordCount();
+    }
+
+    function addEditSingleWord() {
+      const input = document.getElementById('editSingleNewWordInput');
+      const word = input.value.trim();
+      if (!word) return;
+      if (word.length > 20) { alert('الكلمة طويلة جداً (حد أقصى 20 حرف)'); return; }
+      if (editWordsArray.includes(word)) { alert('الكلمة موجودة بالفعل!'); return; }
+      if (editWordsArray.length >= 50) { alert('وصلت للحد الأقصى (50 كلمة)'); return; }
+      editWordsArray.push(word);
+      renderEditSingleWordsList();
+      input.value = '';
+      input.focus();
+    }
+
+    function updateEditSingleWordCount() {
+      const count = editWordsArray.length;
+      const label = document.getElementById('editSingleWordCountLabel');
+      if (label) { label.textContent = `(${count} / 50)`; label.style.color = count >= 20 ? '#a8e6c8' : 'rgba(255,200,200,0.9)'; }
+      const bar = document.getElementById('editSingleProgressBar');
+      if (bar) bar.style.width = Math.min((count / 20) * 100, 100) + '%';
+      const progLabel = document.getElementById('editSingleProgressLabel');
+      if (progLabel) progLabel.textContent = `${count} / 20 مطلوبة`;
+      const progStatus = document.getElementById('editSingleProgressStatus');
+      if (progStatus) {
+        if (count >= 50) { progStatus.textContent = '🎉 وصلت الحد الأقصى!'; progStatus.style.color = '#f5c400'; }
+        else if (count >= 20) { progStatus.textContent = `✅ جاهز! (${count - 20} إضافية)`; progStatus.style.color = '#a8e6c8'; }
+        else { progStatus.textContent = `أضف ${20 - count} أكتر ⬆️`; progStatus.style.color = 'rgba(255,255,255,0.7)'; }
+      }
+      const footerCount = document.getElementById('editSingleFooterCount');
+      if (footerCount) footerCount.textContent = `${count} كلمة`;
+      const footerHint = document.getElementById('editSingleFooterHint');
+      if (footerHint) { footerHint.textContent = count >= 20 ? '✅ جاهز للحفظ!' : `لازم ${20 - count} كلمة أكتر`; footerHint.style.color = count >= 20 ? '#a8e6c8' : 'rgba(255,255,255,0.7)'; }
+      const saveBtn = document.getElementById('saveEditSingleBtn');
+      if (saveBtn) saveBtn.disabled = count < 20;
+    }
+
+    // ربط أحداث شاشة تعديل كاتيجوري واحدة
+    document.getElementById('closeEditSingleBtn').addEventListener('click', () => { SoundSystem.click(); closeEditSingleCat(); });
+    document.getElementById('editSingleAddWordBtn').addEventListener('click', () => { SoundSystem.click(); addEditSingleWord(); });
+    document.getElementById('editSingleNewWordInput').addEventListener('keypress', e => { if (e.key === 'Enter') addEditSingleWord(); });
+
+    document.getElementById('saveEditSingleBtn').addEventListener('click', () => {
+      SoundSystem.click();
+      if (!editingCatId) return;
+      const newName = document.getElementById('editSingleNameInput').value.trim();
+      if (!newName) { alert('اكتب اسم الكاتيجوري!'); return; }
+      if (editWordsArray.length < 20) { alert(`لازم 20 كلمة على الأقل! عندك ${editWordsArray.length} دلوقتي`); return; }
+      let cats = getCustomCats();
+      const idx = cats.findIndex(c => c.id === editingCatId);
+      if (idx === -1) { alert('مش لاقي الكاتيجوري!'); return; }
+      if (cats.find(c => c.id !== editingCatId && c.name === newName)) { alert('فيه كاتيجوري بنفس الاسم!'); return; }
+      cats[idx] = {
+        ...cats[idx],
+        name: newName,
+        words: editWordsArray.map(w => ({ word: w, icon: '', type: newName }))
+      };
+      saveCustomCats(cats);
+      closeEditSingleCat();
+      setTimeout(() => {
+        renderMyCats();
+        renderManageCatsGrid();
+        showSuccessToast('✅ تم حفظ التعديلات');
+      }, 400);
+    });
+
+    // ══ إغلاق شاشة إدارة الكاتيجوريز ══
+    document.getElementById('closeManageCatsBtn').addEventListener('click', () => {
+      SoundSystem.click();
+      closeManageCatsScreen();
+    });
+
+    // ══ أحداث الكاتيجوري الجديدة ══
+    document.getElementById('cancelCatBtn').addEventListener('click', () => {
+      const overlay = document.getElementById('customCatOverlay');
+      overlay.classList.remove('visible');
+      setTimeout(() => overlay.classList.add('hidden'), 350);
+    });
+
+    document.getElementById('addWordBtn').addEventListener('click', addNewWord);
+    document.getElementById('newWordInput').addEventListener('keypress', e => { if (e.key === 'Enter') addNewWord(); });
+
+    // COLOR WHEEL
+    const canvas = document.getElementById('colorWheelCanvas');
+    let isPickingColor = false;
+
+    function pickColorAt(clientX, clientY) {
+      const color = getColorFromWheel(canvas, clientX, clientY);
+      if (!color) return;
+      selectedColor = color;
+      document.getElementById('colorPreviewBox').style.background = color.hex;
+      document.getElementById('colorPreviewHex').textContent = color.hex.toUpperCase();
+      document.getElementById('colorPickerDot').style.background = color.hex;
+      const rect = canvas.getBoundingClientRect();
+      document.getElementById('colorPickerDot').style.left = ((clientX - rect.left) / rect.width * 100).toFixed(2) + '%';
+      document.getElementById('colorPickerDot').style.top  = ((clientY - rect.top)  / rect.height * 100).toFixed(2) + '%';
+    }
+
+    canvas.addEventListener('pointerdown', e => { e.preventDefault(); isPickingColor = true; canvas.setPointerCapture(e.pointerId); pickColorAt(e.clientX, e.clientY); }, { passive: false });
+    canvas.addEventListener('pointermove', e => { if (!isPickingColor) return; e.preventDefault(); pickColorAt(e.clientX, e.clientY); }, { passive: false });
+    canvas.addEventListener('pointerup',   e => { isPickingColor = false; canvas.releasePointerCapture(e.pointerId); });
+    canvas.addEventListener('pointercancel', () => { isPickingColor = false; });
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); pickColorAt(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
+    canvas.addEventListener('touchmove',  e => { e.preventDefault(); pickColorAt(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
+
+    // SAVE NEW CAT
+    document.getElementById('saveCatBtn').addEventListener('click', () => {
+      const name = document.getElementById('catNameInput').value.trim();
+      if (!name) { alert('اكتب اسم الكاتيجوري!'); return; }
+      if (!selectedColor) { alert('اختار لون للكاتيجوري!'); return; }
+      if (wordsArray.length < MIN_WORDS) { alert(`لازم تضيف ${MIN_WORDS} كلمة على الأقل! عندك ${wordsArray.length} دلوقتي`); return; }
+      if (!TokenSystem.spendTokens(TokenSystem.TOKENS_PER_CAT)) { showNoTokensModal(); return; }
+      const cats = getCustomCats();
+      if (cats.find(c => c.name === name)) { alert('فيه كاتيجوري بنفس الاسم!'); return; }
+      if (cats.length >= MAX_CUSTOM_CATS) { alert(`وصلت للحد الأقصى (${MAX_CUSTOM_CATS} كاتيجوريز)`); return; }
+      const newCat = {
+        id: Date.now().toString(),
+        name,
+        emoji: '📝',
+        color: selectedColor.hex,
+        words: wordsArray.map(w => ({ word: w, icon: '', type: name }))
+      };
+      cats.push(newCat);
+      saveCustomCats(cats);
+      showSuccessToast(`تم إنشاء الكاتيجوري بنجاح ✅`);
+      const overlay = document.getElementById('customCatOverlay');
+      overlay.classList.remove('visible');
+      setTimeout(() => { overlay.classList.add('hidden'); renderMyCats(); }, 350);
+    });
+
+    // AVATAR EDIT
+    document.getElementById('avatarEditIcon').addEventListener('click', e => {
+      e.stopPropagation();
+      SoundSystem.click();
+      showAvatarPicker(() => updateProfileAvatar());
+    });
+
+    document.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => SoundSystem.click()));
+
+    // PROFILE CLOSE
+    document.getElementById('profileCloseBtn').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+
+    // ══ renderMyCats - عرض الكاتيجوريز في البروفايل ══
+    function renderMyCats() {
+      const container = document.getElementById('myCatsContainer');
+      const noMsg = document.getElementById('noCatsMsg');
+      if (!container) return;
+      const cats = getCustomCats();
+      container.innerHTML = '';
+      if (cats.length === 0) {
+        container.style.display = 'none';
+        if (noMsg) noMsg.style.display = 'block';
+        return;
+      }
+      container.style.display = 'flex';
+      if (noMsg) noMsg.style.display = 'none';
+      cats.forEach((cat) => {
+        const colorDark = darkenHex(cat.color || '#aa96da', 20);
+        const card = document.createElement('div');
+        card.style.cssText = 'background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.35);border-radius:4vw;padding:3.5vw 4vw;display:flex;align-items:center;gap:3vw;';
+        const colorDot = document.createElement('div');
+        colorDot.style.cssText = `width:12vw;height:12vw;max-width:50px;max-height:50px;border-radius:3vw;background:linear-gradient(135deg,${cat.color || '#aa96da'},${colorDark});flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:6vw;border:2px solid rgba(255,255,255,0.4);`;
+        colorDot.textContent = cat.emoji || '📝';
+        const info = document.createElement('div');
+        info.style.cssText = 'flex:1;min-width:0;';
+        info.innerHTML = `<div style="font-size:5vw;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(cat.name)}</div><div style="font-size:3.5vw;color:rgba(255,255,255,0.7);margin-top:0.5vw;">${(cat.words||[]).length} كلمة</div>`;
+        card.appendChild(colorDot);
+        card.appendChild(info);
+        container.appendChild(card);
+      });
+    }
+
+    openProfile();
+  </script>
+</body>
+</html>
