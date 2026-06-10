@@ -28,37 +28,43 @@ workflows:
           PROFILE_UUID="c882a7e8-f888-41d0-8ded-0420e3b2505d"
           BUNDLE_ID="com.admar.app"
 
-          echo "✅ Team ID: $TEAM_ID"
-          echo "✅ Profile UUID: $PROFILE_UUID"
-
           PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" 2>/dev/null | head -1)
           echo "✅ Profile path: $PROFILE_PATH"
-
           cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
-
-          cd ios/App
-          sed -i '' "s/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = ${TEAM_ID};/g" App.xcodeproj/project.pbxproj
-          sed -i '' "s/CODE_SIGN_STYLE = .*;/CODE_SIGN_STYLE = Manual;/g" App.xcodeproj/project.pbxproj
-          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = .*;/PROVISIONING_PROFILE_SPECIFIER = ${PROFILE_UUID};/g" App.xcodeproj/project.pbxproj
-          cd ../..
-
-          echo "✅ project.pbxproj updated:"
-          grep -E "DEVELOPMENT_TEAM|CODE_SIGN_STYLE|PROVISIONING_PROFILE_SPECIFIER" ios/App/App.xcodeproj/project.pbxproj
 
           printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n<key>method</key>\n<string>app-store</string>\n<key>teamID</key>\n<string>%s</string>\n<key>signingStyle</key>\n<string>manual</string>\n<key>provisioningProfiles</key>\n<dict>\n<key>%s</key>\n<string>%s</string>\n</dict>\n</dict>\n</plist>\n' "$TEAM_ID" "$BUNDLE_ID" "$PROFILE_UUID" > /Users/builder/export_options.plist
 
-          echo "✅ export_options.plist:"
-          cat /Users/builder/export_options.plist
-          plutil -lint /Users/builder/export_options.plist
+          plutil -lint /Users/builder/export_options.plist && echo "✅ plist valid"
 
       - name: Build IPA
         script: |
+          TEAM_ID="Q39G2BK6VX"
+          PROFILE_UUID="c882a7e8-f888-41d0-8ded-0420e3b2505d"
+
           cd ios/App
-          xcode-project build-ipa \
-            --project App.xcodeproj \
-            --scheme App \
-            --archive-directory ../build \
-            --export-options-plist /Users/builder/export_options.plist
+          xcodebuild \
+            -project App.xcodeproj \
+            -scheme App \
+            -archivePath ../build/App.xcarchive \
+            -configuration Release \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE="$PROFILE_UUID" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            archive
+          cd ../..
+
+          echo "📂 البحث عن xcarchive:"
+          find /Users/builder/clone -name "*.xcarchive" 2>/dev/null
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath ios/build/App.xcarchive \
+            -exportPath ios/build/ipa \
+            -exportOptionsPlist /Users/builder/export_options.plist
+
           echo "📂 البحث عن IPA:"
           find /Users/builder/clone -name "*.ipa" 2>/dev/null
 
