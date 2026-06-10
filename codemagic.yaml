@@ -8,6 +8,9 @@ workflows:
 
     scripts:
       - npm install
+
+      - chmod -R +x node_modules/.bin || true
+
        -  node node_modules/@capacitor/cli/bin/capacitor.js sync ios
 
       - cd ios/App
