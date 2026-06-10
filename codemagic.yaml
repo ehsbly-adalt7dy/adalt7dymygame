@@ -22,8 +22,18 @@ workflows:
           pod install --verbose
           cd ../..
 
+      - name: Set up code signing
+        script: |
+          cd ios/App
+          xcode-project use-profiles --project App.xcodeproj
+          cd ../..
+
       - name: Create export options plist
         script: |
+          PROFILE_UUID=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" | head -1 | xargs -I{} /usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin 2>/dev/null || echo "")
+          TEAM_ID=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" | head -1 | xargs -I{} /usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" /dev/stdin 2>/dev/null || echo "")
+          echo "Profile UUID: $PROFILE_UUID"
+          echo "Team ID: $TEAM_ID"
           cat > /Users/builder/export_options.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -31,14 +41,17 @@ workflows:
           <dict>
             <key>method</key>
             <string>app-store</string>
-            <key>bundleID</key>
-            <string>com.admar.app</string>
+            <key>teamID</key>
+            <string>$TEAM_ID</string>
             <key>signingStyle</key>
-            <string>automatic</string>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.admar.app</key>
+              <string>$PROFILE_UUID</string>
+            </dict>
             <key>stripSwiftSymbols</key>
             <true/>
-            <key>uploadBitcode</key>
-            <false/>
             <key>uploadSymbols</key>
             <true/>
           </dict>
