@@ -3,23 +3,12 @@ workflows:
     name: iOS Build
     environment:
       node: latest
-      xcode: latest
 
     scripts:
       - npm install
 
-      # إعادة تثبيت Capacitor بشكل صريح
-      - npm install @capacitor/cli @capacitor/core
-
-      # إصلاح صلاحيات التنفيذ
-      - chmod -R 755 node_modules/.bin || true
-
-      # تشغيل sync بطريقة آمنة
+      # فقط Capacitor sync
       - npx cap sync ios
 
-      # تجهيز iOS build
-      - cd ios/App
-      - pod install
-
     artifacts:
-      - ios/App/build/**
+      - ios/App/**
