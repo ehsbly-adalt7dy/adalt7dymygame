@@ -22,73 +22,49 @@ workflows:
           pod install --verbose
           cd ../..
 
-      - name: Fix Bundle ID and signing
+      - name: Fix Bundle ID
         script: |
-          # صحح Bundle ID
           sed -i '' 's/adalt7dy\.mar\.com/com.admar.app/g' ios/App/App.xcodeproj/project.pbxproj
-          echo "✅ Bundle ID fixed"
+          echo "✅ Bundle ID:"
+          grep "PRODUCT_BUNDLE_IDENTIFIER" ios/App/App.xcodeproj/project.pbxproj | head -3
 
-          # أضف PROVISIONING_PROFILE لـ App target فقط في project.pbxproj
-          TEAM_ID="Q39G2BK6VX"
-          PROFILE_UUID="c882a7e8-f888-41d0-8ded-0420e3b2505d"
-          sed -i '' "s/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = ${TEAM_ID};/g" ios/App/App.xcodeproj/project.pbxproj
-          sed -i '' "s/CODE_SIGN_STYLE = .*;/CODE_SIGN_STYLE = Manual;/g" ios/App/App.xcodeproj/project.pbxproj
+      - name: Set up keychain
+        script: keychain initialize
 
-          echo "✅ Signing settings updated"
-
-      - name: Set up export plist
+      - name: Fetch signing files
         script: |
-          TEAM_ID="Q39G2BK6VX"
-          PROFILE_UUID="c882a7e8-f888-41d0-8ded-0420e3b2505d"
-          BUNDLE_ID="com.admar.app"
+          app-store-connect fetch-signing-files "com.admar.app" \
+            --type IOS_APP_STORE \
+            --create
 
-          PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" 2>/dev/null | head -1)
-          cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+      - name: Add certificates to keychain
+        script: keychain add-certificates
 
-          printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n<key>method</key>\n<string>app-store</string>\n<key>teamID</key>\n<string>%s</string>\n<key>signingStyle</key>\n<string>manual</string>\n<key>provisioningProfiles</key>\n<dict>\n<key>%s</key>\n<string>%s</string>\n</dict>\n</dict>\n</plist>\n' "$TEAM_ID" "$BUNDLE_ID" "$PROFILE_UUID" > /Users/builder/export_options.plist
-
-          plutil -lint /Users/builder/export_options.plist && echo "✅ plist valid"
+      - name: Use profiles
+        script: |
+          cd ios/App
+          xcode-project use-profiles --project App.xcodeproj
+          cd ../..
 
       - name: Build IPA
         script: |
-          TEAM_ID="Q39G2BK6VX"
-          PROFILE_UUID="c882a7e8-f888-41d0-8ded-0420e3b2505d"
-
           cd ios/App
-          xcodebuild \
-            -workspace App.xcworkspace \
-            -scheme App \
-            -archivePath ../build/App.xcarchive \
-            -configuration Release \
-            -destination "generic/platform=iOS" \
-            DEVELOPMENT_TEAM="$TEAM_ID" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE[sdk=iphoneos*]="$PROFILE_UUID" \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            archive
+          xcode-project build-ipa \
+            --workspace App.xcworkspace \
+            --scheme App
           cd ../..
-
-          xcodebuild \
-            -exportArchive \
-            -archivePath ios/build/App.xcarchive \
-            -exportPath ios/build/ipa \
-            -exportOptionsPlist /Users/builder/export_options.plist
-
-          echo "📂 البحث عن IPA:"
           find /Users/builder/clone -name "*.ipa" 2>/dev/null
 
       - name: Move IPA to artifacts
         script: |
           mkdir -p build/ios/ipa
           IPA_PATH=$(find /Users/builder/clone -name "*.ipa" | head -1)
-          echo "Found IPA at: $IPA_PATH"
           if [ -z "$IPA_PATH" ]; then
             echo "❌ No IPA found!"
             exit 1
           fi
           cp "$IPA_PATH" build/ios/ipa/
-          echo "✅ IPA copied"
+          echo "✅ Done"
           ls -la build/ios/ipa/
 
     artifacts:
