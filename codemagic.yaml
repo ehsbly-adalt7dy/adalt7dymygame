@@ -24,16 +24,29 @@ workflows:
 
       - name: Set up code signing
         script: |
+          echo "📋 Provisioning profiles found:"
+          ls ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || echo "No profiles directory"
+          
+          PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" 2>/dev/null | head -1)
+          echo "Profile path: $PROFILE_PATH"
+          
+          if [ -z "$PROFILE_PATH" ]; then
+            echo "❌ No provisioning profile found!"
+            exit 1
+          fi
+          
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" "$PROFILE_PATH")
+          TEAM_ID=$(/usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" "$PROFILE_PATH")
+          
+          echo "✅ Profile UUID: $PROFILE_UUID"
+          echo "✅ Team ID: $TEAM_ID"
+          
           cd ios/App
-          xcode-project use-profiles --project App.xcodeproj
+          sed -i '' "s/DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = $TEAM_ID;/g" App.xcodeproj/project.pbxproj
+          sed -i '' "s/CODE_SIGN_STYLE = .*/CODE_SIGN_STYLE = Manual;/g" App.xcodeproj/project.pbxproj
+          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = .*/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_UUID\";/g" App.xcodeproj/project.pbxproj
           cd ../..
-
-      - name: Create export options plist
-        script: |
-          PROFILE_UUID=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" | head -1 | xargs -I{} /usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin 2>/dev/null || echo "")
-          TEAM_ID=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" | head -1 | xargs -I{} /usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" /dev/stdin 2>/dev/null || echo "")
-          echo "Profile UUID: $PROFILE_UUID"
-          echo "Team ID: $TEAM_ID"
+          
           cat > /Users/builder/export_options.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -50,14 +63,10 @@ workflows:
               <key>com.admar.app</key>
               <string>$PROFILE_UUID</string>
             </dict>
-            <key>stripSwiftSymbols</key>
-            <true/>
-            <key>uploadSymbols</key>
-            <true/>
           </dict>
           </plist>
           EOF
-          echo "✅ export_options.plist created"
+          echo "✅ export_options.plist:"
           cat /Users/builder/export_options.plist
 
       - name: Build IPA
@@ -81,7 +90,7 @@ workflows:
             exit 1
           fi
           cp "$IPA_PATH" build/ios/ipa/
-          echo "✅ IPA copied to build/ios/ipa/"
+          echo "✅ IPA copied"
           ls -la build/ios/ipa/
 
     artifacts:
