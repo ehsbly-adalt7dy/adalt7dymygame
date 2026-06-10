@@ -24,11 +24,9 @@ workflows:
 
       - name: Fix Bundle ID
         script: |
-          cd ios/App
-          sed -i '' 's/adalt7dy\.mar\.com/com.admar.app/g' App.xcodeproj/project.pbxproj
-          echo "✅ Bundle ID after fix:"
-          grep "PRODUCT_BUNDLE_IDENTIFIER" App.xcodeproj/project.pbxproj
-          cd ../..
+          sed -i '' 's/adalt7dy\.mar\.com/com.admar.app/g' ios/App/App.xcodeproj/project.pbxproj
+          echo "✅ Bundle ID fixed:"
+          grep "PRODUCT_BUNDLE_IDENTIFIER" ios/App/App.xcodeproj/project.pbxproj
 
       - name: Set up code signing
         script: |
@@ -50,7 +48,7 @@ workflows:
 
           cd ios/App
           xcodebuild \
-            -project App.xcodeproj \
+            -workspace App.xcworkspace \
             -scheme App \
             -archivePath ../build/App.xcarchive \
             -configuration Release \
