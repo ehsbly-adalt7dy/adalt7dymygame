@@ -1,23 +1,58 @@
 workflows:
   ios-workflow:
-    name: iOS Build
+    name: iOS Build and Publish
 
     environment:
       node: 20
       xcode: latest
 
+    # ===== هذا هو المفتاح: ربط حساب Apple Developer =====
+    integrations:
+      app_store_connect: "your-api-key-name"  # غير 'your-api-key-name' إلى اسم المفتاح الذي أضفته في Team integrations
+
     scripts:
       - npm install --legacy-peer-deps
-
-      # إصلاح صلاحيات (احتياطي)
       - chmod -R +x node_modules || true
 
-      # تشغيل Capacitor مباشرة من المصدر (بدون npx)
+      # إضافة منصة iOS
       - node node_modules/@capacitor/cli/dist/bin/capacitor.js add ios || true
       - node node_modules/@capacitor/cli/dist/bin/capacitor.js sync ios
 
-      # تأكد
-      - ls ios || true
+      # ===== هذا هو الجزء الجديد المسؤول عن التوقيع والبناء =====
+      
+      # 1. تهيئة سلسلة مفاتيح للتوقيع
+      - name: Set up keychain for code signing
+        script: keychain initialize
+
+      # 2. جلب ملفات التوقيع تلقائياً من Apple (هذا يفعل "Automatic Code Signing")
+      - name: Fetch signing files
+        script: |
+          BUNDLE_ID=$(xcode-project detect-bundle-id)  # يكتشف معرف الحزمة تلقائياً
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+
+      # 3. إضافة الشهادات إلى سلسلة المفاتيح
+      - name: Add certificates to keychain
+        script: keychain add-certificates
+
+      # 4. تطبيق إعدادات التوقيع على مشروع Xcode
+      - name: Configure code signing in Xcode project
+        script: xcode-project use-profiles
+
+      # 5. بناء ملف .ipa النهائي
+      - name: Build IPA
+        script: |
+          xcode-project build-ipa \
+            --project ios/App.xcodeproj \
+            --scheme App
 
     artifacts:
       - build/ios/ipa/*.ipa
+
+    # ===== هذا القسم مسؤول عن رفع اللعبة إلى App Store =====
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true   # يرفع إلى TestFlight أولاً للاختبار
+        # submit_to_app_store: false  # غيّر إلى true عندما تكون جاهزاً للإصدار الرسمي
