@@ -41,30 +41,12 @@ workflows:
           sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = .*/PROVISIONING_PROFILE_SPECIFIER = $PROFILE_UUID;/g" App.xcodeproj/project.pbxproj
           cd ../..
 
-          cat > /Users/builder/export_options.plist << EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store</string>
-            <key>teamID</key>
-            <string>$TEAM_ID</string>
-            <key>signingStyle</key>
-            <string>manual</string>
-            <key>provisioningProfiles</key>
-            <dict>
-              <key>com.admar.app</key>
-              <string>$PROFILE_UUID</string>
-            </dict>
-          </dict>
-          </plist>
-          EOF
+          printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n<key>method</key>\n<string>app-store</string>\n<key>teamID</key>\n<string>%s</string>\n<key>signingStyle</key>\n<string>manual</string>\n<key>provisioningProfiles</key>\n<dict>\n<key>com.admar.app</key>\n<string>%s</string>\n</dict>\n</dict>\n</plist>\n' "$TEAM_ID" "$PROFILE_UUID" > /Users/builder/export_options.plist
 
           echo "✅ export_options.plist:"
           cat /Users/builder/export_options.plist
-          echo "✅ project.pbxproj signing settings:"
-          grep -E "DEVELOPMENT_TEAM|CODE_SIGN_STYLE|PROVISIONING_PROFILE" ios/App/App.xcodeproj/project.pbxproj
+          echo "✅ Validating plist:"
+          plutil -lint /Users/builder/export_options.plist
 
       - name: Build IPA
         script: |
