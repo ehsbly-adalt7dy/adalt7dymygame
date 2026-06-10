@@ -7,13 +7,19 @@ workflows:
 
     scripts:
       - npm install
+
+      # إعادة تثبيت Capacitor بشكل صريح
+      - npm install @capacitor/cli @capacitor/core
+
+      # إصلاح صلاحيات التنفيذ
+      - chmod -R 755 node_modules/.bin || true
+
+      # تشغيل sync بطريقة آمنة
       - npx cap sync ios
 
+      # تجهيز iOS build
       - cd ios/App
       - pod install
-      - xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -archivePath build/App.xcarchive archive
-
-      - xcodebuild -exportArchive -archivePath build/App.xcarchive -exportOptionsPlist exportOptions.plist -exportPath build
 
     artifacts:
-      - ios/App/build/*.ipa
+      - ios/App/build/**
