@@ -27,18 +27,20 @@ workflows:
           cd ios/App
           xcode-project build-ipa \
             --project App.xcodeproj \
-            --scheme App
-          cd ../..
-          echo "📂 Searching for IPA files:"
-          find . -name "*.ipa"
+            --scheme App \
+            --archive-directory ../build
+          echo "📂 البحث عن IPA:"
+          find /Users/builder/clone -name "*.ipa" 2>/dev/null
+          find /Users/builder/clone -name "*.xcarchive" 2>/dev/null
 
       - name: Move IPA to artifacts
         script: |
           mkdir -p build/ios/ipa
-          IPA_PATH=$(find . -name "*.ipa" | head -1)
+          IPA_PATH=$(find /Users/builder/clone -name "*.ipa" | head -1)
           echo "Found IPA at: $IPA_PATH"
           if [ -z "$IPA_PATH" ]; then
             echo "❌ No IPA found!"
+            find /Users/builder/clone -name "*.ipa" 2>/dev/null
             exit 1
           fi
           cp "$IPA_PATH" build/ios/ipa/
