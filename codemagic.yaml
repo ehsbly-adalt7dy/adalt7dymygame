@@ -1,14 +1,14 @@
 workflows:
   ios-workflow:
     name: iOS Build
+
     environment:
       node: latest
 
     scripts:
       - npm install
-
-      # 🔥 الحل الأساسي: تشغيل cap عبر node مباشرة
-      - node node_modules/@capacitor/cli/bin/capacitor.js sync ios
+      - npx cap sync ios
 
     artifacts:
-      - ios/App/**
+      - ios/App/**/*.ipa
+      - ios/App/**/*.app
