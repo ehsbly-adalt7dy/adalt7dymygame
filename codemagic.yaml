@@ -3,8 +3,13 @@ workflows:
     name: iOS Build
     environment:
       node: latest
+
     scripts:
       - npm install
+
+      - chmod +x node_modules/.bin/* || true
+
       - npx cap sync ios
+
     artifacts:
       - ios/App/build/**/*.ipa
