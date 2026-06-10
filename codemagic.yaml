@@ -4,9 +4,6 @@ workflows:
     environment:
       node: 20
       xcode: latest
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.admar.app
     integrations:
       app_store_connect: "codemgck"
     scripts:
@@ -24,15 +21,17 @@ workflows:
           pod install --verbose
           cd ../..
 
-      - name: Verify Xcode project
+      - name: Set up keychain
+        script: keychain initialize
+
+      - name: Add certificates to keychain
+        script: keychain add-certificates
+
+      - name: Configure code signing
         script: |
-          if [ -d "ios/App/App.xcodeproj" ]; then
-            echo "✅ Xcode project found"
-          else
-            echo "❌ Xcode project not found!"
-            ls -la ios/App/
-            exit 1
-          fi
+          cd ios/App
+          xcode-project use-profiles --project App.xcodeproj
+          cd ../..
 
       - name: Build IPA
         script: |
