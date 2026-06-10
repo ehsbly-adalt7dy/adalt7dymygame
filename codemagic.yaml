@@ -7,10 +7,13 @@ workflows:
       xcode: latest
 
     scripts:
-      - npm ci --unsafe-perm=true
-      - npm rebuild
+      - npm install --legacy-peer-deps
 
-      - node node_modules/@capacitor/cli/bin/capacitor.js sync ios
+      # تأكد أن Capacitor موجود
+      - node -e "console.log(require('@capacitor/cli/package.json').version)"
+
+      # تشغيل sync بالطريقة الآمنة (بدون npx وبدون .bin)
+      - node node_modules/@capacitor/cli/bin/capacitor.cjs sync ios || node node_modules/@capacitor/cli/bin/capacitor.js sync ios
 
       - cd ios/App
       - pod install
