@@ -9,12 +9,15 @@ workflows:
     scripts:
       - npm install --legacy-peer-deps
 
-      # إنشاء iOS من Capacitor
-      - npx cap add ios || true
-      - npx cap sync ios
+      # إصلاح صلاحيات (احتياطي)
+      - chmod -R +x node_modules || true
 
-      # فقط للتأكد
-      - ls
+      # تشغيل Capacitor مباشرة من المصدر (بدون npx)
+      - node node_modules/@capacitor/cli/dist/bin/capacitor.js add ios || true
+      - node node_modules/@capacitor/cli/dist/bin/capacitor.js sync ios
+
+      # تأكد
+      - ls ios || true
 
     artifacts:
       - build/ios/ipa/*.ipa
