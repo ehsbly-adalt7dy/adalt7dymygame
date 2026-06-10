@@ -27,17 +27,22 @@ workflows:
           PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" 2>/dev/null | head -1)
           echo "Profile path: $PROFILE_PATH"
 
-          # استخرج UUID وTeam ID وأزل XML tags
-          PROFILE_UUID=$(strings "$PROFILE_PATH" | grep -E "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" | head -1)
-          TEAM_ID=$(strings "$PROFILE_PATH" | grep -A2 "TeamIdentifier" | grep -E "^[A-Z0-9]{10}$" | head -1)
+          # استخرج UUID من اسم الملف أو من محتواه
+          PROFILE_UUID=$(strings "$PROFILE_PATH" | grep -E "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" | head -1 | sed 's/.*\([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\).*/\1/')
+          
+          # إذا فشل استخدم grep مختلف
+          if [ -z "$PROFILE_UUID" ]; then
+            PROFILE_UUID=$(grep -ao '[0-9a-fA-F]\{8\}-[0-9a-fA-F]\{4\}-[0-9a-fA-F]\{4\}-[0-9a-fA-F]\{4\}-[0-9a-fA-F]\{12\}' "$PROFILE_PATH" | head -1)
+          fi
+
+          # Team ID ثابت من اللوج السابق
+          TEAM_ID="Q39G2BK6VX"
 
           echo "✅ Profile UUID: $PROFILE_UUID"
           echo "✅ Team ID: $TEAM_ID"
 
-          if [ -z "$PROFILE_UUID" ] || [ -z "$TEAM_ID" ]; then
-            echo "❌ Failed to extract UUID or Team ID!"
-            echo "Raw strings output:"
-            strings "$PROFILE_PATH" | grep -A3 "TeamIdentifier"
+          if [ -z "$PROFILE_UUID" ]; then
+            echo "❌ Failed to extract UUID!"
             exit 1
           fi
 
