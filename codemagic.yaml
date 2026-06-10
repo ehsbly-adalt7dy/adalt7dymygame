@@ -9,11 +9,14 @@ workflows:
     scripts:
       - npm install --legacy-peer-deps
 
-      # إنشاء iOS من الصفر
-      - npx cap add ios || true
-      - npx cap sync ios
+      # تثبيت Capacitor بشكل مضمون
+      - npm rebuild
 
-      # تأكد أن المشروع موجود
+      # تشغيل Capacitor مباشرة بدون npx (هذا هو الحل الحقيقي)
+      - node node_modules/@capacitor/cli/bin/capacitor.js add ios || true
+      - node node_modules/@capacitor/cli/bin/capacitor.js sync ios
+
+      # تأكد أن iOS تم إنشاؤه
       - ls ios/App
 
       - cd ios/App
