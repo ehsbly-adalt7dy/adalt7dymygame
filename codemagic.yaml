@@ -24,41 +24,31 @@ workflows:
 
       - name: Set up code signing
         script: |
-          PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" 2>/dev/null | head -1)
-          echo "Profile path: $PROFILE_PATH"
-
-          # استخرج UUID من اسم الملف أو من محتواه
-          PROFILE_UUID=$(strings "$PROFILE_PATH" | grep -E "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" | head -1 | sed 's/.*\([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\).*/\1/')
-          
-          # إذا فشل استخدم grep مختلف
-          if [ -z "$PROFILE_UUID" ]; then
-            PROFILE_UUID=$(grep -ao '[0-9a-fA-F]\{8\}-[0-9a-fA-F]\{4\}-[0-9a-fA-F]\{4\}-[0-9a-fA-F]\{4\}-[0-9a-fA-F]\{12\}' "$PROFILE_PATH" | head -1)
-          fi
-
-          # Team ID ثابت من اللوج السابق
           TEAM_ID="Q39G2BK6VX"
+          PROFILE_UUID="c882a7e8-f888-41d0-8ded-0420e3b2505d"
+          BUNDLE_ID="com.admar.app"
 
-          echo "✅ Profile UUID: $PROFILE_UUID"
           echo "✅ Team ID: $TEAM_ID"
+          echo "✅ Profile UUID: $PROFILE_UUID"
 
-          if [ -z "$PROFILE_UUID" ]; then
-            echo "❌ Failed to extract UUID!"
-            exit 1
-          fi
+          PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" 2>/dev/null | head -1)
+          echo "✅ Profile path: $PROFILE_PATH"
 
-          cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
+          cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
 
           cd ios/App
-          sed -i '' "s/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = $TEAM_ID;/g" App.xcodeproj/project.pbxproj
+          sed -i '' "s/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = ${TEAM_ID};/g" App.xcodeproj/project.pbxproj
           sed -i '' "s/CODE_SIGN_STYLE = .*;/CODE_SIGN_STYLE = Manual;/g" App.xcodeproj/project.pbxproj
-          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = .*;/PROVISIONING_PROFILE_SPECIFIER = $PROFILE_UUID;/g" App.xcodeproj/project.pbxproj
+          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = .*;/PROVISIONING_PROFILE_SPECIFIER = ${PROFILE_UUID};/g" App.xcodeproj/project.pbxproj
           cd ../..
 
-          printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n<key>method</key>\n<string>app-store</string>\n<key>teamID</key>\n<string>%s</string>\n<key>signingStyle</key>\n<string>manual</string>\n<key>provisioningProfiles</key>\n<dict>\n<key>com.admar.app</key>\n<string>%s</string>\n</dict>\n</dict>\n</plist>\n' "$TEAM_ID" "$PROFILE_UUID" > /Users/builder/export_options.plist
+          echo "✅ project.pbxproj updated:"
+          grep -E "DEVELOPMENT_TEAM|CODE_SIGN_STYLE|PROVISIONING_PROFILE_SPECIFIER" ios/App/App.xcodeproj/project.pbxproj
+
+          printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n<key>method</key>\n<string>app-store</string>\n<key>teamID</key>\n<string>%s</string>\n<key>signingStyle</key>\n<string>manual</string>\n<key>provisioningProfiles</key>\n<dict>\n<key>%s</key>\n<string>%s</string>\n</dict>\n</dict>\n</plist>\n' "$TEAM_ID" "$BUNDLE_ID" "$PROFILE_UUID" > /Users/builder/export_options.plist
 
           echo "✅ export_options.plist:"
           cat /Users/builder/export_options.plist
-          echo "✅ Validating plist:"
           plutil -lint /Users/builder/export_options.plist
 
       - name: Build IPA
