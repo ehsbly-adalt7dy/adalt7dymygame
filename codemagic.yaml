@@ -22,13 +22,21 @@ workflows:
           pod install --verbose
           cd ../..
 
-      - name: Fix Bundle ID
+      - name: Fix Bundle ID and signing
         script: |
+          # صحح Bundle ID
           sed -i '' 's/adalt7dy\.mar\.com/com.admar.app/g' ios/App/App.xcodeproj/project.pbxproj
-          echo "✅ Bundle ID fixed:"
-          grep "PRODUCT_BUNDLE_IDENTIFIER" ios/App/App.xcodeproj/project.pbxproj
+          echo "✅ Bundle ID fixed"
 
-      - name: Set up code signing
+          # أضف PROVISIONING_PROFILE لـ App target فقط في project.pbxproj
+          TEAM_ID="Q39G2BK6VX"
+          PROFILE_UUID="c882a7e8-f888-41d0-8ded-0420e3b2505d"
+          sed -i '' "s/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = ${TEAM_ID};/g" ios/App/App.xcodeproj/project.pbxproj
+          sed -i '' "s/CODE_SIGN_STYLE = .*;/CODE_SIGN_STYLE = Manual;/g" ios/App/App.xcodeproj/project.pbxproj
+
+          echo "✅ Signing settings updated"
+
+      - name: Set up export plist
         script: |
           TEAM_ID="Q39G2BK6VX"
           PROFILE_UUID="c882a7e8-f888-41d0-8ded-0420e3b2505d"
@@ -52,11 +60,11 @@ workflows:
             -scheme App \
             -archivePath ../build/App.xcarchive \
             -configuration Release \
+            -destination "generic/platform=iOS" \
             DEVELOPMENT_TEAM="$TEAM_ID" \
             CODE_SIGN_STYLE=Manual \
-            PROVISIONING_PROFILE="$PROFILE_UUID" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
             CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE[sdk=iphoneos*]="$PROFILE_UUID" \
             COMPILER_INDEX_STORE_ENABLE=NO \
             archive
           cd ../..
