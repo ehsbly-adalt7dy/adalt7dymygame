@@ -7,13 +7,15 @@ workflows:
       xcode: latest
 
     scripts:
-      - npm install --legacy-peer-deps
+      - rm -rf node_modules package-lock.json
+      - npm cache clean --force
+      - npm install --production=false --legacy-peer-deps
 
-      # تأكد أن Capacitor موجود
-      - node -e "console.log(require('@capacitor/cli/package.json').version)"
+      # تحقق أن Capacitor موجود فعلاً
+      - ls node_modules/@capacitor/cli
 
-      # تشغيل sync بالطريقة الآمنة (بدون npx وبدون .bin)
-      - node node_modules/@capacitor/cli/bin/capacitor.cjs sync ios || node node_modules/@capacitor/cli/bin/capacitor.js sync ios
+      # الطريقة الرسمية فقط
+      - npx cap sync ios
 
       - cd ios/App
       - pod install
