@@ -8,7 +8,7 @@ workflows:
 
     # ===== هذا هو المفتاح: ربط حساب Apple Developer =====
     integrations:
-      app_store_connect: "your-api-key-name"  # غير 'your-api-key-name' إلى اسم المفتاح الذي أضفته في Team integrations
+      app_store_connect: "codemgck"
 
     scripts:
       - npm install --legacy-peer-deps
