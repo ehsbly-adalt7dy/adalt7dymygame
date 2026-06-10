@@ -7,6 +7,8 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.admar.app
+      groups:
+        - ios_credentials
     integrations:
       app_store_connect: "codemgck"
     scripts:
@@ -25,16 +27,16 @@ workflows:
       - name: Fix Bundle ID
         script: |
           sed -i '' 's/adalt7dy\.mar\.com/com.admar.app/g' ios/App/App.xcodeproj/project.pbxproj
-          echo "✅ Bundle ID:"
-          grep "PRODUCT_BUNDLE_IDENTIFIER" ios/App/App.xcodeproj/project.pbxproj | head -3
 
       - name: Set up keychain
         script: keychain initialize
 
       - name: Fetch signing files
         script: |
+          echo "$CERTIFICATE_PRIVATE_KEY" > /tmp/private_key.pem
           app-store-connect fetch-signing-files "com.admar.app" \
             --type IOS_APP_STORE \
+            --certificate-key @file:/tmp/private_key.pem \
             --create
 
       - name: Add certificates to keychain
