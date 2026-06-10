@@ -7,9 +7,10 @@ workflows:
       xcode: latest
 
     integrations:
-      app_store_connect: "codmgck"
+      app_store_connect: "codemgck"
 
-    scripts:=====
+    scripts:
+      # ===== الخطوة 1: تثبيت الاعتمادات =====
       - name: Install dependencies
         script: |
           echo "📦 Installing npm dependencies..."
