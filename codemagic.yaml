@@ -7,26 +7,14 @@ workflows:
       xcode: latest
 
     scripts:
-      # تنظيف كامل
-      - rm -rf node_modules package-lock.json
+      - npm install --legacy-peer-deps
 
-      # تثبيت نظيف 100%
-      - npm cache clean --force
-      - npm install --legacy-peer-deps --include=dev
-
-      # تأكيد أن Capacitor موجود
-      - npx cap --version
-
-      # إنشاء iOS من الصفر إذا غير موجود
+      # إنشاء iOS من Capacitor
       - npx cap add ios || true
-
-      # sync الرسمي (هذا أهم سطر)
       - npx cap sync ios
 
-      # CocoaPods
-      - cd ios/App
-      - pod install
-      - cd ../..
+      # فقط للتأكد
+      - ls
 
     artifacts:
       - build/ios/ipa/*.ipa
