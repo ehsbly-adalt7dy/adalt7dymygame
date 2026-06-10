@@ -1,86 +1,47 @@
 workflows:
   ios-workflow:
     name: iOS Build and Publish
-
     environment:
       node: 20
       xcode: latest
-
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: adalt7dy.mar.com
     integrations:
       app_store_connect: "codemgck"
-
     scripts:
-      # ===== الخطوة 1: تثبيت الاعتمادات =====
       - name: Install dependencies
         script: |
-          echo "📦 Installing npm dependencies..."
           npm install --legacy-peer-deps
-      
-      # ===== الخطوة 2: مزامنة Capacitor =====
+
       - name: Capacitor sync
         script: |
-          echo "🔄 Running capacitor sync..."
           npx cap sync ios
-      
-      # ===== الخطوة 3: تثبيت CocoaPods (في المسار الصحيح) =====
+
       - name: Install CocoaPods
         script: |
-          echo "🍫 Installing CocoaPods dependencies..."
           cd ios/App
           pod install --verbose
           cd ../..
-      
-      # ===== الخطوة 4: التحقق من وجود المشروع في المسار الصحيح =====
+
       - name: Verify Xcode project
         script: |
-          echo "📁 Checking for Xcode project at ios/App/App.xcodeproj"
           if [ -d "ios/App/App.xcodeproj" ]; then
-            echo "✅ Xcode project found at ios/App/App.xcodeproj"
+            echo "✅ Xcode project found"
           else
             echo "❌ Xcode project not found!"
-            echo "📂 Contents of ios/App:"
             ls -la ios/App/
             exit 1
           fi
-      
-      # ===== الخطوة 5: إعداد التوقيع الرقمي =====
-      - name: Set up keychain
-        script: keychain initialize
-      
-      - name: Fetch signing files
-        script: |
-          echo "📜 Detecting bundle ID from Xcode project..."
-          cd ios/App
-          BUNDLE_ID=$(xcode-project detect-bundle-id --project App.xcodeproj)
-          cd ../..
-          echo "🔑 Bundle ID: $BUNDLE_ID"
-          echo "🔑 Fetching signing files from Apple..."
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
-      
-      - name: Add certificates to keychain
-        script: keychain add-certificates
-      
-      - name: Configure code signing
-        script: |
-          echo "⚙️ Configuring code signing for Xcode project..."
-          cd ios/App
-          xcode-project use-profiles --project App.xcodeproj
-          cd ../..
-      
-      # ===== الخطوة 6: بناء IPA =====
+
       - name: Build IPA
         script: |
-          echo "🏗️ Building IPA..."
           cd ios/App
           xcode-project build-ipa \
             --project App.xcodeproj \
             --scheme App
           cd ../..
-          echo "✅ IPA built successfully"
-      
-      # ===== الخطوة 7: نقل الـ IPA إلى المسار الصحيح =====
+
       - name: Move IPA to artifacts
         script: |
           mkdir -p build/ios/ipa
