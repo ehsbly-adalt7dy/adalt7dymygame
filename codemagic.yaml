@@ -6,55 +6,101 @@ workflows:
       node: 20
       xcode: latest
 
-    # ربط حساب Apple Developer (عدّل الاسم حسب ما أضفته)
     integrations:
-      app_store_connect: "codemgck"  
+      app_store_connect: "codemgk"
 
     scripts:
-      # ===== الخطوة 1: تثبيت الاعتمادات (هذا هو الحل) =====
+      # ===== الخطوة 1: تثبيت الاعتمادات =====
       - name: Install dependencies
         script: |
-          npm ci || npm install
-          npm list @capacitor/cli  # للتحقق من التثبيت
+          echo "📦 Installing npm dependencies..."
+          npm install --legacy-peer-deps
+          echo "✅ npm install completed"
       
-      # ===== الخطوة 2: تحضير Capacitor (استخدم npx بدلاً من المسار المباشر) =====
+      # ===== الخطوة 2: تثبيت Capacitor CLI عالمياً =====
+      - name: Install Capacitor CLI
+        script: |
+          echo "🔧 Installing @capacitor/cli..."
+          npm install -g @capacitor/cli
+          cap --version
+      
+      # ===== الخطوة 3: إضافة منصة iOS =====
+      - name: Add iOS platform
+        script: |
+          echo "📱 Adding iOS platform..."
+          npx cap add ios
+          echo "✅ iOS platform added"
+      
+      # ===== الخطوة 4: مزامنة Capacitor =====
       - name: Capacitor sync
         script: |
-          npx cap add ios || true
-          npx cap sync ios
+          echo "🔄 Running capacitor sync..."
+          npx cap sync ios --verbose
+          echo "✅ Sync completed"
       
-      # ===== الخطوة 3: التوقيع الرقمي والبناء =====
-      - name: Set up keychain for code signing
-        script: keychain initialize
-
+      # ===== الخطوة 5: التحقق من وجود المشروع =====
+      - name: Verify iOS project
+        script: |
+          echo "📁 Checking iOS project structure..."
+          ls -la ios/
+          if [ -d "ios/App.xcodeproj" ]; then
+            echo "✅ iOS project exists at ios/App.xcodeproj"
+          else
+            echo "❌ iOS project not found!"
+            echo "📂 Current directory: $(pwd)"
+            echo "📂 Contents of ios directory:"
+            ls -la ios/ || echo "ios directory does not exist"
+            exit 1
+          fi
+      
+      # ===== الخطوة 6: تثبيت CocoaPods =====
+      - name: Install CocoaPods
+        script: |
+          if [ -d "ios/App" ]; then
+            echo "🍫 Installing CocoaPods dependencies..."
+            cd ios/App
+            pod install --verbose
+            cd ../..
+            echo "✅ CocoaPods installed"
+          else
+            echo "⚠️ ios/App directory not found, skipping CocoaPods"
+          fi
+      
+      # ===== الخطوة 7: إعداد التوقيع الرقمي =====
+      - name: Set up keychain
+        script: |
+          echo "🔐 Setting up keychain..."
+          keychain initialize
+      
       - name: Fetch signing files
         script: |
-          if [ -f "ios/App.xcodeproj/project.pbxproj" ]; then
-            BUNDLE_ID=$(xcode-project detect-bundle-id)
-            app-store-connect fetch-signing-files "$BUNDLE_ID" \
-              --type IOS_APP_STORE \
-              --create
-          else
-            echo "⚠️ مشروع iOS غير موجود، تأكد من نجاح npx cap sync"
-            exit 1
-          fi
-
-      - name: Add certificates to keychain
-        script: keychain add-certificates
-
-      - name: Configure code signing
-        script: xcode-project use-profiles
-
+          echo "📜 Detecting bundle ID..."
+          BUNDLE_ID=$(xcode-project detect-bundle-id)
+          echo "Bundle ID: $BUNDLE_ID"
+          echo "🔑 Fetching signing files from Apple..."
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          echo "✅ Signing files fetched"
+      
+      - name: Add certificates
+        script: |
+          echo "📜 Adding certificates to keychain..."
+          keychain add-certificates
+      
+      - name: Configure signing
+        script: |
+          echo "⚙️ Configuring code signing..."
+          xcode-project use-profiles
+      
+      # ===== الخطوة 8: بناء IPA =====
       - name: Build IPA
         script: |
-          if [ -f "ios/App.xcodeproj/project.pbxproj" ]; then
-            xcode-project build-ipa \
-              --project ios/App.xcodeproj \
-              --scheme App
-          else
-            echo "⚠️ مشروع iOS غير موجود"
-            exit 1
-          fi
+          echo "🏗️ Building IPA..."
+          xcode-project build-ipa \
+            --project ios/App.xcodeproj \
+            --scheme App
+          echo "✅ IPA built successfully"
 
     artifacts:
       - build/ios/ipa/*.ipa
