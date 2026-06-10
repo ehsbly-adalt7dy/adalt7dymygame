@@ -6,7 +6,7 @@ workflows:
       xcode: latest
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: adalt7dy.mar.com
+        bundle_identifier: com.admar.app
     integrations:
       app_store_connect: "codemgck"
     scripts:
