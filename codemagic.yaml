@@ -7,18 +7,23 @@ workflows:
       xcode: latest
 
     scripts:
-      - npm install --legacy-peer-deps
+      # تنظيف كامل
+      - rm -rf node_modules package-lock.json
 
-      # تثبيت Capacitor بشكل مضمون
-      - npm rebuild
+      # تثبيت نظيف 100%
+      - npm cache clean --force
+      - npm install --legacy-peer-deps --include=dev
 
-      # تشغيل Capacitor مباشرة بدون npx (هذا هو الحل الحقيقي)
-      - node node_modules/@capacitor/cli/bin/capacitor.js add ios || true
-      - node node_modules/@capacitor/cli/bin/capacitor.js sync ios
+      # تأكيد أن Capacitor موجود
+      - npx cap --version
 
-      # تأكد أن iOS تم إنشاؤه
-      - ls ios/App
+      # إنشاء iOS من الصفر إذا غير موجود
+      - npx cap add ios || true
 
+      # sync الرسمي (هذا أهم سطر)
+      - npx cap sync ios
+
+      # CocoaPods
       - cd ios/App
       - pod install
       - cd ../..
