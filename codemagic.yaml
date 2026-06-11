@@ -28,6 +28,14 @@ workflows:
         script: |
           sed -i '' 's/adalt7dy\.mar\.com/com.admar.app/g' ios/App/App.xcodeproj/project.pbxproj
 
+      - name: Increment build number
+        script: |
+          cd ios/App
+          BUILD_NUMBER=$(($(app-store-connect get-latest-testflight-build-number "6778906260") + 1))
+          echo "✅ New build number: $BUILD_NUMBER"
+          agvtool new-version -all $BUILD_NUMBER
+          cd ../..
+
       - name: Set up keychain
         script: keychain initialize
 
