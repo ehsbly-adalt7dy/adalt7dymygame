@@ -1430,35 +1430,7 @@
   </div>
 
   <script>
-    // SOUND SYSTEM
-    let _audioCtx = null;
-    function getAudioCtx() {
-      if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (_audioCtx.state === 'suspended') _audioCtx.resume();
-      return _audioCtx;
-    }
-
-    const SoundSystem = {
-      enabled: true,
-      click() {
-        if (!this.enabled) return;
-        try {
-          const ctx = getAudioCtx();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.type = 'sine'; osc.frequency.value = 660;
-          const t = ctx.currentTime;
-          gain.gain.setValueAtTime(0.25, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-          osc.start(t); osc.stop(t + 0.12);
-        } catch (e) {}
-      }
-    };
-
-    document.addEventListener('touchstart', () => { try { getAudioCtx(); } catch(e) {} }, { once: true });
-    document.addEventListener('click',      () => { try { getAudioCtx(); } catch(e) {} }, { once: true });
-
+ 
     // HEX EDITOR
     function openHexEditor(spanEl) {
       const input = document.getElementById('hexInlineInput');
