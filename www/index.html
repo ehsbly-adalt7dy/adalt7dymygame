@@ -2283,7 +2283,7 @@
      " 
      onmouseover="this.style.transform='scale(1.02)'; this.style.borderColor='rgba(255,215,0,1)';"
      onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255,215,0,0.7)';"
-     onclick="window.location.href='profile.html'">
+     onclick="goToPage('profile.html')">
       <img src="images/token_coin.png" alt="" style="width:8vw;height:8vw;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
       <span id="tokenCountDisplay" style="font-size:5.5vw;font-weight:900;color:#FFD966;font-family:'Cairo',sans-serif;letter-spacing:0.5px;text-shadow:0 1px 2px rgba(0,0,0,0.5);"></span>
     </div>
@@ -2324,13 +2324,13 @@
         <div class="button-group">
           <button class="button main-menu-btn-start" id="startButton">▶ يلا نبدأ</button>
           <div style="position: relative; display: inline-flex; width: auto;">
-              <button class="button main-menu-btn-room" id="roomButton" onclick="window.location.href='room.html'">🏠 الاوضة</button>
+              <button class="button main-menu-btn-room" id="roomButton" onclick="goToPage('room.html')">🏠 الاوضة</button>
               <span class="ad-badge"></span>
           </div>
         </div>
       </div>
     </div> 
-    <button id="profileBtn" onclick="window.location.href='profile.html'" style="position: fixed; top: calc(1.7vw + env(safe-area-inset-top)); left: calc(2vw + env(safe-area-inset-left)); width: 17vw; height: 17vw; max-width: 80px; max-height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--blue)); border: 2.5px solid rgba(255,255,255,0.5); box-shadow: 0 4px 18px rgba(170,150,218,0.45); cursor: pointer; z-index: 3; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; padding: 0;">
+    <button id="profileBtn" onclick="goToPage('profile.html')" style="position: fixed; top: calc(1.7vw + env(safe-area-inset-top)); left: calc(2vw + env(safe-area-inset-left)); width: 17vw; height: 17vw; max-width: 80px; max-height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--blue)); border: 2.5px solid rgba(255,255,255,0.5); box-shadow: 0 4px 18px rgba(170,150,218,0.45); cursor: pointer; z-index: 3; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; padding: 0;">
      <img id="profileAvatarImg" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
      <span id="profileAvatarText" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 6.5vw;">👤</span>
     </button>
@@ -4165,7 +4165,7 @@
 
         startTeamsMode() {
          document.getElementById('modeSelectionModal').classList.add('hidden');
-         window.location.href = 'teams.html';
+         goToPage('teams.html');
         },
 
         showRules() {
@@ -5495,5 +5495,19 @@
       }
     });
   </script>
+<script>
+  // انتقال سلس على iOS فقط
+  const isIOS = window.Capacitor?.getPlatform() === 'ios';
+  
+  window.goToPage = function(page) {
+    if (isIOS) {
+      document.body.style.transition = 'opacity 0.18s ease';
+      document.body.style.opacity = '0';
+      setTimeout(() => { window.location.href = page; }, 180);
+    } else {
+      window.location.href = page;
+    }
+  };
+</script>
 </body>
 </html> 
