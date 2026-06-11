@@ -45,6 +45,8 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	<key>UIStatusBarHidden</key>
 	<true/>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-7625725860156398~1255113861</string>
