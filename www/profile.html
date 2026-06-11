@@ -1156,7 +1156,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     TokenSystem.updateDisplay();
     const watchAdBtn = document.getElementById('watchAdForTokenBtn');
-    if (watchAdBtn) watchAdBtn.addEventListener('click', () => { SoundSystem.click(); handleWatchAd(); });
+    if (watchAdBtn) watchAdBtn.addEventListener('click', () => { handleWatchAd(); });
     setInterval(updateAdButtonsState, 1000);
     updateAdButtonsState();
     setTimeout(() => { preloadRewarded(); }, 2000);
@@ -1576,7 +1576,6 @@
       window.addEventListener("pointermove", e => { if (!dragging) return; if (Math.abs(e.clientX - startX) > 50) { dragging = false; e.clientX - startX < 0 ? next() : prev(); } });
       window.addEventListener("pointerup", () => { dragging = false; });
       overlay.querySelector("#avConfirmBtn").addEventListener("click", () => {
-        SoundSystem.click();
         overlay.remove();
         const selected = "av" + (current + 1);
         saveAvatar(selected);
@@ -1787,7 +1786,6 @@
 
     // ══ قائمة الاختيار ══
     document.getElementById('openCustomCatBtn').addEventListener('click', () => {
-      SoundSystem.click();
       const sheet = document.getElementById('catActionSheet');
       sheet.style.display = 'flex';
     });
@@ -1801,13 +1799,11 @@
 
     // زر إلغاء
     document.getElementById('actionBtnCancel').addEventListener('click', () => {
-      SoundSystem.click();
       document.getElementById('catActionSheet').style.display = 'none';
     });
 
     // زر كاتيجوري جديدة
     document.getElementById('actionBtnNewCat').addEventListener('click', () => {
-      SoundSystem.click();
       document.getElementById('catActionSheet').style.display = 'none';
       if (getCustomCats().length >= MAX_CUSTOM_CATS) {
         alert(`وصلت للحد الأقصى (${MAX_CUSTOM_CATS} كاتيجوريز)`);
@@ -1818,7 +1814,6 @@
 
     // زر تعديل كاتيجوري
     document.getElementById('actionBtnManageCats').addEventListener('click', () => {
-      SoundSystem.click();
       document.getElementById('catActionSheet').style.display = 'none';
       openManageCatsScreen();
     });
@@ -1889,7 +1884,6 @@
           <span class="manage-cat-count">${(cat.words || []).length} كلمة</span>
         `;
         card.addEventListener('click', () => {
-          SoundSystem.click();
           showCatManageOptions(cat.id, cat.name, cat.color);
         });
         grid.appendChild(card);
@@ -1967,16 +1961,14 @@
       document.body.appendChild(overlay);
 
       overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-      document.getElementById('optCancelBtn').addEventListener('click', () => { SoundSystem.click(); overlay.remove(); });
+      document.getElementById('optCancelBtn').addEventListener('click', () => {  overlay.remove(); });
 
       document.getElementById('optEditCatBtn').addEventListener('click', () => {
-        SoundSystem.click();
         overlay.remove();
         openEditSingleCat(catId);
       });
 
       document.getElementById('optDeleteCatBtn').addEventListener('click', () => {
-        SoundSystem.click();
         overlay.remove();
         showDeleteCatConfirm(catId, catName);
       });
@@ -1992,7 +1984,7 @@
       modal.innerHTML = `<div style="background:linear-gradient(170deg,rgba(168,216,234,0.98),rgba(170,150,218,0.98));border-radius:6vw;padding:8vw 6vw;width:82%;max-width:360px;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.5);display:flex;flex-direction:column;align-items:center;gap:4vw;"><div style="font-size:12vw;">🗑️</div><div style="font-size:6vw;font-weight:900;color:#fff;font-family:'Cairo',sans-serif;">حذف الكاتيجوري</div><div style="font-size:4.5vw;color:rgba(255,255,255,0.85);line-height:1.8;font-family:'Cairo',sans-serif;">متأكد إنك عايز تحذف<br><strong>"${escapeHtml(catName)}"</strong>؟<br><span style="font-size:3.8vw;color:rgba(255,220,150,0.9);">الكلمات هتتحذف ومش هترجع</span></div><div style="display:flex;gap:3vw;width:100%;"><button id="confirmDelCatYes" style="flex:1;padding:4vw;border:none;border-radius:4vw;background:linear-gradient(135deg,#ff4444,#cc0000);color:#fff;font-size:5vw;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;">نعم، احذف</button><button id="confirmDelCatNo" style="flex:1;padding:4vw;border:none;border-radius:4vw;background:rgba(255,255,255,0.25);color:#fff;font-size:5vw;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;">لا</button></div></div>`;
       document.body.appendChild(modal);
       document.getElementById('confirmDelCatYes').addEventListener('click', () => {
-        SoundSystem.click(); modal.remove();
+        modal.remove();
         let cats = getCustomCats();
         cats = cats.filter(c => c.id !== catId);
         saveCustomCats(cats);
@@ -2095,12 +2087,11 @@
     }
 
     // ربط أحداث شاشة تعديل كاتيجوري واحدة
-    document.getElementById('closeEditSingleBtn').addEventListener('click', () => { SoundSystem.click(); closeEditSingleCat(); });
-    document.getElementById('editSingleAddWordBtn').addEventListener('click', () => { SoundSystem.click(); addEditSingleWord(); });
+    document.getElementById('closeEditSingleBtn').addEventListener('click', () => {  closeEditSingleCat(); });
+    document.getElementById('editSingleAddWordBtn').addEventListener('click', () => { addEditSingleWord(); });
     document.getElementById('editSingleNewWordInput').addEventListener('keypress', e => { if (e.key === 'Enter') addEditSingleWord(); });
 
     document.getElementById('saveEditSingleBtn').addEventListener('click', () => {
-      SoundSystem.click();
       if (!editingCatId) return;
       const newName = document.getElementById('editSingleNameInput').value.trim();
       if (!newName) { alert('اكتب اسم الكاتيجوري!'); return; }
@@ -2125,7 +2116,6 @@
 
     // ══ إغلاق شاشة إدارة الكاتيجوريز ══
     document.getElementById('closeManageCatsBtn').addEventListener('click', () => {
-      SoundSystem.click();
       closeManageCatsScreen();
     });
 
@@ -2190,11 +2180,9 @@
     // AVATAR EDIT
     document.getElementById('avatarEditIcon').addEventListener('click', e => {
       e.stopPropagation();
-      SoundSystem.click();
       showAvatarPicker(() => updateProfileAvatar());
     });
 
-    document.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => SoundSystem.click()));
 
     // PROFILE CLOSE
     document.getElementById('profileCloseBtn').addEventListener('click', () => {
