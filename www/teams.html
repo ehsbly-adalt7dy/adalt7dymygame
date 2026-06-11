@@ -24,7 +24,16 @@
       --shadow: 0 4px 24px rgba(0,0,0,0.13);
       --radius: 5vw;
     }
-
+  * {
+      user-select: none !important;
+      -webkit-user-select: none !important;
+      -webkit-touch-callout: none !important;
+    }
+    
+    img {
+      pointer-events: none !important;
+      -webkit-user-drag: none !important;
+    }
     body {
       font-family: 'Cairo', sans-serif;
       direction: rtl;
