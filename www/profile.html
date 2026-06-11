@@ -26,7 +26,14 @@
       --green-dark: #a8e6c8;
       --bg-grad: linear-gradient(135deg, #a8d8ea 0%, #aa96da 100%);
     }
-
+    body {
+    opacity: 0;
+    animation: pageIn 0.2s ease forwards;
+    }
+    
+    @keyframes pageIn {
+    to { opacity: 1; }
+    }
     body {
       font-family: 'Cairo', sans-serif;
       direction: rtl;
