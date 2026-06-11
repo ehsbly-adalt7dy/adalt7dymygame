@@ -13,7 +13,16 @@
       -webkit-tap-highlight-color: transparent;
       user-select: none;
     }
-
+  * {
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -webkit-touch-callout: none !important;
+      }
+      
+      img {
+        pointer-events: none !important;
+        -webkit-user-drag: none !important;
+      }
     :root {
       --purple: #aa96da;
       --purple-dark: #9b84d0;
