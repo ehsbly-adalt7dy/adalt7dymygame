@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
+  <script src="transitions.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>مود الفرق</title>
@@ -764,7 +765,7 @@
   </div>
 
     <button class="btn btn-primary" onclick="goToRules()">يلا نبدأ ⬅</button>
-    <button class="btn btn-ghost" onclick="window.location.href='index.html'" style="font-size:5vw;">← رجوع للقائمة</button>
+    <button class="btn btn-ghost" onclick="goBack('index.html')" style="font-size:5vw;">← رجوع للقائمة</button>
   </div>
 
   <!-- ======== SCREEN 2: RULES ======== -->
@@ -1021,7 +1022,7 @@
     <!-- buttons outside card, full width -->
     <div class="cel-action-btns" id="rouletteFinalBtns" style="display:none;">
       <button class="btn btn-primary" onclick="playAgainFromRoulette()">لعب مرة أخرى 🔄</button>
-      <button class="btn btn-ghost" onclick="window.location.href='index.html'">← القائمة الرئيسية</button>
+      <button class="btn btn-ghost" onclick="goBack('index.html')">← القائمة الرئيسية</button>
     </div>
   </div>
 
