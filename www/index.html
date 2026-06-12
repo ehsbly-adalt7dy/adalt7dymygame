@@ -5526,9 +5526,7 @@
   // انتقال سلس على iOS فقط
   const isIOS = window.Capacitor?.getPlatform() === 'ios';
   if (isIOS) document.documentElement.classList.add('ios'); 
-  window.goToPage = function(page) {
-  window.location.href = page;
-};
 </script>
+<script src="transitions.js"></script>
 </body>
 </html> 
