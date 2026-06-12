@@ -2186,7 +2186,11 @@
 
     // PROFILE CLOSE
     document.getElementById('profileCloseBtn').addEventListener('click', () => {
-     window.location.href = 'index.html';
+      if (window.parent !== window) {
+        window.parent.goBack();
+      } else {
+        window.location.href = 'index.html';
+      }
     });
 
     // ══ renderMyCats - عرض الكاتيجوريز في البروفايل ══
