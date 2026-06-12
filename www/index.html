@@ -2232,6 +2232,12 @@
   </script>
 </head>
 <body>
+  <!-- Preload iframes -->
+<div id="preloadContainer" style="position:fixed;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none;z-index:-1;">
+  <iframe id="profileFrame" src="profile.html" style="width:1px;height:1px;border:none;"></iframe>
+  <iframe id="teamsFrame" src="teams.html" style="width:1px;height:1px;border:none;"></iframe>
+</div>
+<div id="pageOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;display:none;"></div>
   <div id="splashScreen">
     <img id="splashLogo" src="images/osprey.png" alt="لعبة قد التحدي؟">
   </div>
@@ -5533,7 +5539,29 @@
   const isIOS = window.Capacitor?.getPlatform() === 'ios';
   if (isIOS) document.documentElement.classList.add('ios'); 
   window.goToPage = function(page) {
-  window.location.href = page;
+  if (page === 'profile.html' || page === 'teams.html') {
+    const overlay = document.getElementById('pageOverlay');
+    const preload = document.getElementById('preloadContainer');
+    const frameId = page === 'profile.html' ? 'profileFrame' : 'teamsFrame';
+    const targetFrame = document.getElementById(frameId);
+    if (!targetFrame) { window.location.href = page; return; }
+    targetFrame.style.cssText = 'width:100%;height:100%;border:none;';
+    overlay.innerHTML = '';
+    overlay.appendChild(targetFrame);
+    overlay.style.display = 'block';
+  } else {
+    window.location.href = page;
+  }
+};
+
+window.goBack = function() {
+  const overlay = document.getElementById('pageOverlay');
+  const frame = overlay.querySelector('iframe');
+  if (frame) {
+    frame.style.cssText = 'width:1px;height:1px;border:none;';
+    document.getElementById('preloadContainer').appendChild(frame);
+  }
+  overlay.style.display = 'none';
 };
 </script>
 </body>
