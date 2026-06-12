@@ -764,7 +764,7 @@
   </div>
 
     <button class="btn btn-primary" onclick="goToRules()">يلا نبدأ ⬅</button>
-    <button class="btn btn-ghost" onclick="window.location.href='index.html'" style="font-size:5vw;">← رجوع للقائمة</button>
+    <button class="btn btn-ghost" onclick="if(window.parent!==window){window.parent.goBack();}else{window.location.href='index.html';}" style="font-size:5vw;">← رجوع للقائمة</button>
   </div>
 
   <!-- ======== SCREEN 2: RULES ======== -->
