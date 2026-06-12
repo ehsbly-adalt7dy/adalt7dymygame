@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
+<script src="transitions.js"></script>
 <meta charset="UTF-8">
 <meta name="screen-orientation" content="portrait">
 <meta name="x5-orientation" content="portrait">
@@ -3725,7 +3726,7 @@ function _cleanExit(){
     doJoinBtn.disabled=false;
     doJoinBtn.textContent='دخول 🚀';
   }
-  window.location.href='index.html';
+  goBack('index.html');
 }
 
 let _exitPopupShown=false;
@@ -4095,7 +4096,7 @@ document.getElementById('confirmYes').addEventListener('click',async()=>{
     _cleanExit();
   }else{_cleanExit();}
 });
-document.getElementById('btnIndex').addEventListener('click',()=>window.location.href='index.html');
+document.getElementById('btnIndex').addEventListener('click',()=>goBack('index.html'));
 
 // ── Category routing ──
 document.getElementById('catSports').addEventListener('click',()=>showSportsCategory());
