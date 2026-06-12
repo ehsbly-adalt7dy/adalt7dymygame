@@ -3725,7 +3725,7 @@ function _cleanExit(){
     doJoinBtn.disabled=false;
     doJoinBtn.textContent='دخول 🚀';
   }
-  goBack('index.html');
+  window.location.href='index.html';
 }
 
 let _exitPopupShown=false;
@@ -4095,7 +4095,7 @@ document.getElementById('confirmYes').addEventListener('click',async()=>{
     _cleanExit();
   }else{_cleanExit();}
 });
-document.getElementById('btnIndex').addEventListener('click',()=>goBack('index.html'));
+document.getElementById('btnIndex').addEventListener('click',()=>window.location.href='index.html');
 
 // ── Category routing ──
 document.getElementById('catSports').addEventListener('click',()=>showSportsCategory());
