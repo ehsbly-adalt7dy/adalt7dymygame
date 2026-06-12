@@ -5,10 +5,6 @@
   "server": {
     "androidScheme": "https"
   },
-  "ios": {
-    "backgroundColor": "#a8d8ea",
-    "scrollEnabled": false
-  },
   "plugins": {
     "AdMob": {
       "appIdAndroid": "ca-app-pub-7625725860156398~1255113861"
@@ -17,12 +13,6 @@
       "style": "LIGHT",
       "backgroundColor": "#a8d8ea",
       "overlaysWebView": true
-    },
-    "SplashScreen": {
-      "backgroundColor": "#a8d8ea",
-      "launchShowDuration": 0,
-      "launchAutoHide": true,
-      "showSpinner": false
     }
   }
 }
