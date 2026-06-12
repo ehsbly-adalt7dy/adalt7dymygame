@@ -2108,7 +2108,13 @@
     html.ios .back-button {
       top: calc(-5vw + env(safe-area-inset-top)) !important;
     }
+    #pageTransitionOverlay.animating {
+      pointer-events: all;
+    }
     
+    #pageTransitionOverlay .ptile {
+      transition: transform 0.32s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
     /* تصغير الخط للأسماء من 9-10 حروف في شاشة النتائج */
     @media (max-width: 768px) {
       .leaderboard-table p .long-name {
@@ -5529,125 +5535,91 @@
   window.goToPage = function(page) {
   window.location.href = page;
 };
-  <style>
-#pageTransitionOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  pointer-events: none;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(10, 1fr);
-  opacity: 0;
-  visibility: hidden;
-}
-
-#pageTransitionOverlay.animating {
-  pointer-events: all;
-}
-
-.ptile {
-  background: #aa96da;
-  transform: scale(0);
-  border-radius: 4px;
-  transition: transform 0.32s cubic-bezier(0.34, 1.4, 0.64, 1),
-              opacity 0.28s ease;
-  opacity: 0;
-}
-
-/* موجة الدخول */
-#pageTransitionOverlay.entering .ptile {
-  transform: scale(1.08);
-  opacity: 1;
-}
-
-/* موجة الخروج */
-#pageTransitionOverlay.leaving .ptile {
-  transform: scale(0);
-  opacity: 0;
-}
-
-/* تأخيرات المربعات — باترن قطري */
-</style>
-
-<div id="pageTransitionOverlay">
-  <!-- المربعات بتتولد بالسكريبت -->
-</div>
-
-<script>
+ <script>
+// ====== تأثير الانتقال الجميل بين الصفحات ======
 (function () {
-  const overlay = document.getElementById('pageTransitionOverlay');
+  // إنشاء العناصر
+  const overlay = document.createElement('div');
+  overlay.id = 'pageTransitionOverlay';
+  overlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    pointer-events: none;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    opacity: 0;
+    visibility: hidden;
+  `;
+  document.body.appendChild(overlay);
+  
   const COLS = 6, ROWS = 10;
-  const TOTAL = COLS * ROWS;
-
+  
   // إنشاء المربعات
-  for (let i = 0; i < TOTAL; i++) {
+  for (let i = 0; i < COLS * ROWS; i++) {
     const tile = document.createElement('div');
     tile.className = 'ptile';
-    // ألوان متنوعة في باترن
-    const colors = ['#aa96da', '#a8d8ea', '#ff8c94', '#ffd3b6', '#c7f0db', '#aa96da'];
+    const colors = ['#aa96da', '#a8d8ea', '#ff8c94', '#ffd3b6', '#c7f0db'];
     const col = i % COLS;
     const row = Math.floor(i / COLS);
     tile.style.background = colors[(col + row) % colors.length];
+    tile.style.cssText += `
+      transform: scale(0);
+      border-radius: 4px;
+      transition: transform 0.32s cubic-bezier(0.34, 1.4, 0.64, 1);
+    `;
     overlay.appendChild(tile);
   }
-
-  // حساب التأخيرات — موجة قطرية من الزاوية العليا اليسرى
+  
   const tiles = overlay.querySelectorAll('.ptile');
+  
+  // إضافة التأخيرات
   tiles.forEach((tile, i) => {
     const col = i % COLS;
     const row = Math.floor(i / COLS);
-    const delay = (col + row) * 28; // ms
-    tile.style.transitionDelay = delay + 'ms';
+    tile.style.transitionDelay = (col + row) * 28 + 'ms';
   });
-
-  // التأخير الأقصى
+  
   const maxDelay = ((COLS - 1) + (ROWS - 1)) * 28;
   const ENTER_DURATION = maxDelay + 350;
-  const LEAVE_DURATION = maxDelay + 350;
-
-  window.goToPage = function (url) {
-    // ابدأ الـ overlay
+  
+  // التعريف النهائي لـ goToPage
+  window.goToPage = function(url) {
+    // تشغيل التأثير
     overlay.style.opacity = '1';
     overlay.style.visibility = 'visible';
-    overlay.classList.add('animating', 'entering');
-    overlay.classList.remove('leaving');
-
-    // بعد ما الانيميشن خلص → روح للصفحة
+    overlay.classList.add('animating');
+    tiles.forEach(tile => { tile.style.transform = 'scale(1.08)'; });
+    
+    // الانتقال بعد انتهاء التأثير
     setTimeout(() => {
       window.location.href = url;
     }, ENTER_DURATION);
   };
-
-  // لما الصفحة الجديدة تفتح → اعرضها وابدأ انيميشن الخروج
+  
+  // عند وصول الصفحة الجديدة - تأثير الخروج
   window.addEventListener('pageshow', () => {
-    if (overlay.classList.contains('entering')) {
-      // شيل الكلاس entering فوراً عشان يبدأ الـ leave
-      overlay.classList.remove('entering');
-      overlay.classList.add('leaving');
-
-      // أعكس التأخيرات للـ leave — من الزاوية اليمنى السفلى
+    if (overlay.style.visibility === 'visible') {
       tiles.forEach((tile, i) => {
         const col = i % COLS;
         const row = Math.floor(i / COLS);
-        const reverseDelay = ((COLS - 1 - col) + (ROWS - 1 - row)) * 22;
-        tile.style.transitionDelay = reverseDelay + 'ms';
+        tile.style.transitionDelay = ((COLS - 1 - col) + (ROWS - 1 - row)) * 22 + 'ms';
+        tile.style.transform = 'scale(0)';
       });
-
+      
       setTimeout(() => {
         overlay.style.opacity = '0';
         overlay.style.visibility = 'hidden';
-        overlay.classList.remove('animating', 'leaving');
-        // أعد التأخيرات الأصلية للمرة الجاية
+        // إعادة التأخيرات الأصلية
         tiles.forEach((tile, i) => {
           const col = i % COLS;
           const row = Math.floor(i / COLS);
-          tile.style.transitionDelay = ((col + row) * 28) + 'ms';
+          tile.style.transitionDelay = (col + row) * 28 + 'ms';
         });
-      }, LEAVE_DURATION);
+      }, maxDelay + 350);
     }
   });
-
 })();
 </script>
 </script>
