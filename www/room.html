@@ -3495,10 +3495,21 @@ function sortPlayers(data){
     .sort((a,b)=>a.isHost?-1:b.isHost?1:0);
 }
 
+// ── Preload custom avatars ──
+function preloadAvatars(players) {
+  players.forEach(p => {
+    if (p.avatar && p.avatar.startsWith('http')) {
+      const img = new Image();
+      img.src = p.avatar;
+    }
+  });
+}
+
 function renderList(containerId,players,maxPlayers,countId){
   const c=document.getElementById(containerId);if(!c)return;
   c.innerHTML='';
   const confirmed=players.filter(p=>p.isHost||p.joinedAt>0);
+  preloadAvatars(confirmed);
   confirmed.forEach((p,i)=>{
     const col=p.isHost?COLORS[0]:COLORS[(i%(COLORS.length-1))+1];
     const d=document.createElement('div');d.className='player-input';
@@ -3509,7 +3520,7 @@ function renderList(containerId,players,maxPlayers,countId){
     }
     const isMe = (p.name === S.myName);
     const avatarHtml=p.avatar
-      ?`<img class="player-avatar-img" src="${getAvatarSrc(p.avatar)}" alt="${p.name}" onerror="this.style.display='none'">`
+      ?`<img class="player-avatar-img" src="${getAvatarSrc(p.avatar)}" alt="${p.name}" loading="eager" decoding="async" onerror="this.style.display='none'">`
       :`<div class="player-avatar" style="background:linear-gradient(135deg,${col.bg},${col.border})"><span>${p.isHost?'👑':EMOJIS[(i%(EMOJIS.length-1))+1]}</span><span class="player-number">${i+1}</span></div>`;
 
     const editBtnHtml = isMe ? `
@@ -6043,6 +6054,15 @@ document.getElementById('doJoin').addEventListener('click', async () => {
       await fbUpdate(`rooms/${code}/players/${myId}`, {avatar: finalAvatar});
 
       const proceedAfterAd = async () => {
+        // preload صورتك قبل ما تظهر في اللوبي
+        if (finalAvatar && finalAvatar.startsWith('http')) {
+          await new Promise(resolve => {
+            const img = new Image();
+            img.onload = resolve;
+            img.onerror = resolve;
+            img.src = finalAvatar;
+          });
+        }
         await fbUpdate(`rooms/${code}/players/${myId}`, {joinedAt: Date.now()});
         if (isActualRejoin) {
           showRejoinWaitScreen(code, myId, restoredScore, finalAvatar);
