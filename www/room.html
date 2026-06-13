@@ -1233,7 +1233,7 @@ const AdConfig={banner:'ca-app-pub-7625725860156398/2955208343',rewarded:'ca-app
   <div class="button-group" style="margin-top:5vw;gap:3.5vw;width:85%;">
     <button class="button main-btn-create" id="btnCreate" style="width:100%;font-size:5.5vw;padding:4vw;">إنشاء اوضة ➕</button>
     <button class="button main-btn-join" id="btnJoin" style="width:100%;font-size:5.5vw;padding:4vw;">دخول اوضة 🔑</button>
-    <button class="button main-btn-back" id="btnIndex" style="width:100%;font-size:4.5vw;padding:3vw;">← رجوع للقائمة</button>
+    <button class="button main-btn-back" id="btnIndex" style="width:100%;font-size:4.5vw;padding:3vw;" onclick="if(window.parent!==window){window.parent.goBack();}else{window.location.href='index.html';}">← رجوع للقائمة</button>
   </div>
 </div>
 
@@ -4095,7 +4095,10 @@ document.getElementById('confirmYes').addEventListener('click',async()=>{
     _cleanExit();
   }else{_cleanExit();}
 });
-document.getElementById('btnIndex').addEventListener('click',()=>window.location.href='index.html');
+document.getElementById('btnIndex').addEventListener('click',()=>{
+  if(window.parent!==window){window.parent.goBack();}
+  else{window.location.href='index.html';}
+});
 
 // ── Category routing ──
 document.getElementById('catSports').addEventListener('click',()=>showSportsCategory());
