@@ -2236,6 +2236,7 @@
 <div id="preloadContainer" style="position:fixed;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none;z-index:-1;">
   <iframe id="profileFrame" src="profile.html" style="width:1px;height:1px;border:none;"></iframe>
   <iframe id="teamsFrame" src="teams.html" style="width:1px;height:1px;border:none;"></iframe>
+  <iframe id="roomFrame" src="room.html" style="width:1px;height:1px;border:none;"></iframe>
 </div>
 <div id="pageOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;display:none;"></div>
   <div id="splashScreen">
@@ -5539,10 +5540,10 @@
   const isIOS = window.Capacitor?.getPlatform() === 'ios';
   if (isIOS) document.documentElement.classList.add('ios'); 
   window.goToPage = function(page) {
-  if (page === 'profile.html' || page === 'teams.html') {
+  const mapped = {'profile.html':'profileFrame','teams.html':'teamsFrame','room.html':'roomFrame'};
+  const frameId = mapped[page];
+  if (frameId) {
     const overlay = document.getElementById('pageOverlay');
-    const preload = document.getElementById('preloadContainer');
-    const frameId = page === 'profile.html' ? 'profileFrame' : 'teamsFrame';
     const targetFrame = document.getElementById(frameId);
     if (!targetFrame) { window.location.href = page; return; }
     targetFrame.style.cssText = 'width:100%;height:100%;border:none;';
