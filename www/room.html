@@ -4444,9 +4444,11 @@ function listenHostLeft(){
       const v = snap.val();
       if(!v || !v.names || !v.ts) return;
       if(v.ts <= _lastPopupTs) return;
-      if(Date.now() - v.ts > 8000) return; // ← تقليل النافذة الزمنية لضمان الفورية
+      if(Date.now() - v.ts > 15000) return;
       _lastPopupTs = v.ts;
-      // ← اللاعب العادي يرى نفس الرسالة مع زر تأكيد لكن بدون callback إعادة توزيع
+
+      // ← كل لاعب عادي يشوف الرسالة بنفسه ويضغط تمام بنفسه
+      // مفيش callback — كل شخص ينتقل بمجرد ما الـ phase يتغير
       showPlayerLeftPopup(v.names, () => {});
     });
 }
@@ -4455,7 +4457,7 @@ function listenPlayersLeft(){
   if(!S.isHost) return;
 
   const silentDeletePhases = ['roundPoints', 'leaderboard'];
-  const silentRedistributePhases = ['vote','voteResults','reveal','guess','guessResult','started'];
+  const silentRedistributePhases = ['vote','voteResults','reveal','guess','guessResult'];
 
   fbListen(`rooms/${S.code}/playersLeft`, async snap => {
     const left = snap.val();
@@ -4509,7 +4511,32 @@ function listenPlayersLeft(){
       return;
     }
 
-    // في الشاشات التي تحتاج إعادة توزيع (بما فيها started)
+  
+    if(!inLobby && curPhase === 'started') {
+      // احفظ pending message عشان تظهر في التايمر
+      await fbUpdate(`rooms/${S.code}`, {
+        pendingPlayerLeftMsg: { names: leftNames, ts: Date.now() }
+      });
+      // حدّث الأسماء فقط — اللعبة تكمل لشاشة التايمر بدون انتظار
+      const freshGd = await fbGet(`rooms/${S.code}/gameData`);
+      if(freshGd) {
+        const updatedNames = (freshGd.playerNames || []).filter(n => !leftNames.includes(n));
+        const updatedRoles = updatedNames.map(n => {
+          const idx = (freshGd.playerNames || []).indexOf(n);
+          return idx >= 0 && freshGd.roles ? freshGd.roles[idx] : 'محقق';
+        });
+        await fbUpdate(`rooms/${S.code}/gameData`, {
+          playerNames: updatedNames,
+          roles: updatedRoles
+        });
+      }
+      // امسح ready للاعب الخارج عشان مايوقفش انتظار checkAllReady
+      for(const id of leftIds) {
+        await fbRemove(`rooms/${S.code}/ready/${id}`).catch(() => {});
+      }
+      return;
+    }
+
     if(!inLobby && silentRedistributePhases.includes(curPhase)){
     await fbRemove(`rooms/${S.code}/votes`).catch(() => {});
     await fbRemove(`rooms/${S.code}/ready`).catch(() => {});
@@ -4522,13 +4549,16 @@ function listenPlayersLeft(){
     const criminalName = criminalIdx >= 0 ? curGd.playerNames[criminalIdx] : null;
     const criminalLeft = leftNames.includes(criminalName);
 
+    // ← دايماً ابعت playerLeftPopup لكل اللاعبين يشوفوا الرسالة
+    await fbUpdate(`rooms/${S.code}`, {
+      playerLeftPopup: { names: leftNames, ts: Date.now() }
+    });
+
     if(criminalLeft) {
-      await fbUpdate(`rooms/${S.code}`, {
-        playerLeftPopup: { names: leftNames, ts: Date.now() }
-      });
+      // الهوست يشوف popup مع callback إعادة التوزيع
       showPlayerLeftPopup(leftNames, () => doNewRoundSilent(newNames, curGd));
     } else {
-      // لو مش مجرم → بس حدّث playerNames في gameData بدون إعادة توزيع
+      // مش مجرم → حدّث الأسماء فقط بدون إعادة توزيع
       const freshGd = await fbGet(`rooms/${S.code}/gameData`);
       if(freshGd) {
         const updatedNames = (freshGd.playerNames || []).filter(n => !leftNames.includes(n));
@@ -5013,6 +5043,20 @@ async function checkAllReady(){
 function showTimerScreen(gd){
   showScreen('timerScreen');
   showGearBtn();
+
+  // ← فحص لو في رسالة خروج لاعب معلقة من شاشة roleReveal
+  if(S.code) {
+    fbGet(`rooms/${S.code}/pendingPlayerLeftMsg`).then(async pending => {
+      if(!pending || !pending.ts) return;
+      if(Date.now() - pending.ts > 30000) {
+        await fbRemove(`rooms/${S.code}/pendingPlayerLeftMsg`).catch(() => {});
+        return;
+      }
+      await fbRemove(`rooms/${S.code}/pendingPlayerLeftMsg`).catch(() => {});
+      showPlayerLeftPopup(pending.names, () => {});
+    }).catch(() => {});
+  }
+
   if(G.timer){clearInterval(G.timer);G.timer=null;}G.timerRunning=false;
   if(S.isHost){
     document.getElementById('hostTimerBtns').style.display='flex';
@@ -5023,12 +5067,10 @@ function showTimerScreen(gd){
     document.getElementById('nonHostTimerMsg').classList.remove('hidden');
     G.secondsLeft=G.timeMinutes*60;updateTimerDisplay();
     let _timerSynced=false;
-    // ← FIX: احفظ وقت دخول الشاشة لتجاهل timerStartAt القديم من جولة سابقة
     const _screenEnteredAt=Date.now();
     fbListen(`rooms/${S.code}/gameData`,snap=>{
       const d=snap.val();if(!d)return;
       if(d.timerStartAt&&!_timerSynced&&!G.timerRunning){
-        // ← FIX: تجاهل timerStartAt لو أقدم من وقت دخول الشاشة بـ 3 ثواني
         const isStale=d.timerStartAt<(_screenEnteredAt-3000);
         if(isStale)return;
         _timerSynced=true;
