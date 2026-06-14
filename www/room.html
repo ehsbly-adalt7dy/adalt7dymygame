@@ -3970,7 +3970,15 @@ async function pushPhase(p){
   }
 }
 async function pushPhaseAny(p){
-  await fbUpdate(`rooms/${S.code}`, {gamePhase: p, phaseTs: Date.now()});
+  // pushPhaseAny تتجاوز كل الـ guards دايماً
+  try {
+    await fbUpdate(`rooms/${S.code}`, {gamePhase: p, phaseTs: Date.now()});
+  } catch(e) {
+    console.error('pushPhaseAny err:', e);
+    // retry مرة واحدة
+    await new Promise(r => setTimeout(r, 500));
+    await fbUpdate(`rooms/${S.code}`, {gamePhase: p, phaseTs: Date.now()});
+  }
 }
 
 // ══ RECONNECT ══
@@ -5636,26 +5644,67 @@ function showGuessResult(gd){
     info.classList.remove('hidden');
   }
   if (S.isHost) {
-  // منع التنفيذ المزدوج
-  if (showGuessResult._hostPending) return;
+  // reset الـ flag دايماً عند الدخول
+  showGuessResult._hostPending = false;
   showGuessResult._hostPending = true;
 
+  // backup timeout لو الأول فشل
+  const _backupTimer = setTimeout(async () => {
+    if (!showGuessResult._hostPending) return;
+    showGuessResult._hostPending = false;
+    try { await pushPhaseAny('roundPoints'); } catch(e) {}
+  }, 8000);
+
   setTimeout(async () => {
+    if (!showGuessResult._hostPending) {
+      clearTimeout(_backupTimer);
+      return;
+    }
+    showGuessResult._hostPending = false;
+    clearTimeout(_backupTimer);
+    
     try {
-      showGuessResult._hostPending = false;
       const freshGd = await fbGet(`rooms/${S.code}/gameData`);
-      if (freshGd && freshGd.scores) G.scores = { ...freshGd.scores };
+      
+      if (!freshGd) {
+        await pushPhaseAny('roundPoints').catch(() => {});
+        return;
+      }
+
+      // دايماً خذ البيانات من Firebase
+      if (freshGd.scores) G.scores = { ...freshGd.scores };
+      if (freshGd.playerNames) G.playerNames = [...freshGd.playerNames];
+
+      // فلتر اللاعبين الموجودين فعلاً
+      const activePlayers = await fbGet(`rooms/${S.code}/players`);
+      const activeNames = Object.values(activePlayers || {})
+        .filter(p => !p.isRejoinWaiting && 
+                     (p.isHost || p.joinedAt > 0) && 
+                     p.status !== 'disconnected')
+        .map(p => p.name);
+
+      if (activeNames.length > 0) {
+        G.playerNames = G.playerNames.filter(n => activeNames.includes(n));
+      }
 
       const winners = G.playerNames.filter(n => (G.scores[n] || 0) >= 10);
+      
       if (winners.length > 0) {
-        await fbUpdate(`rooms/${S.code}/gameData`, { winners });
+        await fbUpdate(`rooms/${S.code}/gameData`, { 
+          winners, 
+          playerNames: G.playerNames 
+        });
         await pushPhaseAny('leaderboard');
       } else {
+        await fbUpdate(`rooms/${S.code}/gameData`, { 
+          playerNames: G.playerNames 
+        });
         await pushPhaseAny('roundPoints');
       }
+
     } catch(e) {
-      showGuessResult._hostPending = false;
-      await pushPhaseAny('roundPoints').catch(() => {});
+      console.error('showGuessResult host err:', e);
+      try { await pushPhaseAny('roundPoints'); } catch(e2) {}
     }
   }, 3000);
 }
