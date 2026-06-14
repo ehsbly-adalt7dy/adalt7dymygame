@@ -4632,7 +4632,6 @@ function showPlayerLeftNotice(names,remaining,cb){
 }
 
 async function doNewRoundSilent(newNames, curGd){
-  showGuessResult._lastScheduledKey = null;
   if(!S.isHost) return;
   stopGuessTimer();
   clearInterval(G.timer); G.timer = null; G.timerRunning = false;
@@ -5616,94 +5615,118 @@ function _buildGuessUI(opts,iAmCrim,cn,startSeconds){
   },1000);
 }
 
-function showGuessResult(gd){
-  stopGuessTimer();if(G.timer){clearInterval(G.timer);G.timer=null;}G.timerRunning=false;_gl=true;
-  if(gd&&gd.scores)      G.scores={...gd.scores};
-  if(gd&&gd.roundScores) G.roundScores={...gd.roundScores};
+// استبدل دالة showGuessResult كاملة بهذه النسخة
+function showGuessResult(gd) {
+  stopGuessTimer();
+  if (G.timer) { clearInterval(G.timer); G.timer = null; }
+  G.timerRunning = false;
+  _gl = true;
+
+  if (gd && gd.scores)      G.scores = { ...gd.scores };
+  if (gd && gd.roundScores) G.roundScores = { ...gd.roundScores };
+
   showScreen('guessScreen');
 
-  // ← معرف فريد لهذه النتيجة بالذات (يمنع تكرار جدولة الانتقال)
-  const _resultKey = (gd.roundTs || 0) + '|' + (gd.guessData?.guessedWord ?? 'null') + '|' + (gd.guessData?.correct ?? '');
-  const te=document.getElementById('guessTimerDisplay');if(te){te.textContent='00:00';te.style.color='var(--red)';}
-  const waitEl=document.getElementById('guessWaitMsg');if(waitEl)waitEl.classList.add('hidden');
-  const guessData=gd.guessData||{};
-  const options=guessData.guessOptions||gd.guessOptions||[];
-  const c=document.getElementById('guessOptions');
-  if(c){
-    c.innerHTML='';c.className='guess-grid';
-    options.forEach(opt=>{
-      const d=document.createElement('div');d.className='guess-opt disabled';d.textContent=opt;
-      if(opt===guessData.correctWord)d.classList.add('correct');
-      else if(opt===guessData.guessedWord&&opt!==guessData.correctWord)d.classList.add('wrong');
+  const te = document.getElementById('guessTimerDisplay');
+  if (te) { te.textContent = '00:00'; te.style.color = 'var(--red)'; }
+  
+  const waitEl = document.getElementById('guessWaitMsg');
+  if (waitEl) waitEl.classList.add('hidden');
+
+  const guessData = gd.guessData || {};
+  const options = guessData.guessOptions || gd.guessOptions || [];
+  
+  const c = document.getElementById('guessOptions');
+  if (c) {
+    c.innerHTML = '';
+    c.className = 'guess-grid';
+    options.forEach(opt => {
+      const d = document.createElement('div');
+      d.className = 'guess-opt disabled';
+      d.textContent = opt;
+      if (opt === guessData.correctWord) d.classList.add('correct');
+      else if (opt === guessData.guessedWord && opt !== guessData.correctWord) d.classList.add('wrong');
       c.appendChild(d);
     });
-    if(guessData.correct){SoundSystem.correct();}else if(guessData.guessedWord||guessData.guessedWord===null){SoundSystem.wrong();}
+    if (guessData.correct) { SoundSystem.correct(); }
+    else if (guessData.guessedWord !== undefined) { SoundSystem.wrong(); }
   }
-  const info=document.getElementById('guessResultInfo');
-  if(info){
-    if(guessData.correct){info.textContent=`✅ ${guessData.criminalName} خمّن صح! الكلمة: ${guessData.correctWord}`;info.style.color='#4CAF50';info.style.borderColor='#4CAF50';}
-    else if(guessData.guessedWord){info.textContent=`❌ ${guessData.criminalName} غلط! الكلمة الصح: ${guessData.correctWord}`;info.style.color='var(--red)';info.style.borderColor='var(--red)';}
-    else{info.textContent=`⏰ انتهى الوقت! الكلمة الصح: ${guessData.correctWord||G.selectedWord}`;info.style.color='var(--pink)';info.style.borderColor='var(--pink)';}
+
+  const info = document.getElementById('guessResultInfo');
+  if (info) {
+    if (guessData.correct) {
+      info.textContent = `✅ ${guessData.criminalName} خمّن صح! الكلمة: ${guessData.correctWord}`;
+      info.style.color = '#4CAF50';
+      info.style.borderColor = '#4CAF50';
+    } else if (guessData.guessedWord) {
+      info.textContent = `❌ ${guessData.criminalName} غلط! الكلمة الصح: ${guessData.correctWord}`;
+      info.style.color = 'var(--red)';
+      info.style.borderColor = 'var(--red)';
+    } else {
+      info.textContent = `⏰ انتهى الوقت! الكلمة الصح: ${guessData.correctWord || G.selectedWord}`;
+      info.style.color = 'var(--pink)';
+      info.style.borderColor = 'var(--pink)';
+    }
     info.classList.remove('hidden');
   }
+
+  // الهوست فقط ينتقل بعد 3 ثواني
   if (S.isHost) {
-    // ← لو الجدولة بالفعل تمت لنفس النتيجة بالذات، لا تكرر
-    if (showGuessResult._lastScheduledKey === _resultKey) {
-      // لا شيء — جدولة سابقة كافية
-    } else {
-      showGuessResult._lastScheduledKey = _resultKey;
-
-      setTimeout(async () => {
-        // ← تحقق إن لسه نفس النتيجة (لم يبدأ دور جديد في الأثناء)
-        const freshGd = await fbGet(`rooms/${S.code}/gameData`).catch(() => null);
-        if (!freshGd) {
-          await pushPhaseAny('roundPoints').catch(() => {});
-          return;
-        }
-
-        const currentKey = (freshGd.roundTs || 0) + '|' + (freshGd.guessData?.guessedWord ?? 'null') + '|' + (freshGd.guessData?.correct ?? '');
-        if (currentKey !== _resultKey) {
-          // الجولة تغيرت قبل ما نوصل هنا — لا تنتقل
-          return;
-        }
-
-        try {
-          if (freshGd.scores) G.scores = { ...freshGd.scores };
-          if (freshGd.playerNames) G.playerNames = [...freshGd.playerNames];
-
-          const activePlayers = await fbGet(`rooms/${S.code}/players`);
-          const activeNames = Object.values(activePlayers || {})
-            .filter(p => !p.isRejoinWaiting &&
-                         (p.isHost || p.joinedAt > 0) &&
-                         p.status !== 'disconnected')
-            .map(p => p.name);
-
-          if (activeNames.length > 0) {
-            G.playerNames = G.playerNames.filter(n => activeNames.includes(n));
-          }
-
-          const winners = G.playerNames.filter(n => (G.scores[n] || 0) >= 10);
-
-          if (winners.length > 0) {
-            await fbUpdate(`rooms/${S.code}/gameData`, {
-              winners,
-              playerNames: G.playerNames
-            });
-            await pushPhaseAny('leaderboard');
-          } else {
-            await fbUpdate(`rooms/${S.code}/gameData`, {
-              playerNames: G.playerNames
-            });
-            await pushPhaseAny('roundPoints');
-          }
-        } catch(e) {
-          console.error('showGuessResult host err:', e);
-          try { await pushPhaseAny('roundPoints'); } catch(e2) {}
-        }
-      }, 3000);
+    // امسح أي schedule سابق
+    if (showGuessResult._hostTimer) {
+      clearTimeout(showGuessResult._hostTimer);
+      showGuessResult._hostTimer = null;
     }
+
+    showGuessResult._hostTimer = setTimeout(async () => {
+      showGuessResult._hostTimer = null;
+
+      try {
+        const freshGd = await fbGet(`rooms/${S.code}/gameData`);
+        if (!freshGd) {
+          await pushPhaseAny('roundPoints');
+          return;
+        }
+
+        if (freshGd.scores) G.scores = { ...freshGd.scores };
+        if (freshGd.playerNames) G.playerNames = [...freshGd.playerNames];
+
+        // تنظيف الأسماء
+        const activePlayers = await fbGet(`rooms/${S.code}/players`);
+        const activeNames = Object.values(activePlayers || {})
+          .filter(p => !p.isRejoinWaiting &&
+                       (p.isHost || p.joinedAt > 0) &&
+                       p.status !== 'disconnected')
+          .map(p => p.name);
+
+        if (activeNames.length > 0) {
+          G.playerNames = G.playerNames.filter(n => activeNames.includes(n));
+        }
+
+        const winners = G.playerNames.filter(n => (G.scores[n] || 0) >= 10);
+
+        if (winners.length > 0) {
+          await fbUpdate(`rooms/${S.code}/gameData`, {
+            winners,
+            playerNames: G.playerNames
+          });
+          await pushPhaseAny('leaderboard');
+        } else {
+          await fbUpdate(`rooms/${S.code}/gameData`, {
+            playerNames: G.playerNames
+          });
+          await pushPhaseAny('roundPoints');
+        }
+      } catch (e) {
+        console.error('showGuessResult host err:', e);
+        try { await pushPhaseAny('roundPoints'); } catch (e2) {}
+      }
+    }, 3000);
   }
-  }
+}
+
+// امسح الـ _lastScheduledKey من الكود القديم واستبدله بـ _hostTimer
+showGuessResult._hostTimer = null;
 
 // ── Round Points ──
 function showRoundPointsScreen(gd){
@@ -6616,7 +6639,6 @@ function showNewRoundLobbyScreen(code){
 }
 
 async function doNewRound() {
-  showGuessResult._lastScheduledKey = null;
   if (!S.isHost) return;
   stopGuessTimer();
   if (G.timer) { clearInterval(G.timer); G.timer = null; }
