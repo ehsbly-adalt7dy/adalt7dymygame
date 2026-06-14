@@ -6703,7 +6703,7 @@ document.getElementById('doJoin').addEventListener('click', async () => {
       k => k.name && k.name.toLowerCase() === name.toLowerCase()
     ));
 
-    // هل عنده بيانات محفوظة (خرج بنفسه سابقاً)؟
+    // ── الكود القديم (ابحث عنه وشيله) ──
     // هل عنده بيانات محفوظة (خرج بنفسه سابقاً)؟
     let savedPlayerData = savedPlayers?.[MY_DEVICE_ID] || null;
 
@@ -6719,19 +6719,10 @@ document.getElementById('doJoin').addEventListener('click', async () => {
       restoredScore = kickedData.score || 0;
       savedPlayerData = { name, score: restoredScore };
     }
-    // لو عنده بيانات محفوظة (خرج بنفسه) — لكن تحقق إن الاسم متطابق
-    // لو الاسم مختلف = شخص جديد مش رجوع
-    else if (savedPlayerData && savedPlayerData.name && 
-            savedPlayerData.name.toLowerCase() === name.toLowerCase()) {
+    // لو عنده بيانات محفوظة (خرج بنفسه)
+    else if (savedPlayerData) {
       isActualRejoin = true;
       restoredScore = savedPlayerData.score || 0;
-    }
-    // لو في savedPlayers بالـ deviceId لكن بالاسم القديم، امسحه عشان ما يتعيقش
-    else if (savedPlayerData && savedPlayerData.name && 
-            savedPlayerData.name.toLowerCase() !== name.toLowerCase()) {
-      // اسم مختلف = لاعب جديد، امسح البيانات القديمة
-      await fbRemove(`rooms/${code}/savedPlayers/${MY_DEVICE_ID}`).catch(()=>{});
-      savedPlayerData = null;
     }
 
     const freshPlayers = await fbGet(`rooms/${code}/players`);
