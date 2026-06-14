@@ -5357,6 +5357,16 @@ function _buildGuessUI(opts,iAmCrim,cn,startSeconds){
         fbUpdate(`rooms/${S.code}/gameData`,{guessData,guessTimerDone:true})
           .then(()=>pushPhaseAny('guessResult'))
           .catch(e=>console.error('guess timeout err',e));
+      } else if(!iAmCrim && S.isHost){
+        // ← fallback: لو المجرم خارج أو مش موجود، الهوست يتولى الأمر عند انتهاء عداده
+        (async()=>{
+          const already = await fbGet(`rooms/${S.code}/gameData/guessTimerDone`);
+          if(!already){
+            const guessData={guessedWord:null,correctWord:G.selectedWord,criminalName:cn,correct:false,guessOptions:opts};
+            await fbUpdate(`rooms/${S.code}/gameData`,{guessData,guessTimerDone:true}).catch(()=>{});
+            await pushPhaseAny('guessResult').catch(()=>{});
+          }
+        })();
       }
     }
   },1000);
