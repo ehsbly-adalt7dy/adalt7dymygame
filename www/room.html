@@ -4513,32 +4513,19 @@ function listenPlayersLeft(){
 
     // في الشاشات التي تحتاج إعادة توزيع (بما فيها started)
     if(!inLobby && silentRedistributePhases.includes(curPhase)){
-    await fbRemove(`rooms/${S.code}/votes`).catch(() => {});
-    await fbRemove(`rooms/${S.code}/ready`).catch(() => {});
-    const curGd = await fbGet(`rooms/${S.code}/gameData`);
-    if(!curGd || !curGd.playerNames) return;
-    const newNames = curGd.playerNames.filter(n => !leftNames.includes(n));
+      await fbRemove(`rooms/${S.code}/votes`).catch(() => {});
+      await fbRemove(`rooms/${S.code}/ready`).catch(() => {});
+      const curGd = await fbGet(`rooms/${S.code}/gameData`);
+      if(!curGd || !curGd.playerNames) return;
+      const newNames = curGd.playerNames.filter(n => !leftNames.includes(n));
 
-    // ← فحص هل من خرج كان مجرماً؟
-    const criminalIdx = (curGd.roles || []).indexOf('مجرم');
-    const criminalName = criminalIdx >= 0 ? curGd.playerNames[criminalIdx] : null;
-    const criminalLeft = leftNames.includes(criminalName);
-
-    if(criminalLeft) {
+      // ← أي شخص خرج (مجرم أو غيره) → إظهار رسالة ثم إعادة توزيع الأدوار فوراً
       await fbUpdate(`rooms/${S.code}`, {
         playerLeftPopup: { names: leftNames, ts: Date.now() }
       });
       showPlayerLeftPopup(leftNames, () => doNewRoundSilent(newNames, curGd));
-    } else {
-      // لو مش مجرم → بس حدّث playerNames في gameData بدون إعادة توزيع
-      const freshGd = await fbGet(`rooms/${S.code}/gameData`);
-      if(freshGd) {
-        const updatedNames = (freshGd.playerNames || []).filter(n => !leftNames.includes(n));
-        await fbUpdate(`rooms/${S.code}/gameData`, { playerNames: updatedNames });
-      }
     }
     return;
-  }
   });
 }
 
@@ -5091,11 +5078,15 @@ document.getElementById('restartRoundBtn').addEventListener('click',async()=>{
 });
 
 // ── Vote ──
-function showVoteScreen(){
+async function showVoteScreen(){
   showScreen('voteScreen');
   document.getElementById('votedMsg').classList.add('hidden');
   const c=document.getElementById('voteOptionsDiv');c.innerHTML='';
-  
+
+  // ← فلتر: أبقِ فقط أسماء اللاعبين الموجودين فعلاً (وليس في حالة انتظار)
+  const activeNames = await getActivePlayerNames();
+  G.playerNames = [...new Set(G.playerNames)].filter(n => activeNames.includes(n));
+
   // إذا كان اللاعب في وضع الانتظار، لا يصوت
   fbGet(`rooms/${S.code}/players/${S.myId}`).then(myData=>{
     if(myData && myData.isRejoinWaiting){
@@ -5136,21 +5127,24 @@ async function checkAllVoted(){
   const allPlayers=Object.entries(pData||{});
   if(allPlayers.length===0) return;
 
-  // تجاهل المنتظرين وغير المتصلين
+  // تجاهل المنتظرين وغير المتصلين، وتجاهل من خرج من اللعبة فعلياً (مش في G.playerNames)
   const activePlayers=allPlayers
-    .filter(([id,p])=>p.status!=='disconnected' && !p.isRejoinWaiting)
+    .filter(([id,p])=>p.status!=='disconnected' && !p.isRejoinWaiting && G.playerNames.includes(p.name))
     .map(([id])=>id);
 
-  // تجاهل المنفصلين عند حساب من لم يصوت بعد
-  const realActive = activePlayers.filter(id=>{
-    const p=(pData||{})[id];
-    return p && p.status!=='disconnected';
+  const realActive = activePlayers;
+  // فلتر الأصوات: بس الأصوات الجاية من لاعبين نشطين حالياً، وعلى أسماء موجودة في G.playerNames
+  const validVotes = {};
+  Object.entries(votes).forEach(([voterId,votedName])=>{
+    if(realActive.includes(voterId) && G.playerNames.includes(votedName)){
+      validVotes[voterId]=votedName;
+    }
   });
-  const votedCount=Object.keys(votes).filter(id=>realActive.includes(id)).length;
+  const votedCount=Object.keys(validVotes).length;
   if(votedCount<realActive.length) return;
 
   const vByName={};
-  Object.entries(votes).forEach(([pid,voted])=>{
+  Object.entries(validVotes).forEach(([pid,voted])=>{
     const p=(pData||{})[pid];
     if(p && !p.isRejoinWaiting) vByName[p.name]=voted;
   });
@@ -5979,9 +5973,14 @@ function showRejoinWaitScreen(code, myId, restoredScore, restoredAvatar){
       if(!curGd.scores||curGd.scores[S.myName]===undefined){
         updObj[`scores/${S.myName}`]=restoredScore;
       }
+      // ← أزل أي تكرارات لنفس الاسم، ثم أضفه مرة واحدة فقط
       const curNames=curGd.playerNames||[];
-      if(!curNames.includes(S.myName)){
-        updObj['playerNames']=[...curNames,S.myName];
+      const dedupedNames=[...new Set(curNames)];
+      if(!dedupedNames.includes(S.myName)){
+        dedupedNames.push(S.myName);
+      }
+      if(dedupedNames.length!==curNames.length || !curNames.includes(S.myName)){
+        updObj['playerNames']=dedupedNames;
       }
       if(Object.keys(updObj).length>0){
         await fbUpdate(`rooms/${code}/gameData`,updObj).catch(()=>{});
@@ -6573,17 +6572,18 @@ document.getElementById('doJoin').addEventListener('click', async () => {
     if (isActualRejoin) {
       G.scores[name] = restoredScore;
       if (savedPlayerData && !wasKicked) await fbRemove(`rooms/${code}/savedPlayers/${MY_DEVICE_ID}`);
-      // لو كان مطرود: امسحه من kickedPlayersList بعد الدخول
-      if (wasKicked && kickedList) {
-        const kickedKey = Object.keys(kickedList).find(
-          k => kickedList[k].name && kickedList[k].name.toLowerCase() === name.toLowerCase()
-        );
-        // مسح بالـ deviceId key أو بالاسم
-      const kickedKeyToRemove = kickedByDevice?.[0] || kickedKey;
-      if (kickedKeyToRemove) await fbRemove(`rooms/${code}/kickedPlayersList/${kickedKeyToRemove}`).catch(()=>{});
-      }
+      
       const currentGd = await fbGet(`rooms/${code}/gameData`);
-      if (currentGd) {
+ // لو كان مطرود: امسحه من kickedPlayersList بعد الدخول
+      if (wasKicked && kickedList) {
+        try {
+          const kickedKey = Object.keys(kickedList).find(
+            k => kickedList[k]?.name && kickedList[k].name.toLowerCase() === name.toLowerCase()
+          );
+          const kickedKeyToRemove = kickedByDevice?.[0] || kickedKey;
+          if (kickedKeyToRemove) await fbRemove(`rooms/${code}/kickedPlayersList/${kickedKeyToRemove}`).catch(()=>{});
+        } catch(err) { console.error('kicked cleanup err', err); }
+      }     if (currentGd) {
         await fbUpdate(`rooms/${code}/gameData/scores`, {[name]: restoredScore});
         const currentNames = currentGd.playerNames || [];
         if (!currentNames.includes(name)) {
@@ -6635,7 +6635,7 @@ document.getElementById('doJoin').addEventListener('click', async () => {
     });
 
   } catch (err) {
-    console.error('join error', err);
+    console.error('join error:', err?.message || err, err?.stack || '');
     e.textContent = 'حصلت مشكلة، حاول تاني!'; e.classList.remove('hidden'); _safeUnlock();
   }
 });
@@ -7199,6 +7199,8 @@ overlay.innerHTML = `
       const sorted = sortPlayers(playersData);
       sorted.forEach((p, i) => {
         if (p.isHost) return;
+        if (!p.name) return; // ← تجاهل أي سجل ناقص (بلا اسم)
+        if (p.isRejoinWaiting) return; // ← لا تُظهر اللاعب وهو لسه في شاشة انتظار العودة
         const col = COLORS[(i % (COLORS.length - 1)) + 1];
         const row = document.createElement('div');
         row.style.cssText = `
