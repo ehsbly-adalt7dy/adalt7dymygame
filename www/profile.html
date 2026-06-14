@@ -1493,8 +1493,11 @@
     let currentAvatar = 'av1';
     const AVATAR_STORAGE_KEY = 'qadAlTahadi_avatar';
 
-    function saveAvatar(avatarName) {
+   function saveAvatar(avatarName) {
       try { localStorage.setItem(AVATAR_STORAGE_KEY, avatarName); currentAvatar = avatarName; } catch(e) {}
+      if (window.parent !== window) {
+        try { window.parent.postMessage({ type: 'avatarChanged', avatar: avatarName }, '*'); } catch(e) {}
+      }
     }
 
     function loadSavedAvatar() {
