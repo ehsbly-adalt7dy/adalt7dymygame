@@ -4616,6 +4616,7 @@ function showPlayerLeftNotice(names,remaining,cb){
 }
 
 async function doNewRoundSilent(newNames, curGd){
+  showGuessResult._hostPending = false;
   if(!S.isHost) return;
   stopGuessTimer();
   clearInterval(G.timer); G.timer = null; G.timerRunning = false;
@@ -4876,12 +4877,12 @@ function handlePhase(phase, gd) {
 
   if(gd.isCrimFound !== undefined) G.isCriminalFound = gd.isCrimFound;
 
-  // phaseKey بـ JSON.stringify لمنع false cache
-  const phaseKey = phase + '|' + (gd.selectedWord || '') + '|' +
-    JSON.stringify(gd.playerNames || []) + '|' + (gd.roundTs || 0);
+  const phaseKey = phase + '|' + (gd.roundTs || 0);
 
-  const skipDedupe = ['voteResults', 'roundPoints', 'leaderboard', 'guessResult'];
-  if(!skipDedupe.includes(phase) && handlePhase._lastKey === phaseKey) return;
+  // الـ phases اللي ممكن تتكرر بشكل طبيعي
+  const neverDedupe = ['guessResult', 'guess', 'roundPoints', 'leaderboard', 'voteResults'];
+
+  if (!neverDedupe.includes(phase) && handlePhase._lastKey === phaseKey) return;
   handlePhase._lastKey = phaseKey;
 
   switch(phase){
@@ -5022,43 +5023,68 @@ function showMyRole(){
   if(S.isHost) fbListen(`rooms/${S.code}/ready`,()=>checkAllReady());
 }
 
-async function checkAllReady(){
-  if(!S.isHost || _checkReadyLock) return;
+async function checkAllReady() {
+  if (!S.isHost) return;
+  if (_checkReadyLock) return;
   _checkReadyLock = true;
-  try{
+
+  try {
     const [pl, rd] = await Promise.all([
       fbGet(`rooms/${S.code}/players`),
       fbGet(`rooms/${S.code}/ready`)
     ]);
 
-    const activePlayers = Object.keys(pl || {}).filter(id => {
-      const p = (pl || {})[id];
-      return p && !p.isRejoinWaiting && p.status !== 'disconnected';
-    });
+    const allPlayers = Object.entries(pl || {});
+    if (allPlayers.length === 0) return;
 
-    if(activePlayers.length === 0){ return; }
+    const activePlayers = allPlayers
+      .filter(([id, p]) =>
+        p &&
+        !p.isRejoinWaiting &&
+        p.status !== 'disconnected' &&
+        (p.isHost || p.joinedAt > 0)
+      )
+      .map(([id]) => id);
+
+    if (activePlayers.length === 0) return;
 
     const readyIds = Object.keys(rd || {});
     const readyAndActive = readyIds.filter(id => activePlayers.includes(id));
 
-    if(readyAndActive.length >= activePlayers.length){
+    if (readyAndActive.length >= activePlayers.length) {
+      // كل اللاعبين جاهزين
       await fbRemove(`rooms/${S.code}/ready`);
-      await pushPhase('timer');
+      // مهم: امسح الـ listener قبل pushPhase
+      fbOff();
+      await fbSet(`rooms/${S.code}/gamePhase`, 'timer');
+      await fbUpdate(`rooms/${S.code}`, { phaseTs: Date.now() });
+      // أعد تشغيل الـ listeners
+      listenPhase(S.code);
+      listenPlayersLeft();
       return;
     }
 
-    const notReadyActive = activePlayers.filter(id => !readyAndActive.includes(id));
-    const allDisconnected = notReadyActive.every(id => {
+    // لو في لاعبين منقطعين فقط
+    const notReady = activePlayers.filter(id => !readyAndActive.includes(id));
+    const allDisconnected = notReady.every(id => {
       const p = (pl || {})[id];
       return !p || p.status === 'disconnected';
     });
 
-    if(allDisconnected && readyAndActive.length > 0){
+    if (allDisconnected && readyAndActive.length >= 3) {
       await fbRemove(`rooms/${S.code}/ready`);
-      await pushPhase('timer');
+      fbOff();
+      await fbSet(`rooms/${S.code}/gamePhase`, 'timer');
+      await fbUpdate(`rooms/${S.code}`, { phaseTs: Date.now() });
+      listenPhase(S.code);
+      listenPlayersLeft();
     }
+
+  } catch(err) {
+    console.error('checkAllReady err', err);
   } finally {
-    _checkReadyLock = false;
+    // أعد الـ lock بعد ثانية عشان ميتنادىش بسرعة
+    setTimeout(() => { _checkReadyLock = false; }, 1000);
   }
 }
 // ── Timer ──
@@ -5319,65 +5345,126 @@ async function getActivePlayerNames(){
     .filter(p => !p.isRejoinWaiting && (p.isHost || p.joinedAt > 0) && p.status !== 'disconnected')
     .map(p => p.name);
 }
-function showGuessScreen(gd){
+function showGuessScreen(gd) {
   stopGuessTimer();
-  if(G.timer){clearInterval(G.timer);G.timer=null;}
-  G.timerRunning=false;_gl=false;
-  if(gd&&gd.scores)      G.scores={...gd.scores};
-  if(gd&&gd.roundScores) G.roundScores={...gd.roundScores};
+  if (G.timer) { clearInterval(G.timer); G.timer = null; }
+  G.timerRunning = false;
+  _gl = false;
+
+  if (gd && gd.scores)      G.scores = { ...gd.scores };
+  if (gd && gd.roundScores) G.roundScores = { ...gd.roundScores };
+
   showScreen('guessScreen');
-  // ← فلتر: أبقِ فقط اللاعبين الموجودين فعلاً في الأوضة
+
   getActivePlayerNames().then(activeNames => {
     G.playerNames = G.playerNames.filter(n => activeNames.includes(n));
   });
-  const infoEl=document.getElementById('guessResultInfo');if(infoEl)infoEl.classList.add('hidden');
-  const waitEl=document.getElementById('guessWaitMsg');if(waitEl)waitEl.classList.add('hidden');
-  const c=document.getElementById('guessOptions');if(c)c.innerHTML='';
-  const te=document.getElementById('guessTimerDisplay');
-  if(te){te.textContent='00:20';te.style.color='var(--purple)';}
-// فلتر اللاعبين الخارجين
 
-  const ci=G.roles.indexOf('مجرم');
-  const cn=ci>=0?G.playerNames[ci]:'';
-  const iAmCrim=(S.myName===cn);
+  const infoEl = document.getElementById('guessResultInfo');
+  if (infoEl) infoEl.classList.add('hidden');
+  const waitEl = document.getElementById('guessWaitMsg');
+  if (waitEl) waitEl.classList.add('hidden');
+  const c = document.getElementById('guessOptions');
+  if (c) c.innerHTML = '';
+  const te = document.getElementById('guessTimerDisplay');
+  if (te) { te.textContent = '00:20'; te.style.color = 'var(--purple)'; }
 
-  if(S.isHost){
-    // 10 options: 1 correct + 9 wrong
-    const allWords=WB[G.category]||WB.places;
-    let opts=allWords.filter(w=>w.word!==G.selectedWord).sort(()=>Math.random()-0.5).slice(0,9).map(w=>w.word);
+  const ci = G.roles.indexOf('مجرم');
+  const cn = ci >= 0 ? G.playerNames[ci] : '';
+  const iAmCrim = (S.myName === cn);
+
+  if (S.isHost) {
+    // الهوست يولد الخيارات مرة واحدة فقط ويرفعها
+    const allWords = WB[G.category] || WB.places;
+    let opts = allWords
+      .filter(w => w.word !== G.selectedWord)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 9)
+      .map(w => w.word);
     opts.push(G.selectedWord);
-    opts=shuffleArr(opts);
-    const startAt=Date.now();
-    fbUpdate(`rooms/${S.code}/gameData`,{guessOptions:opts,guessStartAt:startAt,guessTimerDone:false,guessData:null}).then(()=>{
-      _buildGuessUI(opts,iAmCrim,cn,20);
+    opts = shuffleArr(opts);
+    const startAt = Date.now();
+
+    fbUpdate(`rooms/${S.code}/gameData`, {
+      guessOptions: opts,
+      guessStartAt: startAt,
+      guessTimerDone: false,
+      guessData: null
+    }).then(() => {
+      // الهوست يبني UI مباشرة بعد الرفع
+      _buildGuessUI(opts, iAmCrim, cn, 20);
+    }).catch(err => {
+      console.error('guess host upload err', err);
     });
-  }else{
-      let _done=false;
-      const _ref=ref(db,`rooms/${S.code}/gameData`);
-      // ← FIX: احفظ وقت دخول شاشة التخمين
-      const _guessScreenEnteredAt=Date.now();
-      const _unsub=onValue(_ref,snap=>{
-        if(_done)return;
-        const d=snap.val();if(!d)return;
-        if(d.guessTimerDone===true && !d.guessOptions){_done=true;off(_ref,_unsub);return;}
-        if(d.guessTimerDone===true && d.guessData){_done=true;off(_ref,_unsub);return;}
-        if(d.guessOptions&&d.guessOptions.length>0 && !d.guessTimerDone){
-          _done=true;off(_ref,_unsub);
-          // ← FIX: حماية من clock skew — حد أدنى 5 ثواني دائماً
-          let elapsed=0;
-          if(d.guessStartAt){
-            // استخدم وقت دخول الشاشة كمرجع أكثر دقة من guessStartAt
-            const elapsedSinceScreen=Math.floor((Date.now()-_guessScreenEnteredAt)/1000);
-            const elapsedSinceStart=Math.floor((Date.now()-d.guessStartAt)/1000);
-            // خذ الأقل من الاثنين لتجنب القفز للأمام
-            elapsed=Math.min(elapsedSinceScreen, elapsedSinceStart);
-          }
-          const left=Math.min(20, Math.max(5, 20-elapsed));
-          _buildGuessUI(d.guessOptions,iAmCrim,cn,left);
-        }
-      });
-      S.refs.push(_ref);
+
+  } else {
+    // اللاعب العادي: أولاً اقرأ البيانات الموجودة، وإن ماكانتش موجودة استنى
+    fbGet(`rooms/${S.code}/gameData`).then(currentGd => {
+      if (!currentGd) return;
+
+      // لو البيانات موجودة بالفعل
+      if (currentGd.guessOptions && currentGd.guessOptions.length > 0 && !currentGd.guessTimerDone) {
+        const elapsed = currentGd.guessStartAt
+          ? Math.floor((Date.now() - currentGd.guessStartAt) / 1000)
+          : 0;
+        const left = Math.max(3, Math.min(20, 20 - elapsed));
+        _buildGuessUI(currentGd.guessOptions, iAmCrim, cn, left);
+        return;
+      }
+
+      // لو الوقت خلص أو التخمين اتعمل
+      if (currentGd.guessTimerDone === true) {
+        return; // guessResult phase هيجي من الـ listener
+      }
+
+      // استنى البيانات
+      _waitForGuessOptions(iAmCrim, cn);
+    }).catch(() => {
+      _waitForGuessOptions(iAmCrim, cn);
+    });
+  }
+}
+function _waitForGuessOptions(iAmCrim, cn) {
+  let _resolved = false;
+  const _screenEnteredAt = Date.now();
+  const _waitRef = ref(db, `rooms/${S.code}/gameData`);
+
+  const _unsub = onValue(_waitRef, snap => {
+    if (_resolved) return;
+    const d = snap.val();
+    if (!d) return;
+
+    // لو التخمين خلص قبل ما نشوف الخيارات
+    if (d.guessTimerDone === true) {
+      _resolved = true;
+      try { off(_waitRef); } catch(e) {}
+      return;
     }
+
+    // لو الخيارات وصلت
+    if (d.guessOptions && d.guessOptions.length > 0) {
+      _resolved = true;
+      try { off(_waitRef); } catch(e) {}
+
+      const now = Date.now();
+      const elapsedFromScreen = Math.floor((now - _screenEnteredAt) / 1000);
+      const elapsedFromStart = d.guessStartAt
+        ? Math.floor((now - d.guessStartAt) / 1000)
+        : 0;
+      const elapsed = Math.min(elapsedFromScreen, elapsedFromStart);
+      const left = Math.max(3, Math.min(20, 20 - elapsed));
+
+      _buildGuessUI(d.guessOptions, iAmCrim, cn, left);
+    }
+  });
+
+  // timeout بعد 25 ثانية لو مافيش استجابة
+  setTimeout(() => {
+    if (!_resolved) {
+      _resolved = true;
+      try { off(_waitRef); } catch(e) {}
+    }
+  }, 25000);
 }
 
 function _buildGuessUI(opts,iAmCrim,cn,startSeconds){
@@ -5476,20 +5563,30 @@ function showGuessResult(gd){
     else{info.textContent=`⏰ انتهى الوقت! الكلمة الصح: ${guessData.correctWord||G.selectedWord}`;info.style.color='var(--pink)';info.style.borderColor='var(--pink)';}
     info.classList.remove('hidden');
   }
-  if(S.isHost){
-    setTimeout(async()=>{
-      try{
-        const d=await fbGet(`rooms/${S.code}/gameData`);
-        if(d&&d.scores)G.scores={...d.scores};
-        // ✅ اجلب النقاط الطازجة من Firebase
-        const freshGd=await fbGet(`rooms/${S.code}/gameData`);
-        if(freshGd&&freshGd.scores)G.scores={...freshGd.scores};
-        const winners=G.playerNames.filter(n=>(G.scores[n]||0)>=10);
-        if(winners.length>0){await fbUpdate(`rooms/${S.code}/gameData`,{winners});await pushPhase('leaderboard');}
-        else{await pushPhase('roundPoints');}
-      }catch(e){await pushPhase('roundPoints');}
-    },3000);
-  }
+  if (S.isHost) {
+  // منع التنفيذ المزدوج
+  if (showGuessResult._hostPending) return;
+  showGuessResult._hostPending = true;
+
+  setTimeout(async () => {
+    try {
+      showGuessResult._hostPending = false;
+      const freshGd = await fbGet(`rooms/${S.code}/gameData`);
+      if (freshGd && freshGd.scores) G.scores = { ...freshGd.scores };
+
+      const winners = G.playerNames.filter(n => (G.scores[n] || 0) >= 10);
+      if (winners.length > 0) {
+        await fbUpdate(`rooms/${S.code}/gameData`, { winners });
+        await pushPhaseAny('leaderboard');
+      } else {
+        await pushPhaseAny('roundPoints');
+      }
+    } catch(e) {
+      showGuessResult._hostPending = false;
+      await pushPhaseAny('roundPoints').catch(() => {});
+    }
+  }, 3000);
+}
 }
 
 // ── Round Points ──
@@ -6403,6 +6500,7 @@ function showNewRoundLobbyScreen(code){
 }
 
 async function doNewRound() {
+  showGuessResult._hostPending = false;
   if (!S.isHost) return;
   stopGuessTimer();
   if (G.timer) { clearInterval(G.timer); G.timer = null; }
