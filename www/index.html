@@ -3300,6 +3300,12 @@
           updateProfileAvatarInGame();
           watchAvatarChanges();
       });
+
+      window.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'avatarChanged') {
+          updateProfileAvatarInGame();
+        }
+      });
             // تحديث الصورة عند الرجوع من البروفايل (عندما تصبح الصفحة مرئية)
       window.addEventListener('pageshow', () => {
           updateProfileAvatarInGame();
