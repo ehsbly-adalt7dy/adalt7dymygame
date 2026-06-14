@@ -645,6 +645,8 @@ input[type="text"],input[type="number"]{
   box-shadow:0 3px 14px rgba(0,0,0,0.09);
   border-right:2.5px solid #ccc;
   transition:all 0.25s ease;
+}
+.player-input.new-card{
   animation:cardSlideIn 0.35s ease both;
 }
 .player-avatar{
@@ -3860,6 +3862,23 @@ function openAvatarChanger(onConfirm) {
   update();
 }
 // ── Colors & Emojis ──
+// ══ AVATAR PRELOAD CACHE ══
+const _avatarLoaded = new Set();
+function preloadAvatar(src){
+  if(!src || _avatarLoaded.has(src)) return Promise.resolve();
+  return new Promise(resolve=>{
+    const img = new Image();
+    img.onload = ()=>{ _avatarLoaded.add(src); resolve(); };
+    img.onerror = ()=>resolve();
+    img.src = src;
+  });
+}
+async function preloadAllAvatars(playersObj){
+  const srcs = Object.values(playersObj||{})
+    .map(p => p.avatar ? getAvatarSrc(p.avatar) : null)
+    .filter(Boolean);
+  await Promise.all(srcs.map(preloadAvatar));
+}
 const COLORS=[
   {bg:'#ffd700',border:'#e6c200'},
   {bg:'#a8d8ea',border:'#7ec8e3'},{bg:'#aa96da',border:'#9b84d0'},
@@ -4025,11 +4044,16 @@ function sortPlayers(data){
 
 function renderList(containerId,players,maxPlayers,countId){
   const c=document.getElementById(containerId);if(!c)return;
+  if(!c._seenPlayers) c._seenPlayers = new Set();
   c.innerHTML='';
   const confirmed=players.filter(p=>p.isHost||p.joinedAt>0);
   confirmed.forEach((p,i)=>{
     const col=p.isHost?COLORS[0]:COLORS[(i%(COLORS.length-1))+1];
-    const d=document.createElement('div');d.className='player-input';
+    const d=document.createElement('div');
+    const playerKey = p.id || p.name;
+    const isNew = !c._seenPlayers.has(playerKey);
+    d.className = 'player-input' + (isNew ? ' new-card' : '');
+    c._seenPlayers.add(playerKey);
     d.style.borderRightColor=col.border;
     if(p.isRejoinWaiting){
       d.style.opacity='0.6';
@@ -4730,8 +4754,9 @@ async function createRoom(){
   document.getElementById('startGameBtn').classList.add('hidden');
   setupHostDisconnect();listenPlayersLeft();monitorConnection();requestWakeLock();
   disconnectCheckInterval = setInterval(checkDisconnectedPlayers, 3000);
-  fbListen(`rooms/${code}/players`,snap=>{
+  fbListen(`rooms/${code}/players`,async snap=>{
     const players=snap.val()||{};
+    await preloadAllAvatars(players);
     const sorted=sortPlayers(players);
     const newCount=Object.values(players).filter(p=>p.isHost||p.joinedAt>0).length;
     if(newCount>lastJoinedCount&&newCount>1){SoundSystem.click();}
@@ -5201,11 +5226,13 @@ function showRevealScreen(){
   showScreen('criminalScreen');
   const ci=G.roles.indexOf('مجرم');
   const crimName=G.playerNames[ci];
-  fbGet(`rooms/${S.code}/players`).then(players=>{
+  fbGet(`rooms/${S.code}/players`).then(async players=>{
     const crimPlayer=Object.values(players||{}).find(p=>p.name===crimName);
     const avName=crimPlayer?.avatar||null;
     if(avName){
-      document.getElementById('crimBox').innerHTML=`<img class="criminal-avatar-img" src="${getAvatarSrc(avName)}" alt="${crimName}" onerror="this.style.display='none'"><div style="margin-top:2vw;">المجرم: ${crimName} 😈</div>`;
+      const src=getAvatarSrc(avName);
+      await preloadAvatar(src);
+      document.getElementById('crimBox').innerHTML=`<img class="criminal-avatar-img" src="${src}" alt="${crimName}" onerror="this.style.display='none'"><div style="margin-top:2vw;">المجرم: ${crimName} 😈</div>`;
     }else{
       document.getElementById('crimBox').innerHTML=`المجرم: ${crimName} 😈`;
     }
@@ -5446,8 +5473,9 @@ document.getElementById('showLeaderBtn').addEventListener('click',async()=>{
 // ── Leaderboard ──
 function showLeaderboardScreen(gd){
   if(gd&&gd.scores)G.scores={...gd.scores};
-  Promise.all([fbGet(`rooms/${S.code}/gameData`),fbGet(`rooms/${S.code}/players`)]).then(([d,playersSnap])=>{
+  Promise.all([fbGet(`rooms/${S.code}/gameData`),fbGet(`rooms/${S.code}/players`)]).then(async ([d,playersSnap])=>{
     if(d&&d.scores)G.scores={...d.scores};
+    await preloadAllAvatars(playersSnap);
     showScreen('resultScreen');
 
     // فقط اللاعبون الموجودون حالياً وليسوا في وضع انتظار
@@ -6077,8 +6105,9 @@ function showRejoinWaitScreen(code, myId, restoredScore, restoredAvatar){
     }
   });
 
-  fbListen(`rooms/${code}/players`,snap=>{
+  fbListen(`rooms/${code}/players`,async snap=>{
     const players=snap.val()||{};
+    await preloadAllAvatars(players);
     renderList('playerLobbyList',sortPlayers(players),null,'playerLobbyCnt');
   });
   listenPlayerLeftNotif();
@@ -6179,6 +6208,7 @@ function showNewRoundLobbyScreen(code){
       fbGet(`rooms/${code}/newRoundLobbyReady`)
     ]);
     const players = playersSnap || {};
+    await preloadAllAvatars(players);
     const lobbyReady = lobbyReadySnap || {};
     const sorted = sortPlayers(players);
     const confirmed = sorted.filter(p => p.isHost || p.joinedAt > 0);
@@ -6584,8 +6614,9 @@ document.getElementById('doJoin').addEventListener('click', async () => {
           e.classList.remove('hidden'); _safeUnlock(); return;
         }
         showScreen('playerLobbyScreen'); monitorConnection(); requestWakeLock();
-        fbListen(`rooms/${code}/players`, snap => {
+        fbListen(`rooms/${code}/players`, async snap => {
           const players = snap.val() || {};
+          await preloadAllAvatars(players);
           const sorted = sortPlayers(players);
           const newCount = Object.values(players).filter(p => p.isHost || p.joinedAt > 0).length;
           if (newCount > lastJoinedCount && newCount > 1) SoundSystem.click();
