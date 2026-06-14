@@ -4491,7 +4491,7 @@ function listenPlayersLeft(){
     if(leftNames.length === 0) return;
     const leftIds = Object.keys(left);
 
-    // احفظ بيانات اللاعبين الخارجين في savedPlayers (بالـ deviceId)
+    // احفظ بيانات اللاعبين الخارجين
     for(const id of leftIds){
       const playerName = left[id].name;
       const playerData = await fbGet(`rooms/${S.code}/players/${id}`);
@@ -4501,23 +4501,7 @@ function listenPlayersLeft(){
 
       if(deviceId){
         await fbUpdate(`rooms/${S.code}/savedPlayers`, {
-          [deviceId]: {
-            name: playerName,
-            score: savedScore,
-            avatar: savedAvatar,
-            leftAt: Date.now(),
-            canRejoin: true
-          }
-        });
-      } else {
-        await fbUpdate(`rooms/${S.code}/savedPlayers`, {
-          ['name_' + playerName]: {
-            name: playerName,
-            score: savedScore,
-            avatar: savedAvatar,
-            leftAt: Date.now(),
-            canRejoin: true
-          }
+          [deviceId]: { name: playerName, score: savedScore, avatar: savedAvatar, leftAt: Date.now(), canRejoin: true }
         });
       }
       await fbRemove(`rooms/${S.code}/players/${id}`);
@@ -4526,13 +4510,17 @@ function listenPlayersLeft(){
     await fbRemove(`rooms/${S.code}/playersLeft`);
 
     const curPlayers = await fbGet(`rooms/${S.code}/players`);
-    const remaining = Object.keys(curPlayers || {}).length;
+    // ← عدّ فقط اللاعبين النشطين الفعليين
+    const activePlayers = Object.values(curPlayers || {}).filter(p =>
+      (p.isHost || p.joinedAt > 0) && !p.isRejoinWaiting && p.status !== 'disconnected'
+    );
+    const remaining = activePlayers.length;
     const curPhase = await fbGet(`rooms/${S.code}/gamePhase`);
     const inLobby = (curPhase === 'lobby' || curPhase === null);
 
     if(remaining < 3){
       if(inLobby) return;
-      if(silentDeletePhases.includes(curPhase)) return;
+      // ← أغلق اللعبة دائماً حتى في الـ phases الصامتة
       await fbUpdate(`rooms/${S.code}`, {
         gameClosed: true,
         gameClosedData: { names: leftNames, ts: Date.now() }
@@ -4552,9 +4540,29 @@ function listenPlayersLeft(){
         await fbUpdate(`rooms/${S.code}/gameData`, { playerNames: newNames });
         G.playerNames = newNames;
       }
-      // لو كان في vote وكل الباقيين صوتوا، تقدّم
       if(curPhase === 'vote'){
         setTimeout(() => checkAllVoted(), 800);
+      }
+      // ← لو كنا في guess/guessResult وخرج لاعب، تأكد إن الهوست يكمل
+      if(curPhase === 'guessResult' && S.isHost && !showGuessResult._hostPending){
+        showGuessResult._hostPending = true;
+        setTimeout(async() => {
+          try{
+            showGuessResult._hostPending = false;
+            const freshGd = await fbGet(`rooms/${S.code}/gameData`);
+            if(freshGd && freshGd.scores) G.scores = {...freshGd.scores};
+            const winners = G.playerNames.filter(n => (G.scores[n]||0) >= 10);
+            if(winners.length > 0){
+              await fbUpdate(`rooms/${S.code}/gameData`, {winners});
+              await pushPhaseAny('leaderboard');
+            } else {
+              await pushPhaseAny('roundPoints');
+            }
+          } catch(e){
+            showGuessResult._hostPending = false;
+            await pushPhaseAny('roundPoints').catch(()=>{});
+          }
+        }, 1500);
       }
       return;
     }
@@ -4868,6 +4876,7 @@ function handlePhase(phase, gd) {
   if(gd.selectedIcon) G.selectedIcon = gd.selectedIcon;
   if(gd.category)    G.category = gd.category;
   if(gd.timeMinutes) G.timeMinutes = gd.timeMinutes;
+  if(gd.roundTs) G._currentRoundTs = gd.roundTs;
   if(gd.votes)       G.votes = {...gd.votes};
   if(gd.blindCriminal !== undefined) G.blindCriminal = !!gd.blindCriminal;
 
@@ -4959,12 +4968,15 @@ document.getElementById('startGameBtn').addEventListener('click', async () => {
 
 // ── Role Reveal ──
 function showMyRole(){
-  const myIdx=G.playerNames.indexOf(S.myName);
-  if(myIdx===-1){if(S.isHost)pushPhase('timer');return;}
-  const role=G.roles[myIdx];
+  const myIdx = G.playerNames.indexOf(S.myName);
+  if(myIdx === -1){ if(S.isHost) pushPhase('timer'); return; }
+  const role = G.roles[myIdx];
+
+  // ← احفظ الـ roundTs الحالي عند دخول الشاشة
+  const _myRoundTs = G._currentRoundTs || 0;
 
   showScreen('roleRevealScreen');
-  document.getElementById('rolePlayerName').textContent=S.myName;
+  document.getElementById('rolePlayerName').textContent = S.myName;
   document.getElementById('roleButtonDiv').classList.remove('hidden');
   document.getElementById('roleText').classList.add('hidden');
   document.getElementById('wordHint').classList.add('hidden');
@@ -4975,7 +4987,6 @@ function showMyRole(){
     fbRemove(`rooms/${S.code}/ready/${S.myId}`).catch(()=>{});
   }
 
-  // ← قراءة blindCriminal مرة واحدة مسبقاً لتجنب التأخير عند الضغط
   let _blindModeReady = false;
   let _blindMode = !!G.blindCriminal;
   fbGet(`rooms/${S.code}/blindCriminal`).then(val=>{
@@ -4983,44 +4994,89 @@ function showMyRole(){
     _blindModeReady = true;
   }).catch(()=>{ _blindModeReady = true; });
 
-  document.getElementById('revealRoleBtn').onclick=()=>{
-    document.getElementById('roleButtonDiv').classList.add('hidden');
-    SoundSystem.click();
-    let rt='';
-    const blindMode = _blindModeReady ? _blindMode : !!G.blindCriminal;
-    if(role==='مجرم' && blindMode){
-      const words=(WB[G.category] && WB[G.category].length>0) ? WB[G.category] : WB.places;
-      const fakeWords=words.filter(w=>w.word!==G.selectedWord);
-      const pool=fakeWords.length>0 ? fakeWords : words;
-      const fake=pool[Math.floor(Math.random()*pool.length)];
-      rt=`دورك: محقق 🕵🏻<br><span style="font-size:6vw;background:rgba(168,216,234,0.2);color:#2a6cb5;padding:2vw 3vw;border-radius:2vw;margin-top:2vw;display:inline-block;border:1.5px solid var(--blue);">الكلمة: ${fake.word} ${fake.icon}</span>`;
-    } else if(role==='مجرم'){
-      const hasTraitor=G.roles.includes('محقق خائن');
-      rt='دورك: مجرم 😈';
-      if(hasTraitor){rt+='<br><span style="font-size:5vw;background:rgba(170,150,218,0.15);color:var(--purple);padding:2vw 3vw;border-radius:2vw;margin-top:2vw;display:inline-block;border:1.5px solid var(--purple);">🎭 فيه محقق خائن هيساعدك!</span>';}
-    } else if(role==='محقق'){
-      rt=`دورك: محقق 🕵🏻<br><span style="font-size:6vw;background:rgba(168,216,234,0.2);color:#2a6cb5;padding:2vw 3vw;border-radius:2vw;margin-top:2vw;display:inline-block;border:1.5px solid var(--blue);">الكلمة: ${G.selectedWord} ${G.selectedIcon}</span>`;
-    } else if(role==='محقق خائن'){
-      const ci=G.roles.indexOf('مجرم');const cn=G.playerNames[ci];
-      rt=`دورك: محقق خائن 🎭<br><span style="font-size:5.5vw;background:rgba(170,150,218,0.2);color:var(--purple);padding:2vw 3vw;border-radius:2vw;margin-top:2vw;display:inline-block;border:1.5px solid var(--purple);">الكلمة: ${G.selectedWord} ${G.selectedIcon}<br>المجرم هو: ${cn}<br><span style="font-size:4.5vw;">مهمتك: منع التصويت على ${cn}</span></span>`;
-    }
-    document.getElementById('roleText').innerHTML=rt;
-    document.getElementById('roleText').classList.remove('hidden');
-    document.getElementById('wordHint').classList.add('hidden');
-    document.getElementById('roleReadyBtn').classList.remove('hidden');
+  // ← متغير لمنع الضغط على الزر لو تغيرت الجولة
+  let _roleScreenActive = true;
+
+  document.getElementById('revealRoleBtn').onclick = () => {
+    // ← تحقق إن الجولة لم تتغير قبل عرض الكلمة
+    fbGet(`rooms/${S.code}/gameData`).then(freshGd => {
+      if(!freshGd) return;
+      // لو الـ roundTs تغير يعني في جولة جديدة — لا تعرض الكلمة القديمة
+      if(freshGd.roundTs && _myRoundTs > 0 && freshGd.roundTs !== _myRoundTs){
+        // الجولة اتغيرت — تجاهل الضغط
+        return;
+      }
+      if(!_roleScreenActive) return;
+
+      document.getElementById('roleButtonDiv').classList.add('hidden');
+      SoundSystem.click();
+      let rt = '';
+      const blindMode = _blindModeReady ? _blindMode : !!G.blindCriminal;
+
+      if(role === 'مجرم' && blindMode){
+        const words = (WB[G.category] && WB[G.category].length > 0) ? WB[G.category] : WB.places;
+        const fakeWords = words.filter(w => w.word !== G.selectedWord);
+        const pool = fakeWords.length > 0 ? fakeWords : words;
+        const fake = pool[Math.floor(Math.random() * pool.length)];
+        rt = `دورك: محقق 🕵🏻<br><span style="font-size:6vw;background:rgba(168,216,234,0.2);color:#2a6cb5;padding:2vw 3vw;border-radius:2vw;margin-top:2vw;display:inline-block;border:1.5px solid var(--blue);">الكلمة: ${fake.word} ${fake.icon}</span>`;
+      } else if(role === 'مجرم'){
+        const hasTraitor = G.roles.includes('محقق خائن');
+        rt = 'دورك: مجرم 😈';
+        if(hasTraitor){ rt += '<br><span style="font-size:5vw;background:rgba(170,150,218,0.15);color:var(--purple);padding:2vw 3vw;border-radius:2vw;margin-top:2vw;display:inline-block;border:1.5px solid var(--purple);">🎭 فيه محقق خائن هيساعدك!</span>'; }
+      } else if(role === 'محقق'){
+        rt = `دورك: محقق 🕵🏻<br><span style="font-size:6vw;background:rgba(168,216,234,0.2);color:#2a6cb5;padding:2vw 3vw;border-radius:2vw;margin-top:2vw;display:inline-block;border:1.5px solid var(--blue);">الكلمة: ${G.selectedWord} ${G.selectedIcon}</span>`;
+      } else if(role === 'محقق خائن'){
+        const ci = G.roles.indexOf('مجرم');
+        const cn = G.playerNames[ci];
+        rt = `دورك: محقق خائن 🎭<br><span style="font-size:5.5vw;background:rgba(170,150,218,0.2);color:var(--purple);padding:2vw 3vw;border-radius:2vw;margin-top:2vw;display:inline-block;border:1.5px solid var(--purple);">الكلمة: ${G.selectedWord} ${G.selectedIcon}<br>المجرم هو: ${cn}<br><span style="font-size:4.5vw;">مهمتك: منع التصويت على ${cn}</span></span>`;
+      }
+
+      document.getElementById('roleText').innerHTML = rt;
+      document.getElementById('roleText').classList.remove('hidden');
+      document.getElementById('wordHint').classList.add('hidden');
+      document.getElementById('roleReadyBtn').classList.remove('hidden');
+    }).catch(() => {
+      // لو فشل الجلب، اعرض الكلمة الموجودة محلياً
+      document.getElementById('roleButtonDiv').classList.add('hidden');
+    });
   };
 
-  document.getElementById('roleReadyBtn').onclick=async()=>{
+  document.getElementById('roleReadyBtn').onclick = async () => {
+    if(!_roleScreenActive) return;
     document.getElementById('roleText').classList.add('hidden');
     document.getElementById('wordHint').classList.add('hidden');
     document.getElementById('roleButtonDiv').classList.add('hidden');
     document.getElementById('roleReadyBtn').classList.add('hidden');
     document.getElementById('waitReadyMsg').classList.remove('hidden');
     SoundSystem.click();
-    await fbUpdate(`rooms/${S.code}/ready`,{[S.myId]:true});
+    await fbUpdate(`rooms/${S.code}/ready`, {[S.myId]: true});
     if(S.isHost) checkAllReady();
   };
-  if(S.isHost) fbListen(`rooms/${S.code}/ready`,()=>checkAllReady());
+
+  if(S.isHost) fbListen(`rooms/${S.code}/ready`, () => checkAllReady());
+
+  // ← استمع لو تغيرت الجولة أثناء توزيع الأدوار
+  const _rolePhaseRef = ref(db, `rooms/${S.code}/gamePhase`);
+  const _roleDataRef  = ref(db, `rooms/${S.code}/gameData`);
+
+  const _checkRoleReset = onValue(_roleDataRef, snap => {
+    const d = snap.val();
+    if(!d) return;
+    // لو الـ roundTs تغير = في جولة جديدة
+    if(d.roundTs && _myRoundTs > 0 && d.roundTs !== _myRoundTs){
+      _roleScreenActive = false;
+      try{ off(_roleDataRef); }catch(e){}
+      // أعد تشغيل showMyRole بالبيانات الجديدة
+      if(d.playerNames) G.playerNames = [...d.playerNames];
+      if(d.roles)       G.roles = [...d.roles];
+      if(d.selectedWord) G.selectedWord = d.selectedWord;
+      if(d.selectedIcon) G.selectedIcon = d.selectedIcon;
+      if(d.roundTs)     G._currentRoundTs = d.roundTs;
+      // أعد عرض الشاشة بالدور الجديد
+      _revealDone = false;
+      showMyRole();
+    }
+  });
 }
 
 async function checkAllReady() {
@@ -5310,22 +5366,38 @@ function showRevealWithCountdown(){
 }
 
 function showRevealScreen(){
+  // ← أخفِ crimBox تماماً حتى تكتمل البيانات
+  const crimBoxEl = document.getElementById('crimBox');
+  crimBoxEl.innerHTML = '';
+  crimBoxEl.style.visibility = 'hidden';
+
   showScreen('criminalScreen');
-  const ci=G.roles.indexOf('مجرم');
-  const crimName=G.playerNames[ci];
-  fbGet(`rooms/${S.code}/players`).then(async players=>{
-    const crimPlayer=Object.values(players||{}).find(p=>p.name===crimName);
-    const avName=crimPlayer?.avatar||null;
-    if(avName){
-      const src=getAvatarSrc(avName);
+
+  const ci = G.roles.indexOf('مجرم');
+  const crimName = G.playerNames[ci];
+
+  fbGet(`rooms/${S.code}/players`).then(async players => {
+    const crimPlayer = Object.values(players || {}).find(p => p.name === crimName);
+    const avName = crimPlayer?.avatar || null;
+
+    if (avName) {
+      const src = getAvatarSrc(avName);
       await preloadAvatar(src);
-      document.getElementById('crimBox').innerHTML=`<img class="criminal-avatar-img" src="${src}" alt="${crimName}" onerror="this.style.display='none'"><div style="margin-top:2vw;">المجرم: ${crimName} 😈</div>`;
-    }else{
-      document.getElementById('crimBox').innerHTML=`المجرم: ${crimName} 😈`;
+      crimBoxEl.innerHTML = `<img class="criminal-avatar-img" src="${src}" alt="${crimName}" onerror="this.style.display='none'"><div style="margin-top:2vw;">المجرم: ${crimName} 😈</div>`;
+    } else {
+      crimBoxEl.innerHTML = `المجرم: ${crimName} 😈`;
     }
-  }).catch(()=>{document.getElementById('crimBox').innerHTML=`المجرم: ${crimName} 😈`;});
-  document.getElementById('nextCriminalBtn').classList.toggle('hidden',!S.isHost);
-  document.getElementById('waitRevealMsg').classList.toggle('hidden',S.isHost);
+
+    // ← أظهر فقط بعد ما البيانات جاهزة
+    crimBoxEl.style.visibility = 'visible';
+
+  }).catch(() => {
+    crimBoxEl.innerHTML = `المجرم: ${crimName} 😈`;
+    crimBoxEl.style.visibility = 'visible';
+  });
+
+  document.getElementById('nextCriminalBtn').classList.toggle('hidden', !S.isHost);
+  document.getElementById('waitRevealMsg').classList.toggle('hidden', S.isHost);
 }
 document.getElementById('nextCriminalBtn').addEventListener('click',async()=>{
   SoundSystem.click();
@@ -6632,6 +6704,7 @@ document.getElementById('doJoin').addEventListener('click', async () => {
     ));
 
     // هل عنده بيانات محفوظة (خرج بنفسه سابقاً)؟
+    // هل عنده بيانات محفوظة (خرج بنفسه سابقاً)؟
     let savedPlayerData = savedPlayers?.[MY_DEVICE_ID] || null;
 
     const restoredAvatar = savedPlayerData?.avatar || kickedData?.avatar || null;
@@ -6646,10 +6719,19 @@ document.getElementById('doJoin').addEventListener('click', async () => {
       restoredScore = kickedData.score || 0;
       savedPlayerData = { name, score: restoredScore };
     }
-    // لو عنده بيانات محفوظة (خرج بنفسه)
-    else if (savedPlayerData) {
+    // لو عنده بيانات محفوظة (خرج بنفسه) — لكن تحقق إن الاسم متطابق
+    // لو الاسم مختلف = شخص جديد مش رجوع
+    else if (savedPlayerData && savedPlayerData.name && 
+            savedPlayerData.name.toLowerCase() === name.toLowerCase()) {
       isActualRejoin = true;
       restoredScore = savedPlayerData.score || 0;
+    }
+    // لو في savedPlayers بالـ deviceId لكن بالاسم القديم، امسحه عشان ما يتعيقش
+    else if (savedPlayerData && savedPlayerData.name && 
+            savedPlayerData.name.toLowerCase() !== name.toLowerCase()) {
+      // اسم مختلف = لاعب جديد، امسح البيانات القديمة
+      await fbRemove(`rooms/${code}/savedPlayers/${MY_DEVICE_ID}`).catch(()=>{});
+      savedPlayerData = null;
     }
 
     const freshPlayers = await fbGet(`rooms/${code}/players`);
