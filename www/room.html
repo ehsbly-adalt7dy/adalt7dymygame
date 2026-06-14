@@ -2112,6 +2112,11 @@ function playJoinSound(newPlayerCount){
 }
 
 // ══ GAME STATE ══
+let _checkReadyLock = false;
+let _phaseChanging = false;
+let _lastPopupTs = 0;
+let _popupShownAt = 0;
+let _phaseListenerRef = null;
 const G={
   playerNames:[],roles:[],selectedWord:'',selectedIcon:'',category:'places',timeMinutes:2,
   scores:{},roundScores:{},votes:{},traitorName:null,isCriminalFound:false,
@@ -3955,29 +3960,49 @@ async function fbGet(path){return(await get(ref(db,path))).val();}
 async function fbSet(path,v){await set(ref(db,path),v);}
 async function fbUpdate(path,v){await update(ref(db,path),v);}
 async function fbRemove(path){await remove(ref(db,path));}
-async function pushPhase(p){if(!S.isHost)return;await fbUpdate(`rooms/${S.code}`,{gamePhase:p});}
-async function pushPhaseAny(p){await fbUpdate(`rooms/${S.code}`,{gamePhase:p});}
+async function pushPhase(p){
+  if(!S.isHost || _phaseChanging) return;
+  _phaseChanging = true;
+  try{
+    await fbUpdate(`rooms/${S.code}`, {gamePhase: p, phaseTs: Date.now()});
+  } finally {
+    setTimeout(()=>{ _phaseChanging = false; }, 500);
+  }
+}
+async function pushPhaseAny(p){
+  await fbUpdate(`rooms/${S.code}`, {gamePhase: p, phaseTs: Date.now()});
+}
 
 // ══ RECONNECT ══
 let isReconnecting=false;
 async function reconnectPlayer(){
-  if(!S.code||!S.myId||isReconnecting)return;
-  isReconnecting=true;
+  if(!S.code || !S.myId || isReconnecting) return;
+  isReconnecting = true;
   try{
-    const playerData=await fbGet(`rooms/${S.code}/players/${S.myId}`);
-    if(playerData&&playerData.status==="disconnected"){
-      await update(ref(db,`rooms/${S.code}/players/${S.myId}`),{status:"active",lastSeen:Date.now(),disconnectedAt:null});
+    const playerData = await fbGet(`rooms/${S.code}/players/${S.myId}`);
+    if(playerData && playerData.status === 'disconnected'){
+      await update(ref(db, `rooms/${S.code}/players/${S.myId}`), {
+        status: 'active',
+        lastSeen: Date.now(),
+        disconnectedAt: null
+      });
       await fbRemove(`rooms/${S.code}/playersPendingRemoval/${S.myId}`);
       setupPlayerDisconnect();
-      showToast("تم إعادة الاتصال! 🎉",2000);
-      const gameData=await fbGet(`rooms/${S.code}/gameData`);
-      const phase=await fbGet(`rooms/${S.code}/gamePhase`);
-      if(phase&&gameData&&phase!=='lobby'){handlePhase(phase,gameData);}
-      else if(phase==='lobby'){if(S.isHost){showScreen('hostLobbyScreen');}else{showScreen('playerLobbyScreen');}}
+      showToast('تم إعادة الاتصال! 🎉', 2000);
+      // reset lastKey حتى لا تُتجاهل المرحلة الحالية
+      handlePhase._lastKey = '';
+      const gameData = await fbGet(`rooms/${S.code}/gameData`);
+      const phase = await fbGet(`rooms/${S.code}/gamePhase`);
+      if(phase && gameData && phase !== 'lobby'){
+        handlePhase(phase, gameData);
+      } else if(phase === 'lobby'){
+        if(S.isHost){ showScreen('hostLobbyScreen'); }
+        else{ showScreen('playerLobbyScreen'); }
+      }
     }
-  }catch(err){}finally{isReconnecting=false;}
+  }catch(err){}
+  finally{ isReconnecting = false; }
 }
-
 let wasConnected=true;
 function monitorConnection(){
   const connectedRef=ref(db,'.info/connected');
@@ -3999,36 +4024,37 @@ function setupPlayerDisconnect(){
 
 let disconnectCheckInterval=null;
 async function checkDisconnectedPlayers(){
-  if(!S.isHost||!S.code)return;
+  if(!S.isHost || !S.code) return;
   try{
-    const pendingRemoval=await fbGet(`rooms/${S.code}/playersPendingRemoval`);
-    const now=Date.now();
-    for(const [playerId,data] of Object.entries(pendingRemoval||{})){
-      if(data.willBeRemovedAt&&now>data.willBeRemovedAt){
-
-        // ✅ إصلاح: احفظ في savedPlayers قبل الشيل
+    const pendingRemoval = await fbGet(`rooms/${S.code}/playersPendingRemoval`);
+    const now = Date.now();
+    for(const [playerId, data] of Object.entries(pendingRemoval || {})){
+      if(data.willBeRemovedAt && now > data.willBeRemovedAt){
         const playerData = await fbGet(`rooms/${S.code}/players/${playerId}`);
         if(playerData && playerData.deviceId){
           const savedScore = G.scores[playerData.name] || 0;
-          await fbUpdate(`rooms/${S.code}/savedPlayers`,{
-            [playerData.deviceId]:{
+          await fbUpdate(`rooms/${S.code}/savedPlayers`, {
+            [playerData.deviceId]: {
               name: playerData.name,
               score: savedScore,
+              avatar: playerData.avatar || null,
               leftAt: now,
               canRejoin: true
             }
           });
         }
-
         await fbRemove(`rooms/${S.code}/players/${playerId}`);
         await fbRemove(`rooms/${S.code}/playersPendingRemoval/${playerId}`);
-        await fbUpdate(`rooms/${S.code}/playersLeft`,{[playerId]:{name:data.name,at:now}});
+        await fbUpdate(`rooms/${S.code}/playersLeft`, {
+          [playerId]: {name: data.name, at: now}
+        });
       }
     }
-    const players=await fbGet(`rooms/${S.code}/players`);
-    for(const [playerId,data] of Object.entries(players||{})){
-      if(data.status==="active"){
-        await update(ref(db,`rooms/${S.code}/players/${playerId}`),{lastSeen:now}).catch(()=>{});
+    const players = await fbGet(`rooms/${S.code}/players`);
+    for(const [playerId, data] of Object.entries(players || {})){
+      if(data.status === 'active'){
+        await update(ref(db, `rooms/${S.code}/players/${playerId}`),
+          {lastSeen: now}).catch(() => {});
       }
     }
   }catch(err){}
@@ -4296,13 +4322,15 @@ function showExitPopup(icon,title,msg,variant='player-variant'){
 }
 // ← رسالة خروج لاعب — فورية + تتطلب ضغط زر (مثل رسالة خروج الهوست)
 function showPlayerLeftPopup(names, cb){
+  const now = Date.now();
+  // منع البوب آب المكرر — لكن بناءً على ts من Firebase مش وقت الجهاز
   const old = document.getElementById('playerLeftPopupOverlay');
   if(old) old.remove();
 
   const overlay = document.createElement('div');
   overlay.id = 'playerLeftPopupOverlay';
-  overlay.className = 'host-left-overlay'; // ← نفس ستايل رسالة الهوست
-  
+  overlay.className = 'host-left-overlay';
+
   overlay.innerHTML = `
     <div class="host-left-box player-variant" style="border-top-color:var(--pink);">
       <div class="host-left-icon">🚪</div>
@@ -4310,7 +4338,7 @@ function showPlayerLeftPopup(names, cb){
         ${names.length > 1 ? 'لاعبين خرجوا!' : 'لاعب خرج!'}
       </div>
       <div class="host-left-msg">
-        <strong>${names.join(' و ')}</strong> 
+        <strong>${names.join(' و ')}</strong>
         غادر${names.length > 1 ? 'وا' : ''} اللعبة<br><br>
         جاري إعادة توزيع الأدوار... 🔄
       </div>
@@ -4319,7 +4347,6 @@ function showPlayerLeftPopup(names, cb){
 
   document.body.appendChild(overlay);
 
-  // ← لا تختفي تلقائياً — يجب الضغط على الزر
   document.getElementById('playerLeftOkBtn').addEventListener('click', () => {
     overlay.remove();
     if(cb) cb();
@@ -4446,18 +4473,16 @@ function listenHostLeft(){
       const v = snap.val();
       if(!v || !v.names || !v.ts) return;
       if(v.ts <= _lastPopupTs) return;
-      if(Date.now() - v.ts > 8000) return; // ← تقليل النافذة الزمنية لضمان الفورية
+      if(Date.now() - v.ts > 5000) return;
       _lastPopupTs = v.ts;
-      // ← اللاعب العادي يرى نفس الرسالة مع زر تأكيد لكن بدون callback إعادة توزيع
       showPlayerLeftPopup(v.names, () => {});
     });
 }
-
 function listenPlayersLeft(){
   if(!S.isHost) return;
 
-  const silentDeletePhases = ['roundPoints', 'leaderboard'];
-  const silentRedistributePhases = ['vote','voteResults','reveal','guess','guessResult','started'];
+  const redistributePhases = ['started', 'reveal', 'timer'];
+  const silentDeletePhases  = ['vote','voteResults','guess','guessResult','roundPoints','leaderboard'];
 
   fbListen(`rooms/${S.code}/playersLeft`, async snap => {
     const left = snap.val();
@@ -4466,19 +4491,33 @@ function listenPlayersLeft(){
     if(leftNames.length === 0) return;
     const leftIds = Object.keys(left);
 
+    // احفظ بيانات اللاعبين الخارجين في savedPlayers (بالـ deviceId)
     for(const id of leftIds){
       const playerName = left[id].name;
       const playerData = await fbGet(`rooms/${S.code}/players/${id}`);
       const savedScore = G.scores[playerName] || 0;
       const savedAvatar = playerData?.avatar || null;
       const deviceId = playerData?.deviceId || null;
+
       if(deviceId){
         await fbUpdate(`rooms/${S.code}/savedPlayers`, {
-          [deviceId]: { name: playerName, score: savedScore, avatar: savedAvatar, leftAt: Date.now(), canRejoin: true }
+          [deviceId]: {
+            name: playerName,
+            score: savedScore,
+            avatar: savedAvatar,
+            leftAt: Date.now(),
+            canRejoin: true
+          }
         });
       } else {
         await fbUpdate(`rooms/${S.code}/savedPlayers`, {
-          ['name_' + playerName]: { name: playerName, score: savedScore, avatar: savedAvatar, leftAt: Date.now(), canRejoin: true }
+          ['name_' + playerName]: {
+            name: playerName,
+            score: savedScore,
+            avatar: savedAvatar,
+            leftAt: Date.now(),
+            canRejoin: true
+          }
         });
       }
       await fbRemove(`rooms/${S.code}/players/${id}`);
@@ -4490,42 +4529,48 @@ function listenPlayersLeft(){
     const remaining = Object.keys(curPlayers || {}).length;
     const curPhase = await fbGet(`rooms/${S.code}/gamePhase`);
     const inLobby = (curPhase === 'lobby' || curPhase === null);
-    const nameStr = leftNames.join(' و ');
 
-    // لو العدد أقل من 3
     if(remaining < 3){
       if(inLobby) return;
       if(silentDeletePhases.includes(curPhase)) return;
-      await fbUpdate(`rooms/${S.code}`, { gameClosed: true, gameClosedData: { names: leftNames, ts: Date.now() } });
-      showExitPopup('😔', 'انتهت اللعبة!', `<strong>${nameStr}</strong> غادر${leftNames.length > 1 ? 'وا' : ''} اللعبة<br><br>العدد أصبح أقل من 3<br>مش هينفع تكمل`);
+      await fbUpdate(`rooms/${S.code}`, {
+        gameClosed: true,
+        gameClosedData: { names: leftNames, ts: Date.now() }
+      });
+      showExitPopup('😔', 'انتهت اللعبة!',
+        `<strong>${leftNames.join(' و ')}</strong> غادر${leftNames.length > 1 ? 'وا' : ''} اللعبة<br><br>العدد أصبح أقل من 3<br>مش هينفع تكمل`);
       return;
     }
 
-    // في لوبي الدور الجديد أو الليدربورد: هادئ تماماً
-    if(curPhase === 'newRoundLobby'){
-      return;
-    }
+    if(curPhase === 'newRoundLobby') return;
 
-    // في راوند بوينتس أو ليدربورد: حذف هادئ بدون أي رسالة أو إعادة توزيع
     if(silentDeletePhases.includes(curPhase)){
+      // حذف هادئ فقط — حدّث playerNames
+      const curGd = await fbGet(`rooms/${S.code}/gameData`);
+      if(curGd && curGd.playerNames){
+        const newNames = [...new Set(curGd.playerNames.filter(n => !leftNames.includes(n)))];
+        await fbUpdate(`rooms/${S.code}/gameData`, { playerNames: newNames });
+        G.playerNames = newNames;
+      }
+      // لو كان في vote وكل الباقيين صوتوا، تقدّم
+      if(curPhase === 'vote'){
+        setTimeout(() => checkAllVoted(), 800);
+      }
       return;
     }
 
-    // في الشاشات التي تحتاج إعادة توزيع (بما فيها started)
-    if(!inLobby && silentRedistributePhases.includes(curPhase)){
-      await fbRemove(`rooms/${S.code}/votes`).catch(() => {});
+    if(!inLobby && redistributePhases.includes(curPhase)){
       await fbRemove(`rooms/${S.code}/ready`).catch(() => {});
+      await fbRemove(`rooms/${S.code}/votes`).catch(() => {});
       const curGd = await fbGet(`rooms/${S.code}/gameData`);
       if(!curGd || !curGd.playerNames) return;
-      const newNames = curGd.playerNames.filter(n => !leftNames.includes(n));
+      const newNames = [...new Set(curGd.playerNames.filter(n => !leftNames.includes(n)))];
 
-      // ← أي شخص خرج (مجرم أو غيره) → إظهار رسالة ثم إعادة توزيع الأدوار فوراً
       await fbUpdate(`rooms/${S.code}`, {
         playerLeftPopup: { names: leftNames, ts: Date.now() }
       });
       showPlayerLeftPopup(leftNames, () => doNewRoundSilent(newNames, curGd));
     }
-    return;
   });
 }
 
@@ -4574,33 +4619,40 @@ async function doNewRoundSilent(newNames, curGd){
   if(!S.isHost) return;
   stopGuessTimer();
   clearInterval(G.timer); G.timer = null; G.timerRunning = false;
+  _phaseChanging = false;
+  _checkReadyLock = false;
 
-  if(!newNames || newNames.length < 3){
-    await fbUpdate(`rooms/${S.code}`, { gameClosed: true, gameClosedData: { names: [], ts: Date.now() } });
+  const cleanNames = [...new Set(newNames)];
+
+  if(!cleanNames || cleanNames.length < 3){
+    await fbUpdate(`rooms/${S.code}`, {
+      gameClosed: true,
+      gameClosedData: { names: [], ts: Date.now() }
+    });
     showExitPopup('😔', 'انتهت اللعبة!', 'العدد أصبح أقل من 3<br>مش هينفع تكمل اللعبة');
     return;
   }
 
-  const roles = generateRoles(newNames.length, newNames);
+  const roles = generateRoles(cleanNames.length, cleanNames);
   const words = WB[G.category] || WB.places;
   const rw = words[Math.floor(Math.random() * words.length)];
-  G.votes = {}; G.roundScores = {}; G.isCriminalFound = false; G.traitorName = null; _gl = false; _revealDone = false;
+  G.votes = {}; G.roundScores = {}; G.isCriminalFound = false;
+  G.traitorName = null; _gl = false; _revealDone = false;
 
   const keptScores = {};
-  newNames.forEach(n => {
+  cleanNames.forEach(n => {
     keptScores[n] = (curGd && curGd.scores) ? curGd.scores[n] || 0 : G.scores[n] || 0;
   });
   G.scores = keptScores;
-  G.playerNames = [...newNames];
+  G.playerNames = [...cleanNames];
 
-  // ✅ امسح الأصوات القديمة وـ ready وـ votes
   await fbRemove(`rooms/${S.code}/ready`).catch(() => {});
   await fbRemove(`rooms/${S.code}/votes`).catch(() => {});
   await fbUpdate(`rooms/${S.code}`, { forceRoleReset: Date.now() });
   handlePhase._lastKey = '';
 
   const gd = {
-    playerNames: newNames,
+    playerNames: cleanNames,
     roles,
     selectedWord: rw.word,
     selectedIcon: rw.icon,
@@ -4613,10 +4665,13 @@ async function doNewRoundSilent(newNames, curGd){
     guessData: null,
     guessTimerDone: false,
     guessStartAt: null,
+    timerStartAt: null,
+    timerStopped: false,
+    timerRunning: false,
     roundTs: Date.now()
   };
 
-  await fbUpdate(`rooms/${S.code}`, { gameData: gd, gamePhase: 'started' });
+  await fbUpdate(`rooms/${S.code}`, {gameData: gd, gamePhase: 'started', phaseTs: Date.now()});
 }
 
 async function hostLeaveCleanup(){
@@ -4759,87 +4814,87 @@ async function createRoom(){
 let _phaseListenerActive = false;
 
 function listenPhase(code) {
-  _phaseListenerActive = false; // ← reset دايماً عند الاستدعاء
-  handlePhase._lastKey = '';    // ← reset الـ cache
+  // أوقف الـ listener القديم للـ phase فقط
+  if(_phaseListenerRef){
+    try{ off(_phaseListenerRef); }catch(e){}
+    _phaseListenerRef = null;
+  }
+  handlePhase._lastKey = '';
+  let _lastPhaseTs = 0;
 
-  fbListen(`rooms/${code}/gamePhase`, async snap => {
+  const r = ref(db, `rooms/${code}/gamePhase`);
+  _phaseListenerRef = r;
+  S.refs.push(r);
+
+  onValue(r, async snap => {
     const phase = snap.val();
-    if (!phase || phase === 'lobby') return;
+    if(!phase || phase === 'lobby') return;
 
-    if (phase === 'guessResult') {
+    // تحقق من phaseTs لتجاهل الأحداث القديمة
+    const roomData = await fbGet(`rooms/${code}`);
+    const currentPhaseTs = roomData?.phaseTs || 0;
+    if(currentPhaseTs < _lastPhaseTs) return;
+    _lastPhaseTs = currentPhaseTs;
+
+    if(phase === 'guessResult'){
       let gd = await fbGet(`rooms/${code}/gameData`);
-      if (!gd) return;
-      if (!gd.guessData) {
-        const delays = [400, 800, 1200, 1600, 2000];
-        for (const delay of delays) {
-          await new Promise(r => setTimeout(r, delay));
-          gd = await fbGet(`rooms/${code}/gameData`);
-          if (gd && gd.guessData) break;
-        }
+      if(!gd) return;
+      if(gd.guessData){ handlePhase(phase, gd); return; }
+      const delays = [300, 600, 1000];
+      for(const delay of delays){
+        await new Promise(r => setTimeout(r, delay));
+        gd = await fbGet(`rooms/${code}/gameData`);
+        if(gd && gd.guessData){ handlePhase(phase, gd); return; }
       }
-      if (gd && gd.guessData) handlePhase(phase, gd);
+      if(S.isHost) await pushPhase('roundPoints');
       return;
     }
 
     const gd = await fbGet(`rooms/${code}/gameData`);
-    if (!gd) return;
+    if(!gd) return;
     handlePhase(phase, gd);
   });
 }
 
-
 function handlePhase(phase, gd) {
-  if (!gd) return;
+  if(!gd) return;
 
-  if (gd.playerNames) G.playerNames = [...gd.playerNames];
-  if (gd.roles)        G.roles = [...gd.roles];
-  if (gd.scores)       G.scores = {...gd.scores};
-  if (gd.roundScores)  G.roundScores = {...gd.roundScores};
-  if (gd.selectedWord) G.selectedWord = gd.selectedWord;
-  if (gd.selectedIcon) G.selectedIcon = gd.selectedIcon;
-  if (gd.category)     G.category = gd.category;
-  if (gd.timeMinutes)  G.timeMinutes = gd.timeMinutes;
-  if (gd.votes)        G.votes = {...gd.votes};
-  if (gd.blindCriminal !== undefined) G.blindCriminal = !!gd.blindCriminal;
+  if(gd.playerNames) G.playerNames = [...gd.playerNames];
+  if(gd.roles)       G.roles = [...gd.roles];
+  if(gd.scores)      G.scores = {...gd.scores};
+  if(gd.roundScores) G.roundScores = {...gd.roundScores};
+  if(gd.selectedWord) G.selectedWord = gd.selectedWord;
+  if(gd.selectedIcon) G.selectedIcon = gd.selectedIcon;
+  if(gd.category)    G.category = gd.category;
+  if(gd.timeMinutes) G.timeMinutes = gd.timeMinutes;
+  if(gd.votes)       G.votes = {...gd.votes};
+  if(gd.blindCriminal !== undefined) G.blindCriminal = !!gd.blindCriminal;
 
-  if (gd.customCatWords && Array.isArray(gd.customCatWords) && gd.customCatWords.length > 0 && gd.category) {
+  if(gd.customCatWords && Array.isArray(gd.customCatWords) && gd.customCatWords.length > 0 && gd.category){
     WB[gd.category] = [...gd.customCatWords];
   }
 
-  if (gd.isCrimFound !== undefined) G.isCriminalFound = gd.isCrimFound;
+  if(gd.isCrimFound !== undefined) G.isCriminalFound = gd.isCrimFound;
 
-  // ← إصلاح: استخدم timestamp أو round counter بدل الكلمة لمنع الـ false block
-  const phaseKey = phase + '|' + (gd.selectedWord || '') + '|' + (gd.playerNames || []).length + '|' + (gd.roundTs || 0);
-  
+  // phaseKey بـ JSON.stringify لمنع false cache
+  const phaseKey = phase + '|' + (gd.selectedWord || '') + '|' +
+    JSON.stringify(gd.playerNames || []) + '|' + (gd.roundTs || 0);
+
   const skipDedupe = ['voteResults', 'roundPoints', 'leaderboard', 'guessResult'];
-  if (!skipDedupe.includes(phase) && handlePhase._lastKey === phaseKey) return;
+  if(!skipDedupe.includes(phase) && handlePhase._lastKey === phaseKey) return;
   handlePhase._lastKey = phaseKey;
 
-  switch (phase) {
+  switch(phase){
     case 'started':     _revealDone = false; _gl = false; showMyRole(); break;
     case 'timer':       showTimerScreen(gd); break;
     case 'vote':        showVoteScreen(); break;
     case 'voteResults': showVoteResultsScreen(gd); break;
     case 'reveal':      showRevealWithCountdown(); break;
     case 'guess':       showGuessScreen(gd); break;
-    case 'guessResult':
-      if (gd && gd.guessData && gd.guessTimerDone === true) {
-        showGuessResult(gd);
-      } else {
-        (async () => {
-          const delays = [300, 600, 1000, 1500, 2000];
-          for (const delay of delays) {
-            await new Promise(r => setTimeout(r, delay));
-            const fresh = await fbGet(`rooms/${S.code}/gameData`);
-            if (fresh && fresh.guessData) { showGuessResult(fresh); return; }
-          }
-          if (S.isHost) await pushPhase('roundPoints');
-        })();
-      }
-      break;
+    case 'guessResult': showGuessResult(gd); break;
     case 'roundPoints': showRoundPointsScreen(gd); break;
     case 'leaderboard': showLeaderboardScreen(gd); break;
-    case 'newRoundLobby': /* skip */ break;
+    case 'newRoundLobby': break;
   }
 }
 handlePhase._lastKey = '';
@@ -4849,6 +4904,8 @@ document.getElementById('startGameBtn').addEventListener('click', async () => {
   // ← إصلاح: reset كل الـ guards قبل البدء
   _phaseListenerActive = false;
   handlePhase._lastKey = '';
+  _phaseChanging = false;
+  _checkReadyLock = false;
 
   const data = await fbGet(`rooms/${S.code}/players`);
   const sorted = sortPlayers(data || {});
@@ -4966,39 +5023,42 @@ function showMyRole(){
 }
 
 async function checkAllReady(){
-  if(!S.isHost)return;
-  const [pl,rd]=await Promise.all([
-    fbGet(`rooms/${S.code}/players`),
-    fbGet(`rooms/${S.code}/ready`)
-  ]);
-  
-  const activePlayers=Object.keys(pl||{}).filter(id=>{
-    const p=(pl||{})[id];
-    return p && !p.isRejoinWaiting;
-  });
-  
-  if(activePlayers.length===0) return;
-  
-  const readyIds=Object.keys(rd||{});
-  const readyAndActive=readyIds.filter(id=>activePlayers.includes(id));
-  
-  // لو كل اللاعبين الموجودين جاهزين → انتقل
-  if(readyAndActive.length>=activePlayers.length){
-    await fbRemove(`rooms/${S.code}/ready`);
-    await pushPhase('timer');
-    return;
-  }
+  if(!S.isHost || _checkReadyLock) return;
+  _checkReadyLock = true;
+  try{
+    const [pl, rd] = await Promise.all([
+      fbGet(`rooms/${S.code}/players`),
+      fbGet(`rooms/${S.code}/ready`)
+    ]);
 
-  // لو فيه لاعبين مش جاهزين → تحقق لو كلهم منفصلين
-  const notReadyActive=activePlayers.filter(id=>!readyAndActive.includes(id));
-  const allNotReadyAreGone=notReadyActive.every(id=>{
-    const p=(pl||{})[id];
-    return !p || p.status==='disconnected';
-  });
+    const activePlayers = Object.keys(pl || {}).filter(id => {
+      const p = (pl || {})[id];
+      return p && !p.isRejoinWaiting && p.status !== 'disconnected';
+    });
 
-  if(allNotReadyAreGone && readyAndActive.length>0){
-    await fbRemove(`rooms/${S.code}/ready`);
-    await pushPhase('timer');
+    if(activePlayers.length === 0){ return; }
+
+    const readyIds = Object.keys(rd || {});
+    const readyAndActive = readyIds.filter(id => activePlayers.includes(id));
+
+    if(readyAndActive.length >= activePlayers.length){
+      await fbRemove(`rooms/${S.code}/ready`);
+      await pushPhase('timer');
+      return;
+    }
+
+    const notReadyActive = activePlayers.filter(id => !readyAndActive.includes(id));
+    const allDisconnected = notReadyActive.every(id => {
+      const p = (pl || {})[id];
+      return !p || p.status === 'disconnected';
+    });
+
+    if(allDisconnected && readyAndActive.length > 0){
+      await fbRemove(`rooms/${S.code}/ready`);
+      await pushPhase('timer');
+    }
+  } finally {
+    _checkReadyLock = false;
   }
 }
 // ── Timer ──
@@ -5081,36 +5141,41 @@ document.getElementById('restartRoundBtn').addEventListener('click',async()=>{
 async function showVoteScreen(){
   showScreen('voteScreen');
   document.getElementById('votedMsg').classList.add('hidden');
-  const c=document.getElementById('voteOptionsDiv');c.innerHTML='';
+  const c = document.getElementById('voteOptionsDiv');
+  c.innerHTML = '';
 
-  // ← فلتر: أبقِ فقط أسماء اللاعبين الموجودين فعلاً (وليس في حالة انتظار)
+  // فلتر: أبقِ فقط اللاعبين الموجودين فعلاً
   const activeNames = await getActivePlayerNames();
   G.playerNames = [...new Set(G.playerNames)].filter(n => activeNames.includes(n));
 
-  // إذا كان اللاعب في وضع الانتظار، لا يصوت
-  fbGet(`rooms/${S.code}/players/${S.myId}`).then(myData=>{
+  fbGet(`rooms/${S.code}/players/${S.myId}`).then(myData => {
     if(myData && myData.isRejoinWaiting){
       document.getElementById('votedMsg').classList.remove('hidden');
-      document.getElementById('votedMsg').textContent='⏳ استنى الجولة دي تخلص...';
-      if(S.isHost) fbListen(`rooms/${S.code}/votes`,()=>checkAllVoted());
+      document.getElementById('votedMsg').textContent = '⏳ استنى الجولة دي تخلص...';
+      if(S.isHost) fbListen(`rooms/${S.code}/votes`, () => checkAllVoted());
       return;
     }
-    
-    let voteLock=false;
-    fbGet(`rooms/${S.code}/votes/${S.myId}`).then(val=>{
-      if(val){showVotedState();return;}
-      G.playerNames.forEach(name=>{
-        if(name===S.myName)return;
-        const d=document.createElement('div');d.className='vote-option';d.textContent=name;
-        d.addEventListener('click',()=>{
-          if(voteLock)return;voteLock=true;SoundSystem.click();
+
+    let voteLock = false;
+    fbGet(`rooms/${S.code}/votes/${S.myId}`).then(val => {
+      if(val){ showVotedState(); return; }
+      G.playerNames.forEach(name => {
+        if(name === S.myName) return;
+        const d = document.createElement('div');
+        d.className = 'vote-option';
+        d.textContent = name;
+        d.addEventListener('click', () => {
+          if(voteLock) return;
+          voteLock = true;
+          SoundSystem.click();
           showVotedState();
-          fbUpdate(`rooms/${S.code}/votes`,{[S.myId]:name}).then(()=>{if(S.isHost)checkAllVoted();});
+          fbUpdate(`rooms/${S.code}/votes`, {[S.myId]: name})
+            .then(() => { if(S.isHost) checkAllVoted(); });
         });
         c.appendChild(d);
       });
     });
-    if(S.isHost) fbListen(`rooms/${S.code}/votes`,()=>checkAllVoted());
+    if(S.isHost) fbListen(`rooms/${S.code}/votes`, () => checkAllVoted());
   });
 }
 function showVotedState(){
@@ -5119,43 +5184,45 @@ function showVotedState(){
 }
 async function checkAllVoted(){
   if(!S.isHost) return;
-  const [pData,vData]=await Promise.all([
+  const [pData, vData] = await Promise.all([
     fbGet(`rooms/${S.code}/players`),
     fbGet(`rooms/${S.code}/votes`)
   ]);
-  const votes=vData||{};
-  const allPlayers=Object.entries(pData||{});
-  if(allPlayers.length===0) return;
+  const votes = vData || {};
+  const allPlayers = Object.entries(pData || {});
+  if(allPlayers.length === 0) return;
 
-  // تجاهل المنتظرين وغير المتصلين، وتجاهل من خرج من اللعبة فعلياً (مش في G.playerNames)
-  const activePlayers=allPlayers
-    .filter(([id,p])=>p.status!=='disconnected' && !p.isRejoinWaiting && G.playerNames.includes(p.name))
-    .map(([id])=>id);
+  const activePlayers = allPlayers
+    .filter(([id, p]) =>
+      p.status !== 'disconnected' &&
+      !p.isRejoinWaiting &&
+      G.playerNames.includes(p.name)
+    )
+    .map(([id]) => id);
 
-  const realActive = activePlayers;
-  // فلتر الأصوات: بس الأصوات الجاية من لاعبين نشطين حالياً، وعلى أسماء موجودة في G.playerNames
+  // فلتر الأصوات: فقط من لاعبين نشطين وعلى أسماء موجودة في G.playerNames
   const validVotes = {};
-  Object.entries(votes).forEach(([voterId,votedName])=>{
-    if(realActive.includes(voterId) && G.playerNames.includes(votedName)){
-      validVotes[voterId]=votedName;
+  Object.entries(votes).forEach(([voterId, votedName]) => {
+    if(activePlayers.includes(voterId) && G.playerNames.includes(votedName)){
+      validVotes[voterId] = votedName;
     }
   });
-  const votedCount=Object.keys(validVotes).length;
-  if(votedCount<realActive.length) return;
 
-  const vByName={};
-  Object.entries(validVotes).forEach(([pid,voted])=>{
-    const p=(pData||{})[pid];
-    if(p && !p.isRejoinWaiting) vByName[p.name]=voted;
+  if(Object.keys(validVotes).length < activePlayers.length) return;
+
+  const vByName = {};
+  Object.entries(validVotes).forEach(([pid, voted]) => {
+    const p = (pData || {})[pid];
+    if(p && !p.isRejoinWaiting) vByName[p.name] = voted;
   });
 
-  const sc=calcScores(vByName);
-  const ci=G.roles.indexOf('مجرم');
-  const cn=G.playerNames[ci];
-  const isCrimFound=Object.values(vByName).filter(v=>v===cn).length>0;
-  const curGd=await fbGet(`rooms/${S.code}/gameData`);
-  const gd={...curGd,scores:sc.total,roundScores:sc.round,votes:vByName,isCrimFound,voteIdx:0};
-  await fbUpdate(`rooms/${S.code}`,{gameData:gd});
+  const sc = calcScores(vByName);
+  const ci = G.roles.indexOf('مجرم');
+  const cn = G.playerNames[ci];
+  const isCrimFound = Object.values(vByName).filter(v => v === cn).length > 0;
+  const curGd = await fbGet(`rooms/${S.code}/gameData`);
+  const gd = {...curGd, scores: sc.total, roundScores: sc.round, votes: vByName, isCrimFound, voteIdx: 0};
+  await fbUpdate(`rooms/${S.code}`, {gameData: gd});
   await fbRemove(`rooms/${S.code}/votes`);
   await pushPhase('voteResults');
 }
@@ -6342,6 +6409,8 @@ async function doNewRound() {
   G.timerRunning = false; _gl = false; _revealDone = false;
   _phaseListenerActive = false;
   handlePhase._lastKey = '';
+  _phaseChanging = false;
+  _checkReadyLock = false;
 
   const data = await fbGet(`rooms/${S.code}/players`);
   const sorted = sortPlayers(data || {});
