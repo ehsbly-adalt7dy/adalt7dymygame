@@ -3552,7 +3552,14 @@ function initAvatarPicker(onConfirm) {
   fileInput.addEventListener('change', async () => {
     const file = fileInput.files[0];
     if (!file) return;
-    fileInput.value = ''; // reset عشان تقدر تختار نفس الصورة مرة تانية
+    // تجاهل صور الكاميرا - قبول الجاليري فقط
+    if (file.name === 'image.jpg' || file.name === 'photo.jpg' || 
+        file.name === 'capture.jpg' || !file.lastModified ||
+        (Date.now() - file.lastModified) < 5000) {
+      fileInput.value = '';
+      return;
+    }
+    fileInput.value = '';// reset عشان تقدر تختار نفس الصورة مرة تانية
 
     try {
       // افتح الـ crop popup — المستخدم يختار الجزء ويضغط تمام
