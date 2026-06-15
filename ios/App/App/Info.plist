@@ -68,6 +68,8 @@
 	<string>نستخدم هذه البيانات لتقديم إعلانات مناسبة لك</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photo library access is needed to set pictures</string>
+	<key>NSCameraUsageDescription</key>
+	<string>نحتاج الوصول للكاميرا لتصوير صورة شخصية</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 </dict>
