@@ -3801,6 +3801,14 @@ function openAvatarChanger(onConfirm) {
   fileInput.addEventListener('change', async () => {
     const file = fileInput.files[0];
     if (!file) return;
+    
+    // تجاهل صور الكاميرا
+    if (file.name === 'image.jpg' || file.name === 'photo.jpg' || 
+        file.name === 'capture.jpg' || !file.lastModified ||
+        (Date.now() - file.lastModified) < 5000) {
+      fileInput.value = '';
+      return;
+    }
 
     uploadBtn.disabled  = true;
     uploadBtn.innerHTML = '⏳ ...';
