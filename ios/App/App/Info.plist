@@ -57,8 +57,6 @@
 			<string>2fnua5tdw4.skadnetwork</string>
 		</dict>
 	</array>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>نستخدم هذه البيانات لتقديم إعلانات مناسبة لك</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photo library access is needed to set pictures</string>
 	<key>NSCameraUsageDescription</key>
