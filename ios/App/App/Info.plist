@@ -42,6 +42,8 @@
 	<true/>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-7625725860156398~8510787664</string>
+    <key>NSUserTrackingUsageDescription</key>
+    <string>app ask to track</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>
@@ -60,7 +62,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photo library access is needed to set pictures</string>
 	<key>NSCameraUsageDescription</key>
-	<string>نحتاج الوصول للكاميرا لتصوير صورة شخصية</string>
+	<string>we want access to photos</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 </dict>
