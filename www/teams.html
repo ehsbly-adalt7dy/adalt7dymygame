@@ -1027,24 +1027,7 @@
 
 </div>
 
-<script>
-async function initAdMob() {
-  try {
-    const { AdMob } = window.Capacitor.Plugins;
-    await AdMob.initialize({
-      requestTrackingAuthorization: true,   // ← مهم عشان يطلب الإذن على iOS
-      isTesting: false
-    });
-    console.log('✅ AdMob initialized');
-  } catch(e) {
-    console.error('❌ AdMob init error:', e);
-  }
-}
-
-// استدعي التهيئة عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', () => {
-  initAdMob();
-});   
+<script> 
 // ==================== CATEGORY NAMES ====================
 const CATEGORY_NAMES = {
   places: 'أماكن',
@@ -2327,7 +2310,7 @@ function showRewardedAd(onRewarded) {
   });
 
   AdMob.prepareRewardVideoAd({
-    adId: 'ca-app-pub-7625725860156398/7549059785',
+    adId: 'ca-app-pub-3940256099942544/5224354917',
     isTesting: false
   });
 }
