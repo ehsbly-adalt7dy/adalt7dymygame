@@ -42,8 +42,6 @@
 	<true/>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-7625725860156398~8510787664</string>
-    <key>NSUserTrackingUsageDescription</key>
-    <string>app ask to track</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>
