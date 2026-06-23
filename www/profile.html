@@ -913,7 +913,24 @@
     .hidden { display: none !important; }
   </style>
 
-  <script>
+<script>
+    async function initAdMob() {
+    try {
+        const { AdMob } = window.Capacitor.Plugins;
+        await AdMob.initialize({
+        requestTrackingAuthorization: true,   // ← مهم على iOS
+        isTesting: false
+        });
+        console.log('✅ AdMob initialized');
+    } catch(e) {
+        console.error('❌ AdMob init error:', e);
+    }
+    }
+
+    // استدعي التهيئة عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', () => {
+    initAdMob();
+    });
   const AdConfig = {
     rewarded: 'ca-app-pub-7625725860156398/7549059785',
     interstitial: 'ca-app-pub-7625725860156398/3609814777'
