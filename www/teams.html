@@ -1028,6 +1028,23 @@
 </div>
 
 <script>
+async function initAdMob() {
+  try {
+    const { AdMob } = window.Capacitor.Plugins;
+    await AdMob.initialize({
+      requestTrackingAuthorization: true,   // ← مهم عشان يطلب الإذن على iOS
+      isTesting: false
+    });
+    console.log('✅ AdMob initialized');
+  } catch(e) {
+    console.error('❌ AdMob init error:', e);
+  }
+}
+
+// استدعي التهيئة عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+  initAdMob();
+});   
 // ==================== CATEGORY NAMES ====================
 const CATEGORY_NAMES = {
   places: 'أماكن',
