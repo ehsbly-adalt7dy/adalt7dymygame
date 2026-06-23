@@ -6058,7 +6058,7 @@
         const { AdMob } = window.Capacitor.Plugins;
         console.log('AdMob plugin:', AdMob);
 
-        await AdMob.initialize({ requestTrackingAuthorization: false });
+        await AdMob.initialize({ requestTrackingAuthorization: true });
         console.log('Banner shown');
 
         preloadRewarded();
