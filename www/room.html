@@ -3932,7 +3932,7 @@ async function showRewarded(cb,loadingMsg){try{const{AdMob}=window.Capacitor.Plu
 async function showInterstitial(cb){try{const{AdMob}=window.Capacitor.Plugins;_adLsnRm(_lsnIs);_lsnIs=null;if(!interstitialReady){const loadTimer=setTimeout(()=>_showAdLoading('جاري التحميل...'),800);await preloadInterstitial();clearTimeout(loadTimer);_hideAdLoading();}if(!interstitialReady){_hideAdLoading();cb();return;}let done=false;const fn=()=>{if(!done){done=true;interstitialReady=false;_adLsnRm(_lsnIs);_lsnIs=null;preloadInterstitial();cb();}};_lsnIs=AdMob.addListener('interstitialAdDismissed',()=>setTimeout(fn,300));await AdMob.showInterstitial();}catch(e){_hideAdLoading();interstitialReady=false;_adLsnRm(_lsnIs);_lsnIs=null;preloadInterstitial();cb();}}
 
 document.addEventListener('deviceready',async()=>{
-  try{const{AdMob}=window.Capacitor.Plugins;await AdMob.initialize({requestTrackingAuthorization:true});await AdMob.showBanner({adId:AdConfig.banner,adSize:'ADAPTIVE_BANNER',position:'BOTTOM_CENTER',margin:0,isTesting:false});preloadRewarded();preloadInterstitial();}catch(e){}
+  try{const{AdMob}=window.Capacitor.Plugins;await AdMob.initialize({requestTrackingAuthorization:false});await AdMob.showBanner({adId:AdConfig.banner,adSize:'ADAPTIVE_BANNER',position:'BOTTOM_CENTER',margin:0,isTesting:false});preloadRewarded();preloadInterstitial();}catch(e){}
 });
 
 // ── Screens ──
