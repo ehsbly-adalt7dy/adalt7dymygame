@@ -1172,8 +1172,11 @@
         <span id="profileAvatarText" class="profile-avatar-text">👤</span>
         <div class="avatar-edit-icon" id="avatarEditIcon">✏️</div>
       </div>
-      <div>
-        <div class="profile-username" id="profileUsername">اللاعب</div>
+            <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:2vw;">
+          <div class="profile-username" id="profileUsername">اللاعب</div>
+          <span id="editNameIcon" style="cursor:pointer;font-size:4.5vw;opacity:0.85;">✏️</span>
+        </div>
         <div class="profile-sub">مود الأوضة 🏠</div>
       </div>
     </div>
@@ -1485,6 +1488,15 @@
     const AVATAR_COUNT = 20;
     let currentAvatar = 'av1';
     const AVATAR_STORAGE_KEY = 'qadAlTahadi_avatar';
+    const NAME_STORAGE_KEY = 'qadAlTahadi_savedName';
+    function getSavedName() {
+    try { return localStorage.getItem(NAME_STORAGE_KEY) || null; }
+    catch(e) { return null; }
+    }
+    function saveNameLocally(name) {
+    try { localStorage.setItem(NAME_STORAGE_KEY, name); }
+    catch(e) {}
+    }
 
    function saveAvatar(avatarName) {
       try { localStorage.setItem(AVATAR_STORAGE_KEY, avatarName); currentAvatar = avatarName; } catch(e) {}
