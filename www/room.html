@@ -1701,6 +1701,31 @@ function getSavedAvatar() {
 }
 
 function saveAvatarLocally(av) {
+    // ══ AVATAR PERSISTENCE ══
+const AVATAR_STORAGE_KEY = 'qadAlTahadi_savedAvatar';
+
+function getSavedAvatar() {
+  try { return localStorage.getItem(AVATAR_STORAGE_KEY) || null; }
+  catch(e) { return null; }
+}
+
+function saveAvatarLocally(av) {
+  try { localStorage.setItem(AVATAR_STORAGE_KEY, av); }
+  catch(e) {}
+}
+
+// ══ NAME PERSISTENCE (جديد) ══
+const NAME_STORAGE_KEY = 'qadAlTahadi_savedName';
+
+function getSavedName() {
+  try { return localStorage.getItem(NAME_STORAGE_KEY) || null; }
+  catch(e) { return null; }
+}
+
+function saveNameLocally(name) {
+  try { localStorage.setItem(NAME_STORAGE_KEY, name); }
+  catch(e) {}
+}
   try { localStorage.setItem(AVATAR_STORAGE_KEY, av); }
   catch(e) {}
 }
@@ -3675,7 +3700,6 @@ function openAvatarChanger(onConfirm) {
 
   const N = AVATAR_COUNT;
   const savedAv  = getSavedAvatar() || 'av1';
-  // لو URL → ابدأ من 0 (custom)، لو av5 → ابدأ من 4
   const savedIdx = savedAv.startsWith('http') ? -1 : parseInt(savedAv.replace('av','')) - 1;
   let current = isNaN(savedIdx) || savedIdx < 0 ? 0 : savedIdx;
   let pendingCustomUrl = null;
@@ -3686,30 +3710,58 @@ function openAvatarChanger(onConfirm) {
 
   overlay.innerHTML = `
     <div class="avatar-popup-box">
-      <div class="avatar-popup-title">✏️ غيّر صورتك</div>
+      <div class="avatar-popup-title">✏️ عدّل بياناتك</div>
 
-      <div style="display:flex;align-items:center;justify-content:center;width:100%;">
-        <button id="uploadAvatarBtn" style="
-          background:linear-gradient(135deg,#FF9500,#FF6B00);
-          border:none;border-radius:999px;
-          padding:2.5vw 6vw;color:white;
-          font-size:4.5vw;font-weight:700;
-          font-family:'Cairo',sans-serif;cursor:pointer;
-          display:flex;align-items:center;gap:2vw;
-          box-shadow:0 4px 16px rgba(255,107,0,0.45);
-          transition:all 0.2s ease;
-        ">📸 اختر صورة</button>
-        <input type="file" id="avatarFileInput" accept=".jpg,.jpeg,.png,.webp" style="display:none;">
+      <!-- ══ التابات ══ -->
+      <div style="display:flex;gap:1.5vw;width:100%;background:rgba(0,0,0,0.18);border-radius:999px;padding:1vw;">
+        <button id="tabAvatarBtn" style="
+          flex:1;padding:2.8vw 0;border:none;border-radius:999px;
+          font-family:'Cairo',sans-serif;font-size:4vw;font-weight:700;
+          cursor:pointer;transition:all 0.25s ease;
+          background:#fff;color:#333;">🖼️ الصورة</button>
+        <button id="tabNameBtn" style="
+          flex:1;padding:2.8vw 0;border:none;border-radius:999px;
+          font-family:'Cairo',sans-serif;font-size:4vw;font-weight:700;
+          cursor:pointer;transition:all 0.25s ease;
+          background:transparent;color:rgba(255,255,255,0.65);">✏️ الاسم</button>
       </div>
 
-      <div class="avatar-carousel-wrapper">
-        <button class="avatar-nav" id="avPrev">›</button>
-        <div class="avatar-carousel" id="avatarCarousel"></div>
-        <button class="avatar-nav" id="avNext">‹</button>
+      <!-- ══ قسم الصورة ══ -->
+      <div id="avatarTabContent" style="display:flex;flex-direction:column;align-items:center;gap:4vw;width:100%;">
+        <div style="display:flex;align-items:center;justify-content:center;width:100%;">
+          <button id="uploadAvatarBtn" style="
+            background:linear-gradient(135deg,#FF9500,#FF6B00);
+            border:none;border-radius:999px;
+            padding:2.5vw 6vw;color:white;
+            font-size:4.5vw;font-weight:700;
+            font-family:'Cairo',sans-serif;cursor:pointer;
+            display:flex;align-items:center;gap:2vw;
+            box-shadow:0 4px 16px rgba(255,107,0,0.45);
+            transition:all 0.2s ease;
+          ">📸 اختر صورة</button>
+          <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
+        </div>
+
+        <div class="avatar-carousel-wrapper">
+          <button class="avatar-nav" id="avPrev">›</button>
+          <div class="avatar-carousel" id="avatarCarousel"></div>
+          <button class="avatar-nav" id="avNext">‹</button>
+        </div>
+
+        <div class="avatar-dots" id="avDots"></div>
+        <div class="avatar-counter" id="avCounter"></div>
       </div>
 
-      <div class="avatar-dots" id="avDots"></div>
-      <div class="avatar-counter" id="avCounter"></div>
+      <!-- ══ قسم الاسم ══ -->
+      <div id="nameTabContent" style="display:none;flex-direction:column;align-items:center;gap:3vw;width:100%;padding:4vw 0;">
+        <div style="font-size:4.5vw;color:rgba(255,255,255,0.9);font-weight:700;font-family:'Cairo',sans-serif;">غيّر اسمك</div>
+        <input type="text" id="avNameInput" maxlength="10" placeholder="اسمك"
+          style="font-size:7vw;font-weight:900;text-align:center;
+          border:2.5px solid rgba(255,255,255,0.5);border-radius:var(--radius-md);
+          padding:4vw;width:82%;color:#333;background:rgba(255,255,255,0.95);
+          font-family:'Cairo',sans-serif;outline:none;">
+        <p id="avNameErr" class="error hidden">اكتب اسم صح!</p>
+      </div>
 
       <button class="avatar-confirm" id="avConfirmBtn">تمام ✅</button>
     </div>
@@ -3717,9 +3769,38 @@ function openAvatarChanger(onConfirm) {
 
   document.body.appendChild(overlay);
 
-  const carousel = overlay.querySelector("#avatarCarousel");
-  const dots     = overlay.querySelector("#avDots");
-  const counter  = overlay.querySelector("#avCounter");
+  const carousel  = overlay.querySelector("#avatarCarousel");
+  const dots      = overlay.querySelector("#avDots");
+  const counter   = overlay.querySelector("#avCounter");
+  const nameInput = overlay.querySelector("#avNameInput");
+  nameInput.value = S.myName || getSavedName() || '';
+
+  // ── التبديل بين التابين ──
+  const tabAvatarBtn     = overlay.querySelector('#tabAvatarBtn');
+  const tabNameBtn       = overlay.querySelector('#tabNameBtn');
+  const avatarTabContent = overlay.querySelector('#avatarTabContent');
+  const nameTabContent   = overlay.querySelector('#nameTabContent');
+
+  function setActiveTab(tab) {
+    if (tab === 'avatar') {
+      avatarTabContent.style.display = 'flex';
+      nameTabContent.style.display   = 'none';
+      tabAvatarBtn.style.background  = '#fff';
+      tabAvatarBtn.style.color       = '#333';
+      tabNameBtn.style.background    = 'transparent';
+      tabNameBtn.style.color         = 'rgba(255,255,255,0.65)';
+    } else {
+      avatarTabContent.style.display = 'none';
+      nameTabContent.style.display   = 'flex';
+      tabNameBtn.style.background    = '#fff';
+      tabNameBtn.style.color         = '#333';
+      tabAvatarBtn.style.background  = 'transparent';
+      tabAvatarBtn.style.color       = 'rgba(255,255,255,0.65)';
+      setTimeout(()=>nameInput.focus(), 100);
+    }
+  }
+  tabAvatarBtn.addEventListener('click', ()=>{ SoundSystem.click(); setActiveTab('avatar'); });
+  tabNameBtn.addEventListener('click',   ()=>{ SoundSystem.click(); setActiveTab('name'); });
 
   // لو الصورة المحفوظة custom → أضفها في الأول
   if (savedAv.startsWith('http')) {
@@ -3801,14 +3882,6 @@ function openAvatarChanger(onConfirm) {
   fileInput.addEventListener('change', async () => {
     const file = fileInput.files[0];
     if (!file) return;
-    
-    // تجاهل صور الكاميرا
-    if (file.name === 'image.jpg' || file.name === 'photo.jpg' || 
-        file.name === 'capture.jpg' || !file.lastModified ||
-        (Date.now() - file.lastModified) < 5000) {
-      fileInput.value = '';
-      return;
-    }
 
     uploadBtn.disabled  = true;
     uploadBtn.innerHTML = '⏳ ...';
@@ -3849,23 +3922,50 @@ function openAvatarChanger(onConfirm) {
     }
   });
 
-  overlay.querySelector("#avConfirmBtn").addEventListener("click", () => {
+  // ── تأكيد الاختيار (صورة + اسم) ──
+  overlay.querySelector("#avConfirmBtn").addEventListener("click", async () => {
     SoundSystem.click();
-    // لو اختار صورة مخصصة → استخدمها
-    const customUrl = overlay.querySelector('#avConfirmBtn')._customUrl;
-    if (customUrl) {
-      saveAvatarLocally(customUrl);
-      overlay.remove();
-      onConfirm(customUrl);
+
+    const newName = nameInput.value.trim();
+    const errEl = overlay.querySelector('#avNameErr');
+    errEl.classList.add('hidden');
+
+    if (!newName) {
+      errEl.textContent = 'اكتب اسم صح!';
+      errEl.classList.remove('hidden');
+      setActiveTab('name');
       return;
     }
-    // وإلا خذ من الكاروسيل
-    const items  = getItems();
-    const active = items[current];
-    const chosen = active?.dataset.avKey || `av${current + 1}`;
-    saveAvatarLocally(chosen);
+
+    // تحقق من تعارض الاسم مع لاعبين تانيين في نفس الأوضة
+    if (S.code && newName.toLowerCase() !== (S.myName || '').toLowerCase()) {
+      const players = await fbGet(`rooms/${S.code}/players`).catch(()=>null);
+      const conflict = Object.values(players || {}).some(p =>
+        p.name && p.name.toLowerCase() === newName.toLowerCase() &&
+        p.name.toLowerCase() !== (S.myName || '').toLowerCase()
+      );
+      if (conflict) {
+        errEl.textContent = 'الاسم ده موجود! اختار اسم تاني';
+        errEl.classList.remove('hidden');
+        setActiveTab('name');
+        return;
+      }
+    }
+
+    const customUrl = pendingCustomUrl;
+    let chosenAvatar;
+    if (customUrl) {
+      chosenAvatar = customUrl;
+    } else {
+      const items  = getItems();
+      const active = items[current];
+      chosenAvatar = active?.dataset.avKey || `av${current + 1}`;
+    }
+
+    saveAvatarLocally(chosenAvatar);
+    saveNameLocally(newName);
     overlay.remove();
-    onConfirm(chosen);
+    onConfirm(chosenAvatar, newName);
   });
 
   overlay.addEventListener("click", e => {
@@ -4114,18 +4214,25 @@ function renderList(containerId,players,maxPlayers,countId){
       ${manageBtn}
     `;
 
-    if (isMe) {
+        if (isMe) {
       const editBtn = d.querySelector('.avatar-edit-btn');
       if (editBtn) {
         editBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          openAvatarChanger(async (newAv) => {
+          openAvatarChanger(async (newAv, newName) => {
             S.myAvatar = newAv;
+            const nameChanged = newName && newName !== S.myName;
             if (S.code && S.myId) {
               try {
-                await fbUpdate(`rooms/${S.code}/players/${S.myId}`, { avatar: newAv });
-              } catch(err) { console.error('avatar update err', err); }
+                const updates = { avatar: newAv };
+                if (nameChanged) updates.name = newName;
+                await fbUpdate(`rooms/${S.code}/players/${S.myId}`, updates);
+                if (S.isHost && nameChanged) {
+                  await fbUpdate(`rooms/${S.code}`, { hostName: newName });
+                }
+              } catch(err) { console.error('avatar/name update err', err); }
             }
+            if (nameChanged) S.myName = newName;
           });
         });
       }
@@ -4643,15 +4750,17 @@ window.addEventListener('pagehide',()=>{if(S.isHost&&S.code){hostLeaveCleanup();
 
 // ── Create flow ──
 document.getElementById('btnCreate').addEventListener('click',()=>{
-  document.getElementById('hostNameInput').value='';
+  document.getElementById('hostNameInput').value = getSavedName() || '';
   document.getElementById('hostNameErr').classList.add('hidden');
   showScreen('hostNameScreen');
 });
+
 
 document.getElementById('hostNameNext').addEventListener('click',()=>{
   const n=document.getElementById('hostNameInput').value.trim();
   if(!n){document.getElementById('hostNameErr').classList.remove('hidden');return;}
   S.myName=n;S.isHost=true;
+  saveNameLocally(n);
   document.getElementById('hostNameErr').classList.add('hidden');
   initAvatarPicker((av)=>{S.myAvatar=av;showScreen('setupScreen');});
 });
@@ -6406,7 +6515,8 @@ async function doNewRound() {
 document.getElementById('btnJoin').addEventListener('click',()=>{
   _joinLock=false;
   const btn=document.getElementById('doJoin');btn.textContent='دخول 🚀';btn.disabled=false;
-  document.getElementById('joinCode').value='';document.getElementById('joinName').value='';
+  document.getElementById('joinCode').value='';
+  document.getElementById('joinName').value = getSavedName() || '';
   document.getElementById('joinErr').classList.add('hidden');showScreen('joinScreen');
 });
 
@@ -6567,6 +6677,9 @@ document.getElementById('doJoin').addEventListener('click', async () => {
     }
 
     S.code = code; S.myName = name; S.isHost = false; S.myId = myId;
+     S.code = code; S.myName = name; S.isHost = false; S.myId = myId;
+    saveNameLocally(name);
+
     S.maxPlayers = 20; S.category = roomData.category; S.timeMinutes = roomData.timeMinutes;
 
     if (isActualRejoin) {
