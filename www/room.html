@@ -1730,258 +1730,9 @@ function saveNameLocally(name) {
   catch(e) {}
 }
 // ── Crop صورة دائرياً ──
-function showCropPopup(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const imgSrc = e.target.result;
 
-      const old = document.getElementById('cropPopupOverlay');
-      if (old) old.remove();
 
-      const overlay = document.createElement('div');
-      overlay.id = 'cropPopupOverlay';
-      overlay.style.cssText = `
-        position:fixed;top:0;left:0;right:0;bottom:0;
-        background:rgba(0,0,0,0.95);
-        display:flex;flex-direction:column;
-        align-items:center;justify-content:center;
-        z-index:200000;gap:4vw;padding:6vw;
-      `;
 
-      overlay.innerHTML = `
-        <div style="font-size:5.5vw;font-weight:900;color:#fff;
-          font-family:'Cairo',sans-serif;text-align:center;">
-          ✂️ اختار الجزء اللي تريده
-        </div>
-        <div id="cropContainer" style="
-          position:relative;
-          width:80vw;height:80vw;
-          max-width:300px;max-height:300px;
-          overflow:hidden;
-          border-radius:50%;
-          border:4px solid #ff8c94;
-          box-shadow:0 0 0 4px rgba(255,140,148,0.3),0 8px 32px rgba(0,0,0,0.5);
-          cursor:grab;touch-action:none;
-          flex-shrink:0;
-          background:#111;
-        ">
-          <canvas id="cropCanvas" style="
-            position:absolute;top:0;left:0;
-            width:100%;height:100%;
-          "></canvas>
-        </div>
-        <div style="display:flex;align-items:center;gap:3vw;width:80vw;max-width:300px;">
-          <span style="font-size:5vw;">🔍-</span>
-          <input type="range" id="cropZoom" min="0" max="100" step="1" value="0" style="
-            flex:1;-webkit-appearance:none;height:6px;border-radius:3px;
-            background:linear-gradient(90deg,#aa96da,#ff8c94);outline:none;cursor:pointer;
-          ">
-          <span style="font-size:5vw;">🔍+</span>
-        </div>
-        <div style="display:flex;gap:4vw;width:80vw;max-width:300px;">
-          <button id="cropCancelBtn" style="
-            flex:1;padding:4vw;border:1.5px solid rgba(255,255,255,0.3);
-            border-radius:4vw;background:rgba(255,255,255,0.12);
-            color:#fff;font-size:5vw;font-weight:700;
-            font-family:'Cairo',sans-serif;cursor:pointer;">إلغاء</button>
-          <button id="cropConfirmBtn" style="
-            flex:2;padding:4vw;border:none;border-radius:4vw;
-            background:linear-gradient(135deg,#ff8c94,#ff6b75);
-            color:#fff;font-size:5vw;font-weight:700;
-            font-family:'Cairo',sans-serif;cursor:pointer;
-            box-shadow:0 4px 16px rgba(255,107,117,0.4);">✅ تمام</button>
-        </div>
-      `;
-
-      document.body.appendChild(overlay);
-
-      const container = overlay.querySelector('#cropContainer');
-      const canvas    = overlay.querySelector('#cropCanvas');
-      const ctx       = canvas.getContext('2d');
-      const zoomSlider = overlay.querySelector('#cropZoom');
-
-      // حجم الـ container بالـ pixel الفعلي
-      const DISPLAY_SIZE = Math.min(
-        container.getBoundingClientRect().width || 300, 300
-      );
-      canvas.width  = DISPLAY_SIZE;
-      canvas.height = DISPLAY_SIZE;
-
-      const img = new Image();
-
-      // متغيرات الـ state
-      let imgW = 0, imgH = 0;
-      let minScale = 1, maxScale = 1;
-      let scale = 1;
-      let offsetX = 0, offsetY = 0;
-      let dragStartX = 0, dragStartY = 0;
-      let lastOffX = 0, lastOffY = 0;
-      let isDragging = false;
-
-      function clamp() {
-        const scaledW = imgW * scale;
-        const scaledH = imgH * scale;
-        offsetX = Math.min(0, Math.max(DISPLAY_SIZE - scaledW, offsetX));
-        offsetY = Math.min(0, Math.max(DISPLAY_SIZE - scaledH, offsetY));
-      }
-
-      function draw() {
-        ctx.clearRect(0, 0, DISPLAY_SIZE, DISPLAY_SIZE);
-        ctx.drawImage(img, offsetX, offsetY, imgW * scale, imgH * scale);
-      }
-
-      img.onload = () => {
-        imgW = img.naturalWidth;
-        imgH = img.naturalHeight;
-
-        // أصغر scale يملأ الدائرة كلها
-        minScale = Math.max(DISPLAY_SIZE / imgW, DISPLAY_SIZE / imgH);
-        maxScale = minScale * 4;
-        scale = minScale;
-
-        // توسيط
-        offsetX = (DISPLAY_SIZE - imgW * scale) / 2;
-        offsetY = (DISPLAY_SIZE - imgH * scale) / 2;
-        clamp();
-        draw();
-      };
-
-      // مهم: no-CORS بس هو data URL فما في مشكلة
-      img.src = imgSrc;
-
-      // ── Zoom slider ──
-      zoomSlider.addEventListener('input', () => {
-        const ratio = parseInt(zoomSlider.value) / 100;
-        const newScale = minScale + (maxScale - minScale) * ratio;
-        const cx = DISPLAY_SIZE / 2;
-        const cy = DISPLAY_SIZE / 2;
-        offsetX = cx - (cx - offsetX) * (newScale / scale);
-        offsetY = cy - (cy - offsetY) * (newScale / scale);
-        scale = newScale;
-        clamp();
-        draw();
-      });
-
-      // ── Mouse drag ──
-      container.addEventListener('mousedown', ev => {
-        isDragging = true;
-        dragStartX = ev.clientX;
-        dragStartY = ev.clientY;
-        lastOffX = offsetX;
-        lastOffY = offsetY;
-        container.style.cursor = 'grabbing';
-        ev.preventDefault();
-      });
-      window.addEventListener('mousemove', ev => {
-        if (!isDragging) return;
-        offsetX = lastOffX + (ev.clientX - dragStartX);
-        offsetY = lastOffY + (ev.clientY - dragStartY);
-        clamp(); draw();
-      });
-      window.addEventListener('mouseup', () => {
-        isDragging = false;
-        container.style.cursor = 'grab';
-      });
-
-      // ── Touch drag ──
-      let touchStartX = 0, touchStartY = 0, touchLastX = 0, touchLastY = 0;
-      let lastPinchDist = 0;
-
-      container.addEventListener('touchstart', ev => {
-        if (ev.touches.length === 1) {
-          touchStartX = ev.touches[0].clientX;
-          touchStartY = ev.touches[0].clientY;
-          touchLastX = offsetX;
-          touchLastY = offsetY;
-          isDragging = true;
-        } else if (ev.touches.length === 2) {
-          isDragging = false;
-          const dx = ev.touches[0].clientX - ev.touches[1].clientX;
-          const dy = ev.touches[0].clientY - ev.touches[1].clientY;
-          lastPinchDist = Math.hypot(dx, dy);
-        }
-        ev.preventDefault();
-      }, { passive: false });
-
-      container.addEventListener('touchmove', ev => {
-        if (ev.touches.length === 1 && isDragging) {
-          offsetX = touchLastX + (ev.touches[0].clientX - touchStartX);
-          offsetY = touchLastY + (ev.touches[0].clientY - touchStartY);
-          clamp(); draw();
-        } else if (ev.touches.length === 2) {
-          const dx = ev.touches[0].clientX - ev.touches[1].clientX;
-          const dy = ev.touches[0].clientY - ev.touches[1].clientY;
-          const dist = Math.hypot(dx, dy);
-          if (lastPinchDist === 0) { lastPinchDist = dist; return; }
-          const newScale = Math.min(maxScale, Math.max(minScale, scale * (dist / lastPinchDist)));
-          const cx = DISPLAY_SIZE / 2;
-          const cy = DISPLAY_SIZE / 2;
-          offsetX = cx - (cx - offsetX) * (newScale / scale);
-          offsetY = cy - (cy - offsetY) * (newScale / scale);
-          scale = newScale;
-          lastPinchDist = dist;
-          // sync slider
-          zoomSlider.value = Math.round(((scale - minScale) / (maxScale - minScale)) * 100);
-          clamp(); draw();
-        }
-        ev.preventDefault();
-      }, { passive: false });
-
-      container.addEventListener('touchend', ev => {
-        isDragging = false;
-        lastPinchDist = 0;
-      });
-
-      // ── Confirm ──
-      overlay.querySelector('#cropConfirmBtn').addEventListener('click', () => {
-        // ارسم على canvas بحجم 256 عالي الجودة
-        const OUT = 256;
-        const outCanvas = document.createElement('canvas');
-        outCanvas.width = OUT; outCanvas.height = OUT;
-        const outCtx = outCanvas.getContext('2d');
-
-        // دائرة clip
-        outCtx.beginPath();
-        outCtx.arc(OUT/2, OUT/2, OUT/2, 0, Math.PI * 2);
-        outCtx.clip();
-
-        // scale من display إلى output
-        const ratio = OUT / DISPLAY_SIZE;
-        outCtx.drawImage(
-          img,
-          offsetX * ratio, offsetY * ratio,
-          imgW * scale * ratio, imgH * scale * ratio
-        );
-
-        outCanvas.toBlob(blob => {
-          overlay.remove();
-          if (blob) resolve(blob);
-          else reject(new Error('crop failed'));
-        }, 'image/jpeg', 0.90);
-      });
-
-      // ── Cancel ──
-      overlay.querySelector('#cropCancelBtn').addEventListener('click', () => {
-        overlay.remove();
-        reject(new Error('cancelled'));
-      });
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-// ── رفع الصورة على Firebase Storage ──
-async function uploadCustomAvatar(file) {
-  // استخدم الـ interactive crop بدل الـ auto crop
-  const blob = await showCropPopup(file);
-  const fileName = `avatars/${MY_DEVICE_ID}_${Date.now()}.jpg`;
-  const sRef = storageRef(storage, fileName);
-  await uploadBytes(sRef, blob, { contentType: 'image/jpeg' });
-  const url = await getDownloadURL(sRef);
-  return url;
-}
 // ── دالة توحيد src (جاهز أو مخصص بـ URL) ──
 function getAvatarSrc(avName) {
   if (!avName) return null;
@@ -3470,7 +3221,6 @@ function initAvatarPicker(onConfirm) {
 
   const N = AVATAR_COUNT;
   let current = 0;
-  let pendingCustomUrl = null; // ← URL الصورة المرفوعة
 
   const overlay = document.createElement("div");
   overlay.id = "avatarPopupOverlay";
@@ -3480,20 +3230,7 @@ function initAvatarPicker(onConfirm) {
     <div class="avatar-popup-box">
       <div class="avatar-popup-title">🎭 اختار صورتك</div>
 
-      <!-- زر المعرض -->
-      <div style="display:flex;align-items:center;justify-content:center;width:100%;">
-        <button id="uploadAvatarBtn" style="
-          background:linear-gradient(135deg,#FF9500,#FF6B00);
-          border:none;border-radius:999px;
-          padding:2.5vw 6vw;color:white;
-          font-size:4.5vw;font-weight:700;
-          font-family:'Cairo',sans-serif;cursor:pointer;
-          display:flex;align-items:center;gap:2vw;
-          box-shadow:0 4px 16px rgba(255,107,0,0.45);
-          transition:all 0.2s ease;
-        ">📸 اختر صورة</button>
-        <input type="file" id="avatarFileInput" accept=".jpg,.jpeg,.png,.webp" style="display:none;">
-      </div>
+
 
       <div class="avatar-carousel-wrapper">
         <button class="avatar-nav" id="avPrev">›</button>
@@ -3520,7 +3257,7 @@ function initAvatarPicker(onConfirm) {
     item.className = "avatar-item";
     item.dataset.avKey = `av${i}`;
     item.innerHTML = `<img src="Avatar/av${i}.png" draggable="false">`;
-    item.addEventListener("click", () => { current = i - 1; pendingCustomUrl = null; update(); });
+    item.addEventListener("click", () => { current = i - 1; update(); });
     carousel.appendChild(item);
   }
 
@@ -3568,117 +3305,11 @@ function initAvatarPicker(onConfirm) {
   });
   window.addEventListener("pointerup", () => { dragging = false; });
 
-  // ── رفع صورة من المعرض ──
-  const uploadBtn  = overlay.querySelector('#uploadAvatarBtn');
-  const fileInput  = overlay.querySelector('#avatarFileInput');
-
-  uploadBtn.addEventListener('click', () => fileInput.click());
-
-  fileInput.addEventListener('change', async () => {
-    const file = fileInput.files[0];
-    if (!file) return;
-    // تجاهل صور الكاميرا - قبول الجاليري فقط
-    if (file.name === 'image.jpg' || file.name === 'photo.jpg' || 
-        file.name === 'capture.jpg' || !file.lastModified ||
-        (Date.now() - file.lastModified) < 5000) {
-      fileInput.value = '';
-      return;
-    }
-    fileInput.value = '';// reset عشان تقدر تختار نفس الصورة مرة تانية
-
-    try {
-      // افتح الـ crop popup — المستخدم يختار الجزء ويضغط تمام
-      const blob = await showCropPopup(file);
-
-      // بعد ما يختار → ارفع
-      uploadBtn.disabled  = true;
-      uploadBtn.innerHTML = '⏳ ...';
-
-      const fileName = `avatars/${MY_DEVICE_ID}_${Date.now()}.jpg`;
-      const sRef = storageRef(storage, fileName);
-      await uploadBytes(sRef, blob, { contentType: 'image/jpeg' });
-      const url = await getDownloadURL(sRef);
-
-      pendingCustomUrl = url;
-
-      // ── عرض preview منفصل بدل إضافتها للكاروسيل ──
-      let previewEl = overlay.querySelector('#customAvatarPreview');
-      if (!previewEl) {
-        previewEl = document.createElement('div');
-        previewEl.id = 'customAvatarPreview';
-        previewEl.style.cssText = `
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          gap:2vw;
-          width:100%;
-        `;
-        // أدخله قبل الكاروسيل مباشرة
-        const carouselWrapper = overlay.querySelector('.avatar-carousel-wrapper');
-        carouselWrapper.parentNode.insertBefore(previewEl, carouselWrapper);
-      }
-
-      previewEl.innerHTML = `
-        <div style="
-          position:relative;
-          display:inline-block;
-        ">
-          <img src="${url}" style="
-            width:20vw;height:20vw;max-width:90px;max-height:90px;
-            border-radius:50%;object-fit:cover;
-            border:3px solid var(--pink,#ff8c94);
-            box-shadow:0 4px 16px rgba(255,140,148,0.5);
-            display:block;
-          ">
-          <div style="
-            position:absolute;bottom:-1vw;right:-1vw;
-            background:linear-gradient(135deg,var(--pink,#ff8c94),#ff6b75);
-            border-radius:50%;width:6vw;height:6vw;
-            max-width:26px;max-height:26px;
-            display:flex;align-items:center;justify-content:center;
-            font-size:3.5vw;border:2px solid white;
-            box-shadow:0 2px 8px rgba(0,0,0,0.2);
-          ">✓</div>
-        </div>
-        <div style="
-          font-size:3.5vw;color:rgba(255,255,255,0.9);
-          font-family:'Cairo',sans-serif;font-weight:700;
-          background:rgba(255,255,255,0.15);
-          padding:1.5vw 4vw;border-radius:3vw;
-          border:1px solid rgba(255,255,255,0.25);
-        ">📸 صورتك الشخصية — ستُحفظ عند الضغط على تمام</div>
-      `;
-
-      // اجعل الكاروسيل "غير محدد" — الاختيار هو الصورة المخصصة
-      // لكن لا نضيفها للكاروسيل
-      overlay.querySelector('#avConfirmBtn')._customUrl = url;
-
-      uploadBtn.innerHTML = '✏️ تعديل الصورة';
-      uploadBtn.disabled  = false;
-
-    } catch(err) {
-      if (err?.message === 'cancelled') {
-        // المستخدم ضغط إلغاء في الـ crop — لا شيء
-        return;
-      }
-      console.error('upload err', err);
-      uploadBtn.innerHTML = '📸 اختر صورة';
-      uploadBtn.disabled  = false;
-      showToast('❌ فشل الرفع، حاول تاني');
-    }
-  });
 
   // ── تأكيد الاختيار ──
   overlay.querySelector("#avConfirmBtn").addEventListener("click", () => {
     SoundSystem.click();
-    // لو اختار صورة مخصصة → استخدمها
-    const customUrl = overlay.querySelector('#avConfirmBtn')._customUrl;
-    if (customUrl) {
-      saveAvatarLocally(customUrl);
-      overlay.remove();
-      onConfirm(customUrl);
-      return;
-    }
+  
     // وإلا خذ من الكاروسيل
     const items  = getItems();
     const active = items[current];
@@ -3702,7 +3333,7 @@ function openAvatarChanger(onConfirm) {
   const savedAv  = getSavedAvatar() || 'av1';
   const savedIdx = savedAv.startsWith('http') ? -1 : parseInt(savedAv.replace('av','')) - 1;
   let current = isNaN(savedIdx) || savedIdx < 0 ? 0 : savedIdx;
-  let pendingCustomUrl = null;
+  
 
   const overlay = document.createElement("div");
   overlay.id = "avatarPopupOverlay";
@@ -3728,19 +3359,7 @@ function openAvatarChanger(onConfirm) {
 
       <!-- ══ قسم الصورة ══ -->
       <div id="avatarTabContent" style="display:flex;flex-direction:column;align-items:center;gap:4vw;width:100%;">
-        <div style="display:flex;align-items:center;justify-content:center;width:100%;">
-          <button id="uploadAvatarBtn" style="
-            background:linear-gradient(135deg,#FF9500,#FF6B00);
-            border:none;border-radius:999px;
-            padding:2.5vw 6vw;color:white;
-            font-size:4.5vw;font-weight:700;
-            font-family:'Cairo',sans-serif;cursor:pointer;
-            display:flex;align-items:center;gap:2vw;
-            box-shadow:0 4px 16px rgba(255,107,0,0.45);
-            transition:all 0.2s ease;
-          ">📸 اختر صورة</button>
-          <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
-        </div>
+
 
         <div class="avatar-carousel-wrapper">
           <button class="avatar-nav" id="avPrev">›</button>
@@ -3803,20 +3422,7 @@ function openAvatarChanger(onConfirm) {
   tabNameBtn.addEventListener('click',   ()=>{ SoundSystem.click(); setActiveTab('name'); });
 
   // لو الصورة المحفوظة custom → أضفها في الأول
-  if (savedAv.startsWith('http')) {
-    const customItem = document.createElement("div");
-    customItem.className      = "avatar-item";
-    customItem.dataset.custom = "1";
-    customItem.dataset.avKey  = savedAv;
-    customItem.innerHTML = `<img src="${savedAv}" draggable="false" style="object-fit:cover;">`;
-    customItem.addEventListener("click", () => {
-      current = [...carousel.children].indexOf(customItem);
-      pendingCustomUrl = savedAv;
-      update();
-    });
-    carousel.appendChild(customItem);
-    current = 0;
-  }
+
 
   for (let i = 1; i <= N; i++) {
     const item = document.createElement("div");
@@ -3874,53 +3480,6 @@ function openAvatarChanger(onConfirm) {
   });
   window.addEventListener("pointerup", () => { dragging = false; });
 
-  const uploadBtn = overlay.querySelector('#uploadAvatarBtn');
-  const fileInput = overlay.querySelector('#avatarFileInput');
-
-  uploadBtn.addEventListener('click', () => fileInput.click());
-
-  fileInput.addEventListener('change', async () => {
-    const file = fileInput.files[0];
-    if (!file) return;
-
-    uploadBtn.disabled  = true;
-    uploadBtn.innerHTML = '⏳ ...';
-
-    try {
-      const url = await uploadCustomAvatar(file);
-      pendingCustomUrl = url;
-
-      const oldCustom = carousel.querySelector('[data-custom="1"]');
-      if (oldCustom) oldCustom.remove();
-
-      const customItem = document.createElement("div");
-      customItem.className      = "avatar-item";
-      customItem.dataset.custom = "1";
-      customItem.dataset.avKey  = url;
-      customItem.innerHTML = `<img src="${url}" draggable="false" style="object-fit:cover;">`;
-      customItem.addEventListener("click", () => {
-        current = [...carousel.children].indexOf(customItem);
-        pendingCustomUrl = url;
-        update();
-      });
-
-      carousel.insertBefore(customItem, carousel.firstChild);
-      current = 0;
-      update();
-
-      uploadBtn.innerHTML = '✅ تم';
-      setTimeout(() => {
-        uploadBtn.innerHTML = '📸 اختر صورة';
-        uploadBtn.disabled  = false;
-      }, 1800);
-
-    } catch(err) {
-      console.error('upload err', err);
-      uploadBtn.innerHTML = '📸 اختر صورة';
-      uploadBtn.disabled  = false;
-      showToast('❌ فشل الرفع، حاول تاني');
-    }
-  });
 
   // ── تأكيد الاختيار (صورة + اسم) ──
   overlay.querySelector("#avConfirmBtn").addEventListener("click", async () => {
@@ -3952,16 +3511,9 @@ function openAvatarChanger(onConfirm) {
       }
     }
 
-    const customUrl = pendingCustomUrl;
-    let chosenAvatar;
-    if (customUrl) {
-      chosenAvatar = customUrl;
-    } else {
-      const items  = getItems();
-      const active = items[current];
-      chosenAvatar = active?.dataset.avKey || `av${current + 1}`;
-    }
-
+    const items  = getItems();
+    const active = items[current];
+    const chosenAvatar = active?.dataset.avKey || `av${current + 1}`;
     saveAvatarLocally(chosenAvatar);
     saveNameLocally(newName);
     overlay.remove();
