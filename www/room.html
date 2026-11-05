@@ -3431,7 +3431,6 @@ function openAvatarChanger(onConfirm) {
     item.innerHTML = `<img src="Avatar/av${i}.png" draggable="false">`;
     item.addEventListener("click", () => {
       current = [...carousel.children].indexOf(item);
-      pendingCustomUrl = null;
       update();
     });
     carousel.appendChild(item);
