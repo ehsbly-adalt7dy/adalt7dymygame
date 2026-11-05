@@ -2360,6 +2360,7 @@
   <iframe id="profileFrame" src="profile.html" style="width:1px;height:1px;border:none;"></iframe>
   <iframe id="teamsFrame" src="teams.html" style="width:1px;height:1px;border:none;"></iframe>
   <iframe id="roomFrame" src="room.html" style="width:1px;height:1px;border:none;"></iframe>
+  <iframe id="hintsFrame" src="hints-room.html" style="width:1px;height:1px;border:none;"></iframe>
 </div>
 <div id="pageOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;display:none;"></div>
   <div id="splashScreen">
@@ -6124,7 +6125,7 @@
   const isIOS = window.Capacitor?.getPlatform() === 'ios';
   if (isIOS) document.documentElement.classList.add('ios'); 
   window.goToPage = function(page) {
-  const mapped = {'profile.html':'profileFrame','teams.html':'teamsFrame','room.html':'roomFrame'};
+  const mapped = {'profile.html':'profileFrame','teams.html':'teamsFrame','room.html':'roomFrame','hints-room.html':'hintsFrame'};
   const frameId = mapped[page];
   if (frameId) {
     const overlay = document.getElementById('pageOverlay');
