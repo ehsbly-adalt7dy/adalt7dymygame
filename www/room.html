@@ -1666,7 +1666,6 @@ const AdConfig={  rewarded: 'ca-app-pub-7625725860156398/7549059785',interstitia
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
 import {getDatabase,ref,set,get,onValue,update,off,remove,onDisconnect} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
-import {getStorage, ref as storageRef, uploadBytes, getDownloadURL} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js';
 
 const fbApp=initializeApp({
   apiKey:"AIzaSyA3u6m2KorTnveV7ksb0TC2wPi6_R8jFQk",
@@ -1678,7 +1677,6 @@ const fbApp=initializeApp({
   databaseURL:"https://adalt7dy-3f959-default-rtdb.firebaseio.com"
 });
 const db=getDatabase(fbApp);
-const storage = getStorage(fbApp);
 
 // ══ SESSION ══
 const S={code:null,isHost:false,myId:null,myName:null,maxPlayers:20,timeMinutes:2,category:'places',refs:[]};
@@ -1692,16 +1690,8 @@ function getDeviceId() {
   return id;
 }
 const MY_DEVICE_ID = getDeviceId();
+
 // ══ AVATAR PERSISTENCE ══
-const AVATAR_STORAGE_KEY = 'qadAlTahadi_savedAvatar';
-
-function getSavedAvatar() {
-  try { return localStorage.getItem(AVATAR_STORAGE_KEY) || null; }
-  catch(e) { return null; }
-}
-
-function saveAvatarLocally(av) {
-    // ══ AVATAR PERSISTENCE ══
 const AVATAR_STORAGE_KEY = 'qadAlTahadi_savedAvatar';
 
 function getSavedAvatar() {
@@ -1714,7 +1704,7 @@ function saveAvatarLocally(av) {
   catch(e) {}
 }
 
-// ══ NAME PERSISTENCE (جديد) ══
+// ══ NAME PERSISTENCE ══
 const NAME_STORAGE_KEY = 'qadAlTahadi_savedName';
 
 function getSavedName() {
@@ -1726,11 +1716,6 @@ function saveNameLocally(name) {
   try { localStorage.setItem(NAME_STORAGE_KEY, name); }
   catch(e) {}
 }
-  try { localStorage.setItem(AVATAR_STORAGE_KEY, av); }
-  catch(e) {}
-}
-// ── Crop صورة دائرياً ──
-
 
 
 // ── دالة توحيد src (جاهز أو مخصص بـ URL) ──
