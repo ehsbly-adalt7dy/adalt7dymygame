@@ -2203,7 +2203,97 @@
       text-shadow: 0 1px 2px rgba(255,255,255,0.5);
       letter-spacing: 0.5px;
     }
+/* ══ شاشة القواعد ══ */
+#rulesScreen {
+  width: 95vw;
+  height: min(78vh, 720px);
+  max-height: none;
+  margin-top: 12vh;
+  padding: 4vw;
+  gap: 3vw;
+  overflow: hidden;
+  justify-content: flex-start;
+}
 
+/* التابات: ثابتة 2×2 */
+.rules-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2vw;
+  width: 100%;
+  flex-shrink: 0;
+}
+.rules-tab {
+  padding: 2.8vw 1vw;
+  border: 2px solid rgba(170,150,218,0.35);
+  border-radius: 3vw;
+  background: #fff;
+  color: #8a7bb8;
+  font-family: 'Cairo', sans-serif;
+  font-size: 3.9vw;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all .2s ease;
+  white-space: nowrap;
+}
+.rules-tab.active {
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 3px 12px rgba(170,150,218,0.4);
+}
+.rules-tab:active { transform: scale(0.95); }
+
+/* منطقة المحتوى: تاخد المساحة المتبقية */
+.rules-body {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: pan-y;
+  background: rgba(170,150,218,0.07);
+  border-radius: 4vw;
+}
+.rules-section { width: 100%; }
+.rules-section.hidden { display: none !important; }
+.rules-page { width: 100%; padding: 4vw; text-align: center; }
+.rules-page h2 { font-size: 6.5vw; margin: 0 0 3vw; }
+.rules-page p  { font-size: 4.6vw; line-height: 1.8; }
+
+/* الشريط السفلي: ثابت */
+.rules-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2vw;
+  width: 100%;
+  flex-shrink: 0;
+}
+.rules-footer .rules-nav-button {
+  min-width: 30vw;
+  padding: 3vw 4vw;
+  font-size: 4.6vw;
+  white-space: nowrap;
+}
+.rules-counter {
+  font-size: 4.2vw;
+  color: #8a7bb8;
+  font-weight: 800;
+  text-align: center;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  #rulesScreen { width: 70vw; max-width: 700px; }
+  .rules-tab { font-size: 2vw; }
+  .rules-page h2 { font-size: 4vw; }
+  .rules-page p { font-size: 2.6vw; }
+  .rules-footer .rules-nav-button { font-size: 2.4vw; min-width: 18vw; }
+  .rules-counter { font-size: 2.2vw; }
+}
     .mixed-btn:active {
       transform: translateY(5px) scale(0.97) !important;
       box-shadow: 0 2px 0 #D35400 !important;
@@ -2564,72 +2654,68 @@
     </div>
 
     <div class="screen hidden" id="rulesScreen">
-      <div id="rulesPages">
-        <div class="rules-page">
-          <h2>🎮 "قد التحدي؟"</h2>
-          <p>كل جولة الأدوار بتتوزع عليكم:<br>
-          - المحققين (بيعرفوا الكلمة).<br>
-          - واحد "مجرم" (مش عارف الكلمة).<br>
-          - ممكن يظهر محقق خائن بيعرف الكلمة بس بيساعد المجرم.</p>
-        </div>
-        <div class="rules-page hidden">
-          <h2>🎭 أدوار اللاعبين</h2>
-          <p><strong>المحقق:</strong> بيعرف الكلمة ومهمته يكتشف المجرم باستخدام أسئلة ذكية</p>
-          <p><strong>المجرم:</strong> مش عارف الكلمة، مهمته يهرب من التصويت ويحاول يكتشف الكلمة من كلام الباقيين</p>
-          <p><strong>المحقق الخائن:</strong> يعرف الكلمة، بيحاول يساعد المجرم ويتوه المحققين الحقيقيين من غير ما يبين إنه خائن</p>
-        </div>
-        <div class="rules-page hidden">
-          <h2>🕵️‍♂️ خد بالك!</h2>
-          <p>- الكل بيمثل إنه محقق.<br>
-          - متلمحش لدورك خالص.<br>
-          - المحقق الخائن بيظهر بشكل عشوائي مش شرط يظهر دايما.<br>
-          - المجرم لازم يتصنت كويس عشان يكتشف الكلمة.</p>
-        </div>
-        <div class="rules-page hidden">
-          <h2>⏱️ وقت اللعب</h2>
-          <p>- المؤقت بيبدأ بعد التوزيع.<br>
-          - اسأل أسئلة "أه/لأ".<br>
-          - خليك في دورك زي المحترفين.</p>
-        </div>
-        <div class="rules-page hidden">
-          <h2>🗳️ التصويت</h2>
-          <p>- لما الوقت يخلّص، نصوت.<br>
-          - اختار مين المجرم.<br>
-          - اللعبة هتقول كل حاجة لما الجولة تخلص.</p>
-        </div>
-        <div class="rules-page hidden">
-          <h2>🎯 خمّن الكلمة</h2>
-          <p>- لو المجرم اتكشف، فيه 10 اختيارات.<br>
-          - يخمّن الكلمة عشان ياخد نقطة.<br>
-          - عنده 20 ثانية بس!</p>
-        </div>
-        <div class="rules-page hidden">
-          <h2>🎯 نظام النقاط</h2>
-          <p>- المحقق لو صوت على المجرم: 1 نقطة<br>
-          - المحقق الخائن لو محدش صوت على المجرم: 3 نقاط<br>
-          - لو محدش صوت على المجرم: المجرم ياخد 2 نقطة<br>
-          - لو المجرم اتكشف وخمّن الكلمة صح: ياخد نقطة إضافية</p>
-        </div>
-        <div class="rules-page hidden">
-          <h2>مود الاوضة 🏠</h2>
-          <p>- العب مع أصحابك كل واحد من تليفونه!<br>
-          - واحد ينشئ الأوضة ويختار الإعدادات<br>
-          - الأوضة بتظهر بكود 6 أرقام<br>
-          - الباقي يدخلوا الكود في "دخول اوضة"<br>
-          - الهوست بيشوف اللاعبين ويبدأ الجولة<br>
-          - لو كسبت هتاخد 5 توكنز</p>
-        </div>
-        <div class="rules-page hidden">
-          <h2>🏆 الفوز</h2>
-          <p>- أول واحد يجيب 10 نقط يكسب.<br>
-            - ونبدأ دور جديد!</p>
-        </div>
-      </div>
-      <div class="rules-navigation">
-        <button class="rules-nav-button" id="nextRulePage">←</button>
-        <button class="rules-nav-button hidden" id="prevRulePage">→</button>
-      </div>
+  <div class="rules-tabs" id="rulesTabs">
+    <button class="rules-tab active" data-tab="solo">🙋‍♂️ كل واحد لوحده</button>
+    <button class="rules-tab" data-tab="teams">👥 مود الفرق</button>
+    <button class="rules-tab" data-tab="room">🏠 الاوضة</button>
+    <button class="rules-tab" data-tab="hints">🎯 خمّن الكلمة</button>
+  </div>
+
+  <div class="rules-body" id="rulesBody">
+
+    <!-- كل واحد لوحده -->
+    <div class="rules-section" id="rulesSection_solo">
+      <div class="rules-page"><h2>🎮 "قد التحدي؟"</h2><p>كل جولة الأدوار بتتوزع عليكم:<br>- المحققين (بيعرفوا الكلمة).<br>- واحد "مجرم" (مش عارف الكلمة).<br>- ممكن يظهر محقق خائن بيعرف الكلمة بس بيساعد المجرم.</p></div>
+      <div class="rules-page"><h2>🎭 أدوار اللاعبين</h2><p><strong>المحقق:</strong> بيعرف الكلمة ومهمته يكتشف المجرم بأسئلة ذكية<br><strong>المجرم:</strong> مش عارف الكلمة ويحاول يهرب من التصويت<br><strong>المحقق الخائن:</strong> يعرف الكلمة وبيساعد المجرم من غير ما يبين</p></div>
+      <div class="rules-page"><h2>🕵️‍♂️ خد بالك!</h2><p>- الكل بيمثل إنه محقق.<br>- متلمحش لدورك خالص.<br>- المحقق الخائن بيظهر بشكل عشوائي.<br>- المجرم لازم يتصنت كويس عشان يكتشف الكلمة.</p></div>
+      <div class="rules-page"><h2>⏱️ وقت اللعب</h2><p>- المؤقت بيبدأ بعد التوزيع.<br>- اسأل أسئلة "أه/لأ".<br>- خليك في دورك زي المحترفين.</p></div>
+      <div class="rules-page"><h2>🗳️ التصويت</h2><p>- لما الوقت يخلّص، نصوت.<br>- اختار مين المجرم.<br>- اللعبة هتقول كل حاجة لما الجولة تخلص.</p></div>
+      <div class="rules-page"><h2>🎯 خمّن الكلمة</h2><p>- لو المجرم اتكشف، فيه 10 اختيارات.<br>- يخمّن الكلمة عشان ياخد نقطة.<br>- عنده 20 ثانية بس!</p></div>
+      <div class="rules-page"><h2>🏅 نظام النقاط</h2><p>- المحقق لو صوت على المجرم: 1 نقطة<br>- المحقق الخائن لو محدش صوت على المجرم: 3 نقاط<br>- لو محدش صوت على المجرم: المجرم ياخد 2 نقطة<br>- لو المجرم اتكشف وخمّن الكلمة صح: نقطة إضافية</p></div>
+      <div class="rules-page"><h2>🏆 الفوز</h2><p>- أول واحد يجيب 10 نقط يكسب.<br>- ونبدأ دور جديد!</p></div>
     </div>
+
+    <!-- مود الفرق -->
+    <div class="rules-section hidden" id="rulesSection_teams">
+      <div class="rules-page"><h2>🏆 الفوز بـ 7 نقاط</h2><p>أول فريق يوصل لـ 7 نقاط يفوز</p></div>
+      <div class="rules-page"><h2>🔄 في كل جولة</h2><p>فريق يشوف الكلمة، والثاني يسأل ويخمّن من بين 10 اختيارات — الفريق كله يشارك!</p></div>
+      <div class="rules-page"><h2>📢 قبل الأسئلة</h2><p>الفريق اللي يشوف الكلمة يقول للفريق التاني نوعها</p></div>
+      <div class="rules-page"><h2>❓ 7 أسئلة بنعم / لا</h2><p>بعدها أو بـ"نخمن دلوقتي" تيجي شاشة التخمين</p></div>
+      <div class="rules-page"><h2>🃏 5 كروت لكل فريق</h2><p>كارت واحد بس في كل جولة، استخدموه بحكمة!<br>سؤال إضافي، تجميد سؤال، تلميح، +30 ثانية، دوبل</p></div>
+      <div class="rules-page"><h2>🎡 روليت العقوبات 😈</h2><p>الفريق الكسبان بيلف الروليت ويشوف عدد الأحكام!</p></div>
+      <div class="rules-page"><h2>⚖️ نظام الرد العادل</h2><p>لو الفريق البادئ وصل لـ7، الفريق التاني له جولة رد — لو تعادلوا فجولة فاصلة</p></div>
+      <div class="rules-page"><h2>⏱️ 2:30 دقيقة لكل جولة</h2><p>الأدوار بتتبدل بعد كل جولة</p></div>
+    </div>
+
+    <!-- الاوضة -->
+    <div class="rules-section hidden" id="rulesSection_room">
+      <div class="rules-page"><h2>🏠 مود الاوضة</h2><p>العب مع أصحابك كل واحد من تليفونه!</p></div>
+      <div class="rules-page"><h2>🔑 إنشاء ودخول</h2><p>- واحد ينشئ الأوضة ويختار الإعدادات<br>- تظهر بكود 6 أرقام<br>- الباقي يدخلوا بالكود من "دخول اوضة"<br>- من 3 إلى 20 لاعب</p></div>
+      <div class="rules-page"><h2>🙈 المجرم الأعمى</h2><p>ميزة اختيارية: المجرم بتظهرله كلمة تانية ومش بيعرف إنه مجرم!</p></div>
+      <div class="rules-page"><h2>✨ كاتيجوريز مخصصة</h2><p>اعمل كاتيجوريز بكلماتك من البروفايل وتلعب بيها في الاوضة</p></div>
+      <div class="rules-page"><h2>👑 الهوست</h2><p>بيتحكم في الوقت، ويقدر يطرد أو يحظر لاعب، ويعيد الجولة</p></div>
+      <div class="rules-page"><h2>🔄 الرجوع للاوضة</h2><p>لو خرجت بالغلط ادخل بنفس اسمك وهترجع بنقاطك</p></div>
+      <div class="rules-page"><h2>🪙 التوكنز</h2><p>لو كسبت هتاخد 5 توكنز</p></div>
+    </div>
+
+    <!-- خمّن الكلمة -->
+    <div class="rules-section hidden" id="rulesSection_hints">
+      <div class="rules-page"><h2>🎯 خمّن الكلمة</h2><p>تلميحات بتظهر واحد ورا التاني، وأسرع واحد يعرف الكلمة ياخد النقط!</p></div>
+      <div class="rules-page"><h2>⏱️ التلميحات</h2><p>6 تلميحات، وقت كل تلميح 30 أو 45 ثانية يحدده الهوست</p></div>
+      <div class="rules-page"><h2>✍️ الإجابة</h2><p>كل لاعب له إجابة واحدة في كل تلميح، والنتيجة تظهر لما الوقت يخلص أو الكل يجاوب</p></div>
+      <div class="rules-page"><h2>💰 النقاط</h2><p>أول تلميح = نقطتين، باقي التلميحات = نقطة</p></div>
+      <div class="rules-page"><h2>🃏 الكروت</h2><p>الحرف الأخير، الأول، حرف من الكلمة، تلميح خاص، عدد الحروف<br>ريسك (×٢ لو صح، -٣ لو غلط)<br>حرمان، حرامي، توّه، تخريب</p></div>
+      <div class="rules-page"><h2>🏆 الفوز</h2><p>أول واحد يوصل 15 نقطة يكسب</p></div>
+    </div>
+
+  </div>
+
+  <div class="rules-footer">
+    <button class="rules-nav-button" id="prevRulePage">→ السابق</button>
+    <div class="rules-counter" id="rulesCounter"></div>
+    <button class="rules-nav-button" id="nextRulePage">التالي ←</button>
+  </div>
+</div>
 
     <div class="screen hidden" id="setupScreen">
       <h2>⚙️ جهز الجولة</h2>
@@ -3382,7 +3468,8 @@
           category: 'places',
           guessOptions: [],
           currentRulePage: 0,
-          totalRulePages: 9,
+          currentRulesTab: 'solo',
+          totalRulePages: 8,
           currentScreen: 'startScreen',
           currentVoteIndex: 0,
           voteEntries: [],
@@ -4735,7 +4822,8 @@
           backButton: document.getElementById('backButton'),
           nextRulePage: document.getElementById('nextRulePage'),
           prevRulePage: document.getElementById('prevRulePage'),
-          rulesPages: document.getElementById('rulesPages'),
+          rulesTabs: document.querySelectorAll('.rules-tab'),
+          rulesCounter: document.getElementById('rulesCounter'),
           logo: document.getElementById('logo'),
           voteResults: document.getElementById('voteResults'),
           criminalResult: document.getElementById('criminalResult'),
@@ -4793,22 +4881,45 @@
         },
 
         showRules() {
-          this.hideAllScreens();
-          document.getElementById('rulesScreen').classList.remove('hidden');
-          this.state.currentScreen = 'rulesScreen';
-          this.state.currentRulePage = 0;
-          this.updateRulePage();
-          this.updateBackButtonAndLogo();
-        },
+        this.hideAllScreens();
+        document.getElementById('rulesScreen').classList.remove('hidden');
+        this.state.currentScreen = 'rulesScreen';
+        this.state.currentRulesTab = 'solo';   // الافتراضي
+        this.state.currentRulePage = 0;
+        this.switchRulesTab('solo');
+        this.updateBackButtonAndLogo();
+      },
 
-        updateRulePage() {
-          const pages = this.elements.rulesPages.querySelectorAll('.rules-page');
-          pages.forEach((page, index) => {
-            page.classList.toggle('hidden', index !== this.state.currentRulePage);
-          });
-          this.elements.prevRulePage.classList.toggle('hidden', this.state.currentRulePage === 0);
-          this.elements.nextRulePage.classList.toggle('hidden', this.state.currentRulePage === this.state.totalRulePages - 1);
-        },
+      switchRulesTab(tab) {
+  this.state.currentRulesTab = tab;
+  this.state.currentRulePage = 0;
+  this.elements.rulesTabs.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.rules-section').forEach(s => {
+    s.classList.toggle('hidden', s.id !== 'rulesSection_' + tab);
+  });
+  this.updateRulePage();
+},
+
+updateRulePage() {
+  const section = document.getElementById('rulesSection_' + this.state.currentRulesTab);
+  if (!section) return;
+  const pages = section.querySelectorAll('.rules-page');
+  const total = pages.length;
+  const cur = this.state.currentRulePage;
+  this.state.totalRulePages = total;
+
+  pages.forEach((page, i) => page.classList.toggle('hidden', i !== cur));
+
+  // visibility بدل hidden عشان الأزرار ما تتحركش من مكانها
+  this.elements.prevRulePage.style.visibility = cur === 0 ? 'hidden' : 'visible';
+  this.elements.nextRulePage.style.visibility = cur >= total - 1 ? 'hidden' : 'visible';
+
+  if (this.elements.rulesCounter) {
+    this.elements.rulesCounter.textContent = `${cur + 1} / ${total}`;
+  }
+  const body = document.getElementById('rulesBody');
+  if (body) body.scrollTop = 0;
+},
 
         showSetup() {
           this.hideAllScreens();
@@ -5603,7 +5714,7 @@
             roles: [], selectedWord: '', selectedIcon: '', timer: null,
             secondsRemaining: 0, isTimerRunning: false, votes: {}, scores: {},
             roundScores: {}, category: 'places', guessOptions: [],
-            currentRulePage: 0, totalRulePages: 9, currentScreen: 'startScreen',
+            currentRulePage: 0, currentRulesTab: 'solo', totalRulePages: 8, currentScreen: 'startScreen',
             currentVoteIndex: 0, voteEntries: [], isCriminalFound: false,
             winners: [], traitorName: null
           };
@@ -5705,6 +5816,9 @@
       if (game.elements.prevRulePage) game.elements.prevRulePage.addEventListener('click', () => {
         if (game.state.currentRulePage > 0) { game.state.currentRulePage--; game.updateRulePage(); }
       });
+      if (game.elements.rulesTabs) game.elements.rulesTabs.forEach(btn => {
+        btn.addEventListener('click', () => game.switchRulesTab(btn.dataset.tab));
+      });
       if (game.elements.nextVoteResult) game.elements.nextVoteResult.addEventListener('click', () => {
         if (!document.getElementById('voteResultScreen').classList.contains('hidden')) {
           game.state.currentVoteIndex++;
@@ -5734,6 +5848,18 @@
           document.querySelectorAll('.vote-option').forEach(opt => opt.classList.remove('selected'));
           e.target.classList.add('selected');
         }
+      });
+      const rulesBody = document.getElementById('rulesBody');
+      let swX = 0, swY = 0;
+      rulesBody.addEventListener('touchstart', e => {
+        swX = e.touches[0].clientX; swY = e.touches[0].clientY;
+      }, { passive: true });
+      rulesBody.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - swX;
+        const dy = e.changedTouches[0].clientY - swY;
+        if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+        if (dx < 0) game.elements.nextRulePage.click();
+        else game.elements.prevRulePage.click();
       });
       TokenSystem.updateDisplay();
       window.game = game;
