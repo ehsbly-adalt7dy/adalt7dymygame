@@ -6050,33 +6050,12 @@ updateRulePage() {
     return [
       {
         tid:"rulesButtonMain",
-        msg:"📖 هنا <b>القواعد</b> — شيك عليه عشان تعرف كل واحد لوحده و مود الاوضة ازاي بيتلعبوا",
-        btn:"تمام! 👍",
-      },
-      {
-        tid:"startButton",
-        msg:"🎮 <b>يلا نبدأ</b> — عندك اختيارين: كل واحد لوحده (موبايل واحد) أو مود الفرق!",
-        btn:"اوكيه",
-      },
-      {
-        tid:"roomButton",
-        msg:"🏠 <b>مود الأوضة</b> — كل واحد من تليفونه، مش لازم تكونوا مع بعض! _ جوا الاوضة تقدر تلعب المجرم الاعمي , و تستخدم كاتيجوريز مخصصة و مميزات تانية كتير",
-        btn:"اشطا",
-      },
-      {
-        tid:"tokenBtn",
-        msg:"🪙 <b>التوكنز</b> — اكسب توكنز من الفوز في مود الاوضة او انك تشوف اعلان من البروفايل عشان تعمل كاتيجوريز براحتك",
-        btn:"حصل",
-      },
-      {
-        tid:"profileBtn",
-        msg:"👤 <b>البروفايل</b> — إحصائياتك، حسابك، وتعديل الكاتيجوريز كل حاجة من هنا - ابقي شيك عليه كل شوية عشان تعرف مين كسب اكتر انت ولا صحابك",
+        msg:"📖 اضغط على زر <b>القواعد</b> عشان تعرف اللعبة بتتلعب ازاي",
         btn:"يلا نبدأ! 🎮",
         isLast:true,
       },
     ];
   }
-
   /* exact element bounding box — zero padding */
   function getRect(el){
     const r=el.getBoundingClientRect();
@@ -6140,6 +6119,7 @@ updateRulePage() {
 
     function dots(a){
       dotsEl.innerHTML="";
+      if(steps.length<=1){ dotsEl.style.display="none"; divEl.style.display="none"; return; }
       steps.forEach((_,i)=>{
         const d=document.createElement("div");
         d.className="ob-dot"+(i===a?" ob-active":"");
