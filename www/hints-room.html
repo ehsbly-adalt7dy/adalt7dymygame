@@ -263,12 +263,86 @@ body:is(.sab-mirror,.sab-upside,.sab-spin,.sab-quake,.sab-glitch,.sab-storm,.sab
 50%{transform:translate(20px,8px) rotate(3deg)}
 75%{transform:translate(-12px,12px) rotate(-2deg)}}
 
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes floaty2{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.pill2{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.9);color:var(--purple-d);font-weight:800;font-size:14px;padding:5px 16px;border-radius:999px;box-shadow:0 4px 12px rgba(98,78,170,.15)}
+.gate{display:flex;gap:12px;width:100%;flex:1;min-height:350px;max-height:520px;margin-bottom:auto}
+.gcard{position:relative;overflow:hidden;flex:1;min-width:0;border:none;border-radius:30px;padding:18px 12px 14px;font-family:inherit;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;box-shadow:0 18px 40px rgba(60,40,130,.4),inset 0 1px 0 rgba(255,255,255,.45);transition:transform .2s;animation:rise .55s both}
+.gcard.online{background:linear-gradient(165deg,#7ccdf0 0%,#6f8fe3 55%,#8a6fd6 100%)}
+.gcard.offline{background:linear-gradient(165deg,#ffa7b0 0%,#d58ae0 55%,#8a6fd6 100%);animation-delay:.12s}
+.gcard::before{content:'';position:absolute;width:190px;height:190px;border-radius:50%;background:rgba(255,255,255,.18);top:-70px;right:-60px}
+.gcard::after{content:'';position:absolute;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.12);bottom:-50px;left:-60px}
+.gcard>*{position:relative;z-index:1}
+.gcard:hover{transform:translateY(-5px)}
+.gcard:active{transform:scale(.97)}
+.gic{width:84px;height:84px;border-radius:28px;background:rgba(255,255,255,.28);border:1.5px solid rgba(255,255,255,.55);display:grid;place-items:center;box-shadow:0 12px 26px rgba(40,20,100,.3);animation:floaty2 3.4s ease-in-out infinite;margin-top:22px}
+.gcard.offline .gic{animation-delay:-1.7s}
+.gic .ic{width:44px;height:44px;stroke-width:2.2}
+.live{position:absolute!important;top:12px;left:12px;display:flex;align-items:center;gap:5px;font-size:11px;font-weight:900;background:rgba(255,255,255,.25);border-radius:999px;padding:3px 9px}
+.live i{width:7px;height:7px;border-radius:50%;background:#7dff9a;box-shadow:0 0 8px #7dff9a;animation:blink 1.4s infinite}
+.gname{font-size:28px;font-weight:900;text-shadow:0 3px 10px rgba(40,20,100,.35);line-height:1.1}
+.gsub{font-size:13.5px;font-weight:700;opacity:.96;line-height:1.5}
+.gfeat{margin-top:auto;display:flex;flex-direction:column;gap:7px;width:100%}
+.gfeat span{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);border-radius:12px;padding:7px 9px;font-size:12.5px;font-weight:800;text-align:right;line-height:1.3}
+.gfeat .ic{width:16px;height:16px}
+.ggo{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:#fff;color:#6a53c4;font-weight:900;font-size:16px;border-radius:16px;padding:11px;box-shadow:0 8px 18px rgba(40,20,100,.28)}
+.ggo .ic{width:18px;height:18px;stroke-width:2.6}
+.gcard.offline .ggo{color:#c0507a}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+.avPick{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;font-family:inherit;color:var(--purple-d);font-weight:800;font-size:14px;cursor:pointer;margin:0 auto}
+.avPick .av{border:3px solid #fff;box-shadow:0 8px 20px rgba(98,78,170,.35)}
+.avPick .avEdit{position:absolute;top:60px;right:calc(50% - 50px);width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 4px 10px rgba(98,78,170,.4)}
+.avPick .avEdit .ic{width:15px;height:15px}
+.avatar-popup-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:100000;animation:fadeIn .25s ease;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.avatar-popup-box{background:linear-gradient(170deg,rgba(168,216,234,.98) 0%,rgba(170,150,218,.98) 100%);border-radius:6vw;padding:6vw 4vw;width:92vw;max-width:440px;display:flex;flex-direction:column;align-items:center;gap:4vw;box-shadow:0 16px 64px rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.5);animation:popIn .35s ease}
+.avatar-popup-title{font-size:6vw;font-weight:900;color:#fff;text-align:center;font-family:'Cairo',sans-serif}
+@media (min-width:480px){.avatar-popup-box{border-radius:28px;padding:28px 18px;gap:18px}.avatar-popup-title{font-size:26px}}
+.avatar-carousel-wrapper{display:flex;align-items:center;justify-content:center;gap:12px;width:100%}
+.avatar-carousel{position:relative;width:260px;height:140px;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
+.avatar-item{position:absolute;width:82px;height:82px;border-radius:50%;overflow:hidden;transition:transform .35s cubic-bezier(.22,.61,.36,1),opacity .35s ease;cursor:pointer;border:3px solid transparent;background:linear-gradient(135deg,#aa96da,#ff8c94)}
+.avatar-item.active{border-color:var(--pink);box-shadow:0 0 0 4px rgba(255,140,148,.3),0 6px 24px rgba(0,0,0,.3)}
+.avatar-item img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.avatar-nav{width:48px;height:48px;border-radius:50%;border:none;background:rgba(255,255,255,.25);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.avatar-nav .ic{width:26px;height:26px;stroke-width:2.8}
+.avatar-nav:active{transform:scale(.95)}
+.avatar-dots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.avatar-dot{width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.4);transition:.25s;cursor:pointer}
+.avatar-dot.active{width:24px;background:var(--pink)}
+.avatar-counter{text-align:center;color:#fff;font-weight:700;font-family:'Cairo',sans-serif}
+.avatar-confirm{width:72%;padding:14px 0;border:none;border-radius:999px;background:linear-gradient(135deg,var(--pink),#ff6b75);color:#fff;font-size:20px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif}
+.avatar-confirm:active{transform:scale(.96)}
+.gtitle{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:4px}
+.avPick .avEdit{font-size:15px;font-weight:900}
+.avPick{color:#fff!important;text-shadow:0 1px 4px rgba(0,0,0,.25)}
 </style>
 </head>
 <body>
 <div id="app">
 
-<div id="sMain" class="screen center">
+<div id="sHome" class="screen center">
+  <div class="gtitle"><h1>خمّن الكلمة</h1><p class="sub">اختار طريقة اللعب</p></div>
+  <div class="gate">
+    <button class="gcard online" id="goOnline">
+      <span class="live"><i></i>مباشر</span>
+      <span class="gic"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.8 0 5 2 5 5"/></svg></span>
+      <span class="gname">أونلاين</span>
+      <span class="gsub">مع صحابك</span>
+      <span class="gfeat"><span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4 11l8-7 8 7v9H4zM10 20v-6h4v6"/></svg>أوضة بكود خاص</span><span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.8 0 5 2 5 5"/></svg>لحد ٢٠ لاعب</span><span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>الأسرع ياخد النقط</span></span>
+      <span class="ggo">العب <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M15 5l-7 7 7 7"/></svg></span>
+    </button>
+    <button class="gcard offline" id="goOffline">
+      <span class="gic"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 3.5-7 8-7s8 2.5 8 7"/></svg></span>
+      <span class="gname">أوفلاين</span>
+      <span class="gsub">اتحدى نفسك لوحدك</span>
+      <span class="gfeat"><span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>٥ أنماط لعب</span><span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4 8l4 4 4-7 4 7 4-4-2 11H6z"/></svg>مستويات وإنجازات</span><span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="9"/><path d="M12 8l3.5 2.5-1.3 4.1H9.8L8.5 10.5z"/><path d="M12 8V3M15.5 10.5l4.8-1.5M14.2 14.6l3 4M9.8 14.6l-3 4M8.5 10.5L3.7 9"/></svg>فئة كرة القدم</span></span>
+      <span class="ggo">العب <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M15 5l-7 7 7 7"/></svg></span>
+    </button>
+  </div>
+</div>
+
+<div id="sMain" class="screen center hidden">
   <div class="logo">🕵️</div>
   <h1>خمّن الكلمة</h1>
   <p class="sub">تلميحات بتظهر واحد ورا التاني، وأسرع واحد يعرف الكلمة ياخد النقط!</p>
@@ -282,6 +356,7 @@ body:is(.sab-mirror,.sab-upside,.sab-spin,.sab-quake,.sab-glitch,.sab-storm,.sab
 <div id="sHostName" class="screen center hidden">
   <h1 style="font-size:28px">👤 اسمك في الأوضة</h1>
   <div class="stack">
+    <button class="avPick" id="hostAv" type="button"></button>
     <input class="inp" id="hostNameInp" maxlength="10" placeholder="اسمك" autocomplete="off">
     <p style="color:#fff;text-align:center">⏱️ وقت كل تلميح</p>
     <div class="row"><button class="btn blue" id="hm30">30 ثانية</button><button class="btn ghost" id="hm45">45 ثانية</button></div>
@@ -294,6 +369,7 @@ body:is(.sab-mirror,.sab-upside,.sab-spin,.sab-quake,.sab-glitch,.sab-storm,.sab
 <div id="sJoin" class="screen center hidden">
   <h1 style="font-size:28px">🔑 دخول أوضة</h1>
   <div class="stack">
+    <button class="avPick" id="joinAv" type="button"></button>
     <input class="inp" id="joinCodeInp" type="tel" inputmode="numeric" maxlength="6" placeholder="كود الأوضة" autocomplete="off" style="letter-spacing:8px;color:var(--purple)">
     <input class="inp" id="joinNameInp" maxlength="10" placeholder="اسمك" autocomplete="off">
     <div class="err hidden" id="joinErr"></div>
@@ -368,6 +444,20 @@ body:is(.sab-mirror,.sab-upside,.sab-spin,.sab-quake,.sab-glitch,.sab-storm,.sab
 <div id="side"></div>
 </div>
 
+<script>
+document.getElementById('goOffline').onclick=function(){location.href='khamin-solo.html'};
+document.getElementById('goOnline').onclick=function(){
+  if(!window.__onlineReady||navigator.onLine===false){
+    var d=document.createElement('div');
+    d.className='sideNote';d.textContent='اللعب أونلاين محتاج إنترنت';
+    document.getElementById('side').appendChild(d);
+    setTimeout(function(){d.classList.add('out')},2400);
+    setTimeout(function(){d.remove()},2900);
+    return;
+  }
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.toggle('hidden',s.id!=='sMain')});
+};
+</script>
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
 import {getDatabase,ref,set,get,onValue,update,off,remove,onDisconnect,runTransaction} from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
@@ -382,6 +472,7 @@ const fbApp=initializeApp({
   databaseURL:"https://adalt7dy-3f959-default-rtdb.firebaseio.com"
 });
 const db=getDatabase(fbApp);
+window.__onlineReady=true;
 
 const HINT_MS=30000,ANSWER_MS=15000,WIN=15,NEXT_MS=6000,MAX_P=20,MIN_P=2;
 const WORDS=[
@@ -864,6 +955,66 @@ const WORDS=[
 {w:'أسوان',type:'مدينة',alts:['اسوان','محافظة أسوان','محافظة اسوان','aswan'],hints:['مدينة في بلد قديمة','في جنوبها','بعيدة عن البحر','حارة جداً صيفاً','على نهر','النهر بيعدي فيها بشكل جميل','فيها جزر صغيرة في النهر','فيها مراكب شراعية','اسمها فلوكة','فيها سد ضخم','اتبنى في الستينات','حمى المنطقة من الفيضان','قدامه بحيرة ضخمة','فيها ناس نوبيين بتراثهم الجميل','بيوتهم ملونة','فيها معبد على جزيرة اسمه فيلة','مدينة صعيد فيها السد العالي']},
 {w:'أبو سمبل',type:'مكان أثري',alts:['ابو سمبل','معبد أبو سمبل','معبد ابو سمبل','معبد رمسيس','ابوسمبل'],hints:['مكان أثري','بيتزار من بعيد','في أقصى جنوب بلد قديمة','فيه تماثيل ضخمة','منحوتة في الجبل','الوش فيها ضخم','أربع تماثيل جالسة','تمثال لملك قديم','أشهر ملك فيه رمسيس التاني','جنبه معبد لزوجته نفرتاري','اتنقل من مكانه في الستينات بسبب ميه بحيرة','اتفك وانتقل قطع قطع','فيه ظاهرة شمس بتدخل المعبد مرتين في السنة','الشمس بتضيء تماثيل في الظلمة','في ٢٢ فبراير و٢٢ أكتوبر','قريب من أسوان','معبد رمسيس التاني الضخم']},
 {w:'جبل إيفرست',type:'مكان طبيعي',alts:['ايفرست','إيفرست','افرست','قمة إيفرست','قمة ايفرست','جبل ايفرست','everest'],hints:['مكان طبيعي','أعلى حاجة في العالم','فوق السحاب','طقسه قاسي','بتبقى فيه ريح شديدة','البرد فيه رهيب','الأكسجين فيه قليل','آلاف المتسلقين بيحاولوا يوصلوله','ناس ماتت وهي بتحاول','أول اتنين وصلوا لقمته سنة ١٩٥٣','واحد نيوزيلندي وواحد من شعب شيربا','بيقع في سلسلة الهيمالايا','بين نيبال والتبت','ارتفاعه حوالي ٨٨٠٠ متر','اتسمى على اسم مساح بريطاني','أعلى قمة جبلية في العالم']}
+{w:'محمد صلاح',type:'كرة قدم',alts:['صلاح','مو صلاح','mo salah','salah','الفرعون المصري'],hints:['لاعب عربي مشهور عالمياً','اتولد في قرية صغيرة في الغربية','لعب في إيطاليا قبل ما يبقى نجم','بيشتغل جناح أيمن سريع','خد جايزة الهداف في دوري كبير أكتر من مرة','لقبه الفرعون المصري','بيلبس الأحمر في نادي إنجليزي','رقمه في القميص ١١','لاعب ليفربول ومنتخب مصر']},
+{w:'ميسي',type:'كرة قدم',alts:['ليونيل ميسي','ميسى','messi','lionel messi'],hints:['لاعب اتولد في أمريكا الجنوبية','قصير القامة بس مهارته خرافية','اتعالج وهو صغير من مشكلة في النمو','قضى أغلب مشواره في نادي كتالوني','لعب كمان في باريس وميامي','لبس رقم عشرة','أكتر لاعب فاز بالكرة الذهبية','رفع كأس العالم سنة ٢٠٢٢','قائد منتخب الأرجنتين']},
+{w:'كريستيانو رونالدو',type:'كرة قدم',alts:['رونالدو','كريستيانو','ronaldo','cr7','كريستيانو رونالدو'],hints:['لاعب أوروبي الأصل','قوته البدنية وقفزته عالية جداً','لعب في إنجلترا وإسبانيا وإيطاليا','أكتر هداف في تاريخ دوري أبطال أوروبا','رقمه سبعة','اشتهر باحتفال بيصرخ فيه اسم','انتقل للدوري السعودي','من البرتغال','اتولد في جزيرة ماديرا']},
+{w:'نيمار',type:'كرة قدم',alts:['نيمار جونيور','neymar','نيمار دا سيلفا'],hints:['لاعب مهاراته مشهورة','لعب في برشلونة','وبعدها انتقل بصفقة قياسية في التاريخ','بيحب المراوغة والتلاعب بالكورة','اتولد في أمريكا الجنوبية','لابس الأصفر مع منتخب بلاده','لعب في باريس سان جيرمان','بيلبس رقم عشرة مع منتخب البرازيل','لاعب برازيلي']},
+{w:'مبابي',type:'كرة قدم',alts:['كيليان مبابي','mbappe','كيليان'],hints:['لاعب شاب موهوب جداً','سرعته من الأعلى في العالم','سجل ثلاثية في نهائي كأس العالم','لعب في موناكو الأول','بعدين راح باريس سان جيرمان','وبعدها انتقل لنادي إسباني ملكي','لابس الأزرق مع منتخب بلاده','من فرنسا','لاعب ريال مدريد الفرنسي']},
+{w:'هالاند',type:'كرة قدم',alts:['إيرلينج هالاند','ايرلينج هالاند','haaland','هالند'],hints:['مهاجم ضخم الجسم','أب كان لاعب كورة كمان','اتولد في إنجلترا ولعب لمنتخب دولة تانية','لعب في دورتموند','بيسجل أهداف بكميات خرافية','طوله حوالي متر وتسعين','أشقر ولبسه سماوي','بيلعب في مانشستر سيتي','مهاجم نرويجي']},
+{w:'ريال مدريد',type:'كرة قدم',alts:['الريال','ريال','نادي ريال مدريد','real madrid','الملكي'],hints:['نادي من أشهر أندية العالم','لونه أبيض','ملعبه في عاصمة بلد أوروبية','أكتر نادي فاز بدوري الأبطال','بيتقال له الملكي','ملعبه اسمه سانتياجو برنابيو','منافسه التاريخي برشلونة','الكلاسيكو بيتلعب ضده','نادي إسباني أبيض']},
+{w:'برشلونة',type:'كرة قدم',alts:['برشا','نادي برشلونة','barcelona','barca'],hints:['نادي كبير في أوروبا','اتأسس سنة ١٨٩٩','ألوانه أزرق وأحمر','مدرسته للشباب اسمها لا ماسيا','شعاره مرتبط بإقليم كتالونيا','ملعبه كامب نو','لعب فيه ميسي سنين طويلة','منافسه التاريخي ريال مدريد','نادي إسباني أزرق وأحمر']},
+{w:'ليفربول',type:'كرة قدم',alts:['نادي ليفربول','liverpool','الريدز','الحمر'],hints:['نادي من أشهر أندية بلده','اتأسس في مدينة ميناء','ألوانه حمرا','لقبه الريدز','ملعبه أنفيلد','نشيد جماهيره مشهور جداً وبيتغنى قبل الماتش','فاز بدوري الأبطال ست مرات','فيه محمد صلاح','نادي إنجليزي أحمر']},
+{w:'مانشستر يونايتد',type:'كرة قدم',alts:['يونايتد','مان يونايتد','الشياطين الحمر','manchester united','manchester','مان يو'],hints:['نادي إنجليزي كبير','اتأسس في القرن التاسع عشر','لونه أحمر','لقبه الشياطين الحمر','ملعبه أولد ترافورد','المدرب الأسطوري فيرجسون فضل سنين طويلة','لعب فيه رونالدو بداياته','منافسه التاريخي ليفربول','نادي مانشستر الأحمر']},
+{w:'الأهلي',type:'كرة قدم',alts:['الاهلي','النادي الأهلي','النادي الاهلي','الأهلي المصري','al ahly'],hints:['نادي عربي','أشهر نادي في قارته','لونه أحمر','لقبه نادي القرن','فاز ببطولة أفريقيا أكتر من أي نادي','اتأسس سنة ١٩٠٧','جمهوره بيتسمى الأهلاوية','ملعبه في القاهرة','منافسه التاريخي الزمالك']},
+{w:'الزمالك',type:'كرة قدم',alts:['نادي الزمالك','الزماك','zamalek','الفارس الأبيض'],hints:['نادي عربي كبير','لونه أبيض','لقبه الفارس الأبيض','اتأسس سنة ١٩١١','أول اسم ليه كان المختلط','فاز بدوري أبطال أفريقيا عدة مرات','جمهوره بيتسمى الزملكاوية','مقره في القاهرة','منافسه التاريخي الأهلي']},
+{w:'كأس العالم',type:'كرة قدم',alts:['كاس العالم','المونديال','مونديال','world cup','كأس العالم لكرة القدم'],hints:['حدث بيستناه العالم كله','بيحصل كل أربع سنين','المنتخبات بتتنافس عليه مش الأندية','بتشارك فيه منتخبات من كل القارات','الكأس اللي بيترفع دهبي','البرازيل أكتر دولة فازت بيه','فرنسا فازت بيه سنة ٢٠١٨','اتنظم في قطر سنة ٢٠٢٢','أكبر بطولة كورة في العالم']},
+{w:'دوري أبطال أوروبا',type:'كرة قدم',alts:['دوري الابطال','دوري أبطال أوروبا','دوري الأبطال','التشامبيونز ليج','champions league','التشامبيونز','دوري ابطال اوروبا'],hints:['بطولة بتتلعب بين الأندية','بيشارك فيها أحسن أندية قارة معينة','بتبدأ بمجموعات وبعدها أدوار إقصائية','كأسها فضي ليه أذنين كبيرين','نشيدها مشهور بيتقال قبل الماتش','ريال مدريد أكتر نادي فاز بيها','النهائي بيتلعب مرة واحدة في ملعب واحد','بتتلعب في أيام الثلاثاء والأربعاء','أكبر بطولة أندية في أوروبا']},
+{w:'الكلاسيكو',type:'كرة قدم',alts:['كلاسيكو','الكلاسيكو الإسباني','el clasico','كلاسيكو الاسباني'],hints:['ماتش بيستناه العالم','بيتلعب بين فريقين','العداوة بينهم تاريخية','بيتلعب في بلد أوروبية','الفريقين من أكبر الأندية','واحد منهم أبيض والتاني أزرق وأحمر','ميسي ورونالدو اتقابلوا فيه كتير','بيتسمى باسم كلمة معناها تقليدي','ماتش ريال مدريد وبرشلونة']},
+{w:'ضربة الجزاء',type:'كرة قدم',alts:['الجزاء','البنالتي','بنالتي','ضربه جزاء','penalty','ضربة جزاء'],hints:['لحظة بتشد الأعصاب في الماتش','بتحصل بعد غلطة في مكان معين','لاعب واحد قدام حارس واحد','بتتحسب لما فريق يغلط جوه منطقة محددة','المسافة بين الكورة والمرمى ١١ متر','بتحسم بطولات بعد التعادل','فيها حاجة اسمها ركلات الترجيح','بتتسمى بنالتي','الكورة بتتحط على نقطة بيضا']},
+{w:'حارس المرمى',type:'كرة قدم',alts:['حارس مرمى','الحارس','حارس','جول كيبر','goalkeeper','حارس المرمي'],hints:['مركز في الملعب مختلف عن الباقي','بيلبس لون غير لون الفريق','بيقف في مكان واحد تقريباً طول الماتش','بيلبس قفازات','الوحيد المسموح له يمسك الكورة بإيده','بيحمي الشباك','بيقف بين العارضتين','بيمنع الأهداف','آخر لاعب دفاع في الفريق']},
+{w:'الكرت الأحمر',type:'كرة قدم',alts:['كرت احمر','كارت احمر','الكارت الاحمر','الكرت الاحمر','red card','كارت أحمر','كرت أحمر'],hints:['ورقة صغيرة ملونة','بيطلعها شخص في الملعب','مش حاجة حلوة لمين بتتطلع له','بتخلي اللاعب يسيب الماتش','الفريق بيكمل بعدد أقل','مرتبطة بالحكم','ليها أخت لونها أصفر','يعني طرد','اللاعب بيخرج بيه من الملعب']},
+{w:'التسلل',type:'كرة قدم',alts:['تسلل','الاوفسايد','أوفسايد','اوفسايد','offside','الأوفسايد'],hints:['قاعدة بتلخبط ناس كتير','مرتبطة بمكان لاعب وقت التمريرة','الحكم المساعد بيرفع الراية','بتتلغى بيها أهداف','بتتحسب لو اللاعب قدام آخر مدافع','بيتقال إن الدفاع بيطلع عشان يوقعه فيها','دلوقتي في تقنية فيديو بتراجعها','بتتحط خطوط على الشاشة عشان تتأكد','بالإنجليزي اسمها أوفسايد']},
+{w:'الحكم',type:'كرة قدم',alts:['حكم','حكم المباراة','الحكم الدولي','referee','حكم الماتش'],hints:['شخص موجود في كل ماتش','مسؤول عن تطبيق القوانين','بيلبس غالباً الأسود','معاه كروت ملونة','وبيجري طول الماتش','معاه صفارة','بيبدأ الماتش وبينهيه','بيدي ضربات جزاء وبيطرد لاعبين','اللي بيحكم الماتش']},
+{w:'ملعب كامب نو',type:'كرة قدم',alts:['كامب نو','camp nou','ملعب برشلونة','كامب نو برشلونة'],hints:['ملعب ضخم جداً','من أكبر الملاعب في أوروبا','بيسع حوالي ١٠٠ ألف متفرج','اتفتح سنة ١٩٥٧','اتسمى بلغة إقليم في إسبانيا','معناه الملعب الجديد','بيتلعب فيه ماتشات الكلاسيكو','لعب فيه ميسي سنين','ملعب برشلونة']},
+{w:'أنفيلد',type:'كرة قدم',alts:['انفيلد','anfield','ملعب ليفربول'],hints:['ملعب مشهور في أوروبا','بيعرف بالجو الحماسي','جماهيره بتغني نشيد مشهور قبل الماتش','في مدينة ميناء إنجليزية','في لافتة مشهورة في ممر اللاعبين','اللافتة بتقول إنه مش مجرد ملعب','فيه مدرج اسمه كوب','بيسع حوالي ٦٠ ألف','ملعب ليفربول']},
+{w:'اللاعب الهداف',type:'كرة قدم',alts:['الهداف','هداف','هداف الدوري','top scorer','الهداف التاريخي'],hints:['لقب بيتاخد في آخر الموسم','مش بيتاخد لأي لاعب','بيتحسب بعدد حاجة معينة','بيتحسب بعدد الأهداف','بياخد جزمة دهبية أحياناً','بيتحط اسمه في الجدول على الصدارة','أغلب المهاجمين بيتنافسوا عليه','بيسجل أكتر من غيره','اللي سجل أكتر عدد أهداف']},
+{w:'الدوري الإنجليزي',type:'كرة قدم',alts:['الدوري الانجليزي','البريميرليج','بريميرليج','premier league','البريمير ليج','الدوري الإنجليزي الممتاز'],hints:['دوري من أقوى دوريات العالم','فيه عشرين فريق','بيتلعب في بلد أوروبية','اتأسس بالشكل ده سنة ١٩٩٢','بيتابعه ملايين في العالم','فيه ليفربول وسيتي وأرسنال','صلاح وهالاند بيلعبوا فيه','حرف الـ P في اسمه الإنجليزي','دوري إنجلترا الممتاز']},
+{w:'المدرب',type:'كرة قدم',alts:['مدرب','المدير الفني','المدير الفنى','coach','مدرب الفريق','المدرب الفني','مدير فني'],hints:['شخص مهم في أي فريق','بيقف على الخط','معاه ورقة أو لوح للتكتيك','بيصرخ ويدي تعليمات','بيختار التشكيلة','بيعمل التغييرات في الماتش','بيتعرض للإقالة لو النتايج وحشة','لو الفريق كسب بيتقال براڤو عليه','بيدرب الفريق وبيحدد خطته']},
+{w:'الركنية',type:'كرة قدم',alts:['ركنية','ضربة ركنية','ركلة ركنية','corner','كورنر','الكورنر','ضربة الركنية'],hints:['حالة بتحصل في الماتش','بتتحسب بعد ما الكورة تخرج من ناحية معينة','بتتلعب من مكان محدد في الملعب','اللاعبين بيتجمعوا في منطقة المرمى','فيها كورة عالية للراس','بتتحط في ركن الملعب','في راية صغيرة في المكان ده','الأهداف بتيجي منها كتير','ضربة بتتنفذ من زاوية الملعب']},
+{w:'رأس الحربة',type:'كرة قدم',alts:['راس الحربة','المهاجم','مهاجم','striker','رأس حربة','المهاجم الصريح'],hints:['مركز في الملعب','بيلعب في الأمام','دوره الأساسي سهل الشرح','بيستنى التمريرات','بيدخل منطقة الجزاء','بيسجل أهداف كتير','هالاند مثال شهير','بيلبس رقم تسعة غالباً','أكتر لاعب قريب من مرمى الخصم']},
+{w:'الدوري',type:'كرة قدم',alts:['دورى','دوري','الدوري المصري','الدوري العام','دوري الدرجة الأولى','league'],hints:['مسابقة بتتلعب طول الموسم','بيشارك فيها أندية من نفس البلد','بتتلعب بنظام مباريات ذهاب وإياب','بيتحسب فيها نقط','الفوز بيدي تلات نقط','التعادل نقطة','الأول في الجدول بياخد اللقب','الأخير بيهبط للدرجة اللي بعدها','بطولة بتتلعب على مدار الموسم']},
+{w:'الأولمبياد',type:'رياضة',alts:['اولمبياد','الاولمبياد','الألعاب الأولمبية','olympics','اوليمبياد'],hints:['حدث رياضي ضخم','بيحصل كل أربع سنين','بيشارك فيه دول كتير','فيه رياضات مختلفة مش بس واحدة','بيتسلم فيه ميداليات دهب وفضة وبرونز','شعاره خمس دواير متشابكة','بدأ في اليونان القديمة','فيه شعلة بتتشعل وبتتنقل','بيتنظم في مدينة مختلفة كل مرة']},
+{w:'الدباسة',type:'أداة',alts:['دباسة','الدباسه','دباسه','دباسة ورق','دباسة المكتب','دباسة أوراق','دباسة الكبس','كباسة','آلة التدبيس'],hints:['بتستخدم في المكاتب والمدارس','بتجمع أكتر من ورقة مع بعض','ليها جزء بيتضغط بالإيد','بتحتاج قطع معدنية صغيرة علشان تشتغل','ممكن تلاقيها جنب الأقلام والكراسات','بتعمل صوت خفيف لما تستخدمها']},
+{w:'الكشاف',type:'أداة',alts:['كشاف','الكشّاف','كشاف يدوي','كشاف نور','مصباح يدوي','لمبة يدوية','فلاش','كشاف بطارية','كشاف كهرباء'],hints:['مفيد جداً لما النور يقطع','ممكن تستخدمه في الأماكن الضلمة','فيه أنواع بتشتغل بالبطارية','بعض الناس بتحتفظ بيه في العربية','ممكن يكون صغير ويتحط في الجيب','بيساعدك تشوف الطريق بالليل']},
+{w:'الخوذة',type:'ملابس',alts:['خوذة','الخوذه','خوذه','غطاء الرأس الواقي','قبعة واقية','خوذة أمان','خوذة حماية','هلمت','هيلم'],hints:['بتتلبس على الرأس','بتستخدم في بعض الرياضات','مهمة في مواقع البناء','ممكن تشوفها مع سائقي الدراجات','مصممة لتقليل خطر الإصابة','في منها ألوان وأشكال مختلفة']},
+{w:'المحفظة',type:'غرض شخصي',alts:['محفظة','المحفظه','محفظه','جراب نقود','حافظة نقود','حافظة فلوس','جراب فلوس','بوك','بورتفيه','محفظة جلد'],hints:['غالباً بتكون معاك وأنت خارج','بتحفظ فيها حاجات مهمة','في منها أحجام صغيرة وكبيرة','ممكن تكون جلد أو قماش','بتتحط في الجيب أو الشنطة','بتحتاجها في التعاملات اليومية']},
+{w:'المشبك',type:'أداة',alts:['مشبك','المشبك','مشبك غسيل','مشبك هدوم','كلبسة','ملقاط غسيل','مشبك ورق','دبوس مشبك','كليب','مشبك ملابس'],hints:['حجمه غالباً صغير','بيساعد في تثبيت حاجة في مكانها','ممكن تلاقيه في البيت كتير','في نوع مشهور بيتستخدم بعد الغسيل','بعض أنواعه بتكون من البلاستيك','بيمسك حاجتين مع بعض']},
+{w:'الحزام',type:'ملابس',alts:['حزام','الحزام','زنار','حزام وسط','حزام بنطلون','سير','حزام جلد','حزام خصر','وسطية'],hints:['غالباً بيتلبس حول منطقة الوسط','في منه أنواع جلد وقماش','ممكن يكون ليه إبزيم معدني','بيساعد في تثبيت قطعة ملابس','في منه أشكال رسمية وكاجوال','مقاسه ممكن يتغير حسب الحاجة']},
+{w:'المنشور',type:'مصطلح',alts:['منشور','المنشور','بوست','بوستة','منشور إلكتروني','منشور هندسي','شكل منشوري','بريزم','منشور ضوئي'],hints:['ممكن تسمع الكلمة في الرياضيات','له معنى تاني على مواقع التواصل','في نوع منه بيكون له أوجه مسطحة','ممكن يرتبط بتفريق الضوء','بيظهر في الكتب الدراسية','معناه بيتغير حسب المجال اللي اتقال فيه']},
+{w:'البودكاست',type:'وسيلة إعلام',alts:['بودكاست','البودكاست','بود كاست','بودكاست صوتي','برنامج صوتي','حلقة صوتية','Podcast','بودكاستر'],hints:['ممكن تسمعه وأنت بتعمل حاجة تانية','غالباً بيكون على هيئة حلقات','فيه ناس بتقدمه بشكل فردي أو جماعي','ممكن يتكلم عن الرياضة أو الثقافة أو الترفيه','تقدر تسمعه من الموبايل','بعض حلقاته بتكون طويلة']},
+{w:'الهاشتاج',type:'مصطلح',alts:['هاشتاج','الهاشتاج','هاشتاغ','هاش تاج','وسم','تاج','Hashtag','علامة التصنيف'],hints:['مشهور جداً على مواقع التواصل','بيبدأ بعلامة معينة','بيساعد في تجميع المنشورات المتشابهة','ممكن يخلي موضوع ينتشر','بتشوفه كتير في التعليقات والمنشورات','بيكون مرتبط بكلمة أو عبارة']},
+{w:'التريند',type:'مصطلح',alts:['تريند','التريند','ترند','الترند','Trend','موضوع رائج','موضوع منتشر','ظاهرة منتشرة','حديث الساعة'],hints:['ممكن يظهر فجأة وينتشر بسرعة','مرتبط جداً بمواقع التواصل','ناس كتير بتتكلم عنه في نفس الوقت','ممكن يكون أغنية أو تحدي أو خبر','مش شرط يفضل مشهور لفترة طويلة','أحياناً الناس بتشارك فيه لمجرد إنه منتشر']},
+{w:'الخسوف',type:'ظاهرة',alts:['خسوف','الخسوف','خسوف القمر','خسوف قمري','احتجاب القمر','Lunar Eclipse'],hints:['ظاهرة بتحصل في السماء','مش بتحصل كل يوم','مرتبطة بجرم سماوي معروف','ممكن تخلي شكل القمر يتغير','بتحصل في أوقات محددة','ليها علاقة بوقوع جسم في ظل جسم تاني']},
+{w:'الإعصار',type:'ظاهرة طبيعية',alts:['إعصار','الاعصار','الإعصار','عاصفة','عاصفة شديدة','عاصفة مدارية','إعصار مداري','إعصار حلزوني','هوريكان','تيفون'],hints:['ظاهرة جوية قوية','ممكن تسبب أضرار كبيرة','بتكون مصحوبة برياح شديدة','أحياناً بتؤثر على المدن الساحلية','ممكن يصاحبها أمطار غزيرة','بتظهر في نشرات الطقس']},
+{w:'التسونامي',type:'ظاهرة طبيعية',alts:['تسونامي','التسونامي','موجة تسونامي','أمواج تسونامي','موجة بحرية عملاقة','موجات عاتية','Tsunami'],hints:['ظاهرة مرتبطة بالبحر','ممكن تحصل بعد نشاط تحت سطح الأرض','بتشكل خطراً على المناطق الساحلية','مش مجرد موجة عادية','ممكن تتحرك لمسافات طويلة','اتعرفت عنها أخبار بعد كوارث طبيعية']},
+{w:'الفيضان',type:'ظاهرة طبيعية',alts:['فيضان','الفيضان','فيضانات','غرق الأراضي','ارتفاع منسوب المياه','طغيان المياه','سيول','Flood'],hints:['بيحصل لما المياه تزيد عن المعتاد','ممكن يغطي شوارع وأراضي','أحياناً بيكون بسبب أمطار غزيرة','ممكن يعطل حركة الناس','بيشكل خطراً على البيوت والممتلكات','مرتبط بالمياه بشكل أساسي']},
+{w:'الجفاف',type:'ظاهرة طبيعية',alts:['جفاف','الجفاف','قحط','قلة الأمطار','ندرة المياه','تصحر','جفاف الأرض','Drought'],hints:['مشكلة بتأثر على الزراعة','بتظهر لما المطر يقل لفترة طويلة','ممكن تسبب نقص في المياه','بتأثر على النباتات والتربة','بتكون مشكلة في بعض البلاد','عكس الحالة اللي فيها مياه كتير']},
+{w:'الشروق',type:'ظاهرة طبيعية',alts:['شروق','الشروق','طلوع الشمس','بزوغ الشمس','ظهور الشمس','الفجر','Sunrise'],hints:['بيحصل في بداية اليوم','مرتبط بظهور جسم مضيء في السماء','ناس كتير بتحب تتفرج عليه','بييجي بعد ساعات الليل','وقته بيختلف حسب المكان والفصل','ممكن تشوف السماء بألوان جميلة وقتها']},
+{w:'الغروب',type:'ظاهرة طبيعية',alts:['غروب','الغروب','غروب الشمس','مغيب الشمس','غياب الشمس','وقت الغروب','Sunset'],hints:['بيحصل في نهاية النهار','السماء بتتغير ألوانها وقتها','ناس كتير بتحب تصويره','بييجي قبل بداية الليل','وقته بيتغير على مدار السنة','مرتبط بحركة الشمس الظاهرية']},
+{w:'البرتغال',type:'دولة',alts:['برتغال','البرتغال','Portugal','الجمهورية البرتغالية','برتغاليا'],hints:['دولة أوروبية','عاصمتها مدينة مشهورة','ليها ساحل على المحيط الأطلسي','لغتها الرسمية مش من اللغات السلافية','معروفة بتاريخها البحري','لها منتخب كرة قدم مشهور']},
+{w:'الأرجنتين',type:'دولة',alts:['ارجنتين','الأرجنتين','الارجنتين','Argentina','جمهورية الأرجنتين'],hints:['دولة في قارة أمريكا الجنوبية','علمها فيه اللون السماوي','معروفة بكرة القدم','عاصمتها مدينة كبيرة ومشهورة','اشتهرت بإنتاج لحوم الأبقار','لها تاريخ رياضي قوي']},
+{w:'السويد',type:'دولة',alts:['سويد','السويد','Sweden','مملكة السويد'],hints:['دولة في شمال أوروبا','علمها فيه اللونان الأزرق والأصفر','طقسها بارد في أجزاء كبيرة من السنة','معروفة بالاهتمام بالتكنولوجيا','لها طبيعة وغابات كثيرة','عاصمتها مدينة أوروبية مشهورة']},
+{w:'النرويج',type:'دولة',alts:['نرويج','النرويج','Norway','مملكة النرويج'],hints:['دولة في شمال أوروبا','معروفة بالمناظر الطبيعية الجميلة','فيها جبال ومضايق بحرية','الشتاء فيها بارد في مناطق كثيرة','تقع في شبه الجزيرة الإسكندنافية','من أشهر الظواهر التي يمكن رؤيتها فيها أضواء ملونة في السماء']},
+{w:'الكويت',type:'دولة',alts:['كويت','الكويت','دولة الكويت','Kuwait'],hints:['دولة عربية','تقع في منطقة الخليج','علمها يتكون من أربعة ألوان','لها حدود مع دولتين','عملتها من العملات المعروفة بقيمتها','عاصمتها تحمل نفس اسم الدولة']},
+{w:'لبنان',type:'دولة',alts:['لبنان','لبناني','الجمهورية اللبنانية','Lebanon'],hints:['دولة عربية','تقع على ساحل البحر المتوسط','علمها فيه شجرة مميزة','عاصمتها مدينة معروفة','تشتهر بالطبيعة الجبلية','لها مطبخ مشهور في دول كثيرة']},
+{w:'الأردن',type:'دولة',alts:['اردن','الأردن','الاردن','المملكة الأردنية','Jordan'],hints:['دولة عربية','تقع في منطقة الشرق الأوسط','فيها مكان أثري مشهور منحوت في الصخور','لها منفذ بحري صغير','علمها يحتوي على نجمة','عاصمتها مدينة كبيرة']},
+{w:'إندونيسيا',type:'دولة',alts:['اندونيسيا','إندونيسيا','Indonesia','جمهورية إندونيسيا'],hints:['دولة في قارة آسيا','تتكون من عدد كبير من الجزر','علمها أحمر وأبيض','فيها براكين نشطة','تشتهر بالشواطئ والطبيعة الاستوائية','من أكبر دول العالم من حيث عدد السكان']},
+{w:'البرتقالة',type:'فاكهة',alts:['برتقالة','البرتقالة','برتقال','البرتقان','برتقانة','برتقاله','البرتقال','برتقان','Orange','ثمرة البرتقال'],hints:['فاكهة مشهورة في الشتاء','غالباً لونها برتقالي','ممكن تتاكل أو تتعصر','فيها عصير كتير','قشرتها الخارجية سهلة التقشير نسبياً','بتحتوي على فيتامين معروف','طعمها ممكن يكون حلو أو حامض','بتدخل في بعض الحلويات']},
+{w:'الصفارة',type:'أداة',alts:['صفارة','الصفارة','صافرة','الصافرة','صفارة حكم','صافرة حكم','زمارة','زمّارة','Whistle'],hints:['بتصدر صوت عالي وواضح','ممكن تستخدم في الرياضة','الحكام بيستخدموها في المباريات','ممكن تستخدم لجذب الانتباه','حجمها غالباً صغير','بتشتغل عن طريق النفخ']},
+{w:'الولاعة',type:'أداة',alts:['ولاعة','الولاعة','ولّاعة','قداحة','قداحة نار','ولاعة غاز','ولاعة سجائر','Lighter'],hints:['حجمها غالباً صغير','ممكن تتحط في الجيب','بتحتاج وقود أو شحن حسب نوعها','بيستخدمها البعض في الرحلات','في منها أنواع قابلة لإعادة التعبئة','بتنتج حاجة ممكن تشوفها بوضوح']},
+{w:'المناديل',type:'غرض يومي',alts:['مناديل','المناديل','منديل','منديل ورقي','مناديل ورقية','كلينكس','فاين','مناديل جيب','مناديل وجه','Tissues'],hints:['موجودة تقريباً في كل بيت','بتستخدم مرة واحدة غالباً','في منها علب وعبوات صغيرة','مفيدة في مواقف يومية كتير','ممكن تكون ناعمة أو معطرة','بتستخدم في التنظيف السريع']},
+{w:'الفلتر',type:'أداة',alts:['فلتر','الفلتر','مصفاة','مرشح','منقّي','فلتر مياه','فلتر هواء','فلتر قهوة','Filter'],hints:['بيكون موجود في أجهزة كتير','وظيفته إنه يمنع مرور بعض الأشياء','ممكن تلاقيه في المطبخ أو العربية','في منه أنواع للمياه والهواء','ممكن يحتاج تنظيف أو تغيير','بيساعد في تحسين جودة حاجة معينة']},
+{w:'التحديث',type:'مصطلح تقني',alts:['تحديث','التحديث','Update','أبديت','ترقية','تطوير','نسخة جديدة','تحديث النظام','تحديث البرنامج'],hints:['بيظهر كتير على الموبايلات','ممكن يضيف مميزات جديدة','أحياناً بيحل مشاكل موجودة','ممكن يحتاج اتصال بالإنترنت','بيحصل للتطبيقات والأنظمة','بعده ممكن تلاحظ اختلافات بسيطة أو كبيرة']}  
 ];
 const CARDS=[
 {k:'last',i:'🔚',l:'الحرف الأخير'},
@@ -1733,9 +1884,88 @@ async function hostTick(){
   }catch(e){}finally{busy=false}
 }
 
-$('btnCreate').onclick=()=>{SFX.click();$('hostNameInp').value=lsGet(NAME_KEY)||'';hideErr('hostNameErr');show('sHostName')};
-$('btnJoin').onclick=()=>{SFX.click();$('joinCodeInp').value='';$('joinNameInp').value=lsGet(NAME_KEY)||'';hideErr('joinErr');show('sJoin')};
-$('btnHome').onclick=()=>{location.href='index.html'};
+$('btnCreate').onclick=()=>{SFX.click();$('hostNameInp').value=lsGet(NAME_KEY)||'';hideErr('hostNameErr');show('sHostName');refreshAv();if(!lsGet(AV_KEY))openAvatarPicker()};
+$('btnJoin').onclick=()=>{SFX.click();$('joinCodeInp').value='';$('joinNameInp').value=lsGet(NAME_KEY)||'';hideErr('joinErr');show('sJoin');refreshAv();if(!lsGet(AV_KEY))openAvatarPicker()};
+
+const AVATAR_COUNT=20;
+function refreshAv(){
+  const html=avHtml({name:S.name||($('hostNameInp')&&$('hostNameInp').value)||'?',avatar:S.avatar},84)+'<span class="avEdit">✎</span><small>اختار صورتك</small>';
+  ['hostAv','joinAv'].forEach(id=>{const e=$(id);if(e)e.innerHTML=html});
+}
+function openAvatarPicker(onConfirm){
+  const old=$('avatarPopupOverlay');
+  if(old)old.remove();
+  const N=AVATAR_COUNT;
+  let current=(parseInt(String(S.avatar).replace('av',''),10)||1)-1;
+  if(current<0||current>=N)current=0;
+  const overlay=document.createElement('div');
+  overlay.id='avatarPopupOverlay';
+  overlay.className='avatar-popup-overlay';
+  overlay.innerHTML=`<div class="avatar-popup-box"><div class="avatar-popup-title">اختار صورتك</div><div class="avatar-carousel-wrapper"><button class="avatar-nav" id="avPrev">›</button><div class="avatar-carousel" id="avatarCarousel"></div><button class="avatar-nav" id="avNext">‹</button></div><div class="avatar-dots" id="avDots"></div><div class="avatar-counter" id="avCounter"></div><button class="avatar-confirm" id="avConfirmBtn">تمام</button></div>`;
+  document.body.appendChild(overlay);
+  const carousel=overlay.querySelector('#avatarCarousel');
+  const dots=overlay.querySelector('#avDots');
+  const counter=overlay.querySelector('#avCounter');
+  for(let i=1;i<=N;i++){
+    const item=document.createElement('div');
+    item.className='avatar-item';
+    item.dataset.avKey='av'+i;
+    item.innerHTML='<img src="Avatar/av'+i+'.png" draggable="false" onerror="this.style.visibility=\'hidden\'">';
+    item.addEventListener('click',()=>{current=i-1;update()});
+    carousel.appendChild(item);
+  }
+  const getItems=()=>[...carousel.children];
+  function update(){
+    const items=getItems();
+    items.forEach((item,i)=>{
+      const offset=i-current;
+      item.style.transform=`translateX(${offset*90}px) scale(${i===current?1:0.72})`;
+      item.style.opacity=i===current?'1':Math.abs(offset)===1?'0.55':'0.18';
+      item.style.zIndex=100-Math.abs(offset);
+      item.classList.toggle('active',i===current);
+    });
+    counter.textContent=`${current+1} / ${items.length}`;
+    buildDots();
+  }
+  function buildDots(){
+    dots.innerHTML='';
+    getItems().forEach((_,i)=>{
+      const dot=document.createElement('div');
+      dot.className=i===current?'avatar-dot active':'avatar-dot';
+      dot.addEventListener('click',()=>{current=i;update()});
+      dots.appendChild(dot);
+    });
+  }
+  function next(){current=(current+1)%getItems().length;update()}
+  function prev(){current=(current-1+getItems().length)%getItems().length;update()}
+  overlay.querySelector('#avNext').onclick=next;
+  overlay.querySelector('#avPrev').onclick=prev;
+  let startX=0,dragging=false;
+  const onMove=e=>{
+    if(!dragging)return;
+    if(Math.abs(e.clientX-startX)>50){dragging=false;e.clientX-startX<0?next():prev()}
+  };
+  const onUp=()=>{dragging=false};
+  carousel.addEventListener('pointerdown',e=>{startX=e.clientX;dragging=true});
+  window.addEventListener('pointermove',onMove);
+  window.addEventListener('pointerup',onUp);
+  const close=()=>{window.removeEventListener('pointermove',onMove);window.removeEventListener('pointerup',onUp);overlay.remove()};
+  overlay.querySelector('#avConfirmBtn').addEventListener('click',()=>{
+    SFX.click();
+    const active=getItems()[current];
+    const chosen=(active&&active.dataset.avKey)||('av'+(current+1));
+    S.avatar=chosen;
+    lsSet(AV_KEY,chosen);
+    close();
+    refreshAv();
+    if(onConfirm)onConfirm(chosen);
+  });
+  overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
+  update();
+}
+$('hostAv').onclick=()=>openAvatarPicker();
+$('joinAv').onclick=()=>openAvatarPicker();
+$('btnHome').onclick=()=>show('sHome');
 $('hostNameBack').onclick=()=>show('sMain');
 $('joinBack').onclick=()=>show('sMain');
 
@@ -1777,7 +2007,6 @@ window.addEventListener('pagehide',()=>{
   if(S.isHost&&S.code){try{set(ref(db,`hintRooms/${S.code}/hostLeft`),true)}catch(e){}}
 });
 
-show('sMain');
 </script>
 </body>
-</html> 
+</html>
